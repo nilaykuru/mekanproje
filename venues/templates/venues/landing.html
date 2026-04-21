@@ -1,0 +1,84 @@
+{% extends 'venues/base.html' %}
+
+{% block title %}Keşfetmeye Başla - Anlık Mekan{% endblock %}
+
+{% block extra_css %}
+<style>
+    h1 { font-size: 48px; font-weight: 900;text-align: center; margin-bottom: 20px; }
+    .hero-section { text-align: center; padding: 80px 5%; background: linear-gradient(to bottom, white, var(--bg-light)); }
+    .hero-section h1 { font-size: 48px; font-weight: 900; margin-bottom: 20px; letter-spacing: -1px; }
+    .hero-section p { color: var(--text-gray); font-size: 18px; margin-bottom: 40px; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+    .cta-button { background: var(--primary-blue); color: white; padding: 16px 32px; border-radius: 8px; font-size: 18px; font-weight: 800; box-shadow: 0 4px 15px rgba(0,86,179,0.3); display: inline-block; transition: 0.2s; }
+    .cta-button:hover { transform: translateY(-3px); }
+    
+    /* YENİ FLEX KAPSAYICI */
+    .container { max-width: 1200px; margin: 0 auto 60px auto; padding: 0 5%; }
+    
+    .flex-layout { 
+        display: flex; 
+        justify-content: center; /* Tam ortaya hizalar */
+        gap: 30px; /* Kartların arasındaki o "belli aralık" */
+        flex-wrap: wrap; 
+    }
+    
+    .card { 
+        flex: 1; /* Kartların ekranı boydan boya eşit paylaşmasını sağlar */
+        min-width: 300px; /* Çok küçülen ekranlarda ezilmemeleri için */
+        height: 400px; /* Hepsinin boyunun eşit ve şık durması için sabit yükseklik */
+        position: relative; 
+        overflow: hidden; 
+        border-radius: 12px; 
+        cursor: pointer; 
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+    }
+
+    .card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+    .card:hover img { transform: scale(1.08); }
+    
+    .card-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.9)); color: white; padding: 25px 20px; }
+    .card-overlay h3 { font-size: 24px; font-weight: 800; margin-bottom: 5px; }
+    .card-overlay p { font-size: 14px; color: #ddd; font-weight: 600; }
+    
+    .badge { background: var(--primary-blue); padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: 900; margin-bottom: 8px; display: inline-block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <h1>Şu An Neye İhtiyacın Var?</h1>
+    <p>Sınav haftası için sessiz bir kütüphane, gece yarısı açık bir eczane veya hafta sonu arkadaşlarınla gideceğin konsept bir mekan... Şehrin anlık ritmini hemen keşfet.</p>
+</section>
+
+<div class="container">
+    <div class="flex-layout">
+        
+        <div class="card">
+            <img src="https://images.unsplash.com/photo-1497935586351-b67a49e012bf?q=80&w=1000" alt="Kahve ve Çalışma">
+            <div class="card-overlay">
+                <span class="badge">ODAKLAN</span>
+                <h3>Çalışma Alanları</h3>
+                <p>Priz garantili, sessiz kafeler.</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <img src="https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=600" alt="Restoran">
+            <div class="card-overlay">
+                <span class="badge" style="background:#e63946;">ÖZEL GÜNLER</span>
+                <h3>Şık Akşam Yemekleri</h3>
+                <p>Rezervasyonlu  mekanlar.</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1000" alt="Eğlence">
+            <div class="card-overlay">
+                <span class="badge" style="background:#2a9d8f;">EĞLENCE</span>
+                <h3>Canlı Müzik</h3>
+                <p>Hafta sonu ritmini yakala.</p>
+            </div>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

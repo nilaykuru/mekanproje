@@ -1,0 +1,69 @@
+{% extends 'venues/base.html' %}
+
+{% block title %}Dashboard - Anlık Mekan{% endblock %}
+
+{% block extra_css %}
+<style>
+    p{ font-size: 18px; color: var(--text-gray); text-align: center; margin-top: 40px; }
+    .container { max-width: 1200px; margin: 40px auto; padding: 0 5%; }
+    .bento-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; grid-auto-rows: minmax(200px, auto); gap: 30px; }
+    .card { display: flex; flex-direction: column; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s ease; }
+    .card:hover { transform: translateY(-5px); }
+    .card img { width: 100%; height: 200px; object-fit: cover; margin-bottom: 15px; }
+    .card-content { padding: 0 15px 15px 15px; }
+    .card-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+    .card-tags { font-size: 12px; font-weight: 700; color: var(--text-gray); text-transform: uppercase; }
+    .hero-card { grid-column: 1 / 2; grid-row: 1 / 3; }
+    .hero-card img { height: 400px; }
+    .hero-card .card-title { font-size: 36px; }
+    
+    .action-buttons { margin-top: 15px; display: flex; gap: 10px; }
+    .btn { padding: 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; text-align: center; }
+    .btn-primary { flex: 1; background: var(--primary-blue); color: white; }
+    .btn-secondary { background: #eee; color: var(--text-dark); padding: 10px 15px; }
+    
+    @media (max-width: 900px) { .bento-grid { grid-template-columns: 1fr; } .hero-card { grid-column: 1 / -1; grid-row: auto; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="bento-grid">
+        {% for mekan in mekanlar %}
+            {% if forloop.first %}
+                <article class="card hero-card">
+                    <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=1200" alt="{{ mekan.ad }}">
+                    <div class="card-content">
+                        <h2 class="card-title">{{ mekan.ad }}</h2>
+                        <div class="card-tags">
+                            {{ mekan.kategori }} • 
+                            {% if mekan.su_an_acik %} <span style="color: green;">🟢 AÇIK</span> {% else %} <span style="color: red;">🔴 KAPALI</span> {% endif %} 
+                            • %{{ mekan.doluluk_orani }} DOLU
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary">📍 Yol Tarifi Al</button>
+                            <button class="btn btn-secondary">⭐ Favoriye Ekle</button>
+                        </div>
+                    </div>
+                </article>
+            {% else %}
+                <article class="card">
+                    <img src="https://plus.unsplash.com/premium_photo-1661313626999-9d739818818c?q=80&w=600" alt="{{ mekan.ad }}">
+                    <div class="card-content">
+                        <h3 class="card-title">{{ mekan.ad }}</h3>
+                        <div class="card-tags">
+                            {{ mekan.kategori }} • %{{ mekan.doluluk_orani }} DOLU
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" style="font-size: 13px;">📍 Yol Tarifi</button>
+                            <button class="btn btn-secondary" style="padding: 10px;">⭐</button>
+                        </div>
+                    </div>
+                </article>
+            {% endif %}
+        {% empty %}
+            <p>Sistemde hiç mekan bulunmuyor.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

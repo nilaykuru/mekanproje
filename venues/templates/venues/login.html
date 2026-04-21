@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş Yap - Anlık Mekan</title>
+    <style>
+        :root {
+            --primary-blue: #0056b3;
+            --primary-hover: #004494;
+            --text-dark: #1a1a1a;
+            --text-gray: #666;
+            --bg-light: #f8f9fa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+        }
+        .login-image {
+            flex: 1;
+            background: linear-gradient(to right, rgba(0, 86, 179, 0.2), rgba(0, 0, 0, 0.7)), 
+                        url('https://images.unsplash.com/photo-1497935586351-b67a49e012bf?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .image-text {
+            color: white;
+            text-align: center;
+            max-width: 500px;
+        }
+
+        .image-text h1 {
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 20px;
+        }
+
+        .image-text p {
+            font-size: 18px;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .login-form-container {
+            width: 100%;
+            max-width: 500px;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.05);
+        }
+
+        .form-header {
+            margin-bottom: 40px;
+        }
+
+        .form-header h2 {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .form-header p {
+            color: var(--text-gray);
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+            text-transform: uppercase;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+        }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            font-size: 13px;
+        }
+
+        .form-options a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+
+        .register-link a {
+            color: var(--primary-blue);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        /* Mobil Uyumluluk */
+        @media (max-width: 900px) {
+            body {
+                flex-direction: column;
+            }
+            .login-image {
+                display: none; /* Mobilde görseli gizle, sadece form kalsın */
+            }
+            .login-form-container {
+                max-width: 100%;
+                padding: 40px 20px;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-image">
+        <div class="image-text">
+            <h1>Anlık İhtiyaçların İçin Doğru Adres.</h1>
+            <p>Çalışacak sessiz bir kafe mi arıyorsun? Yoksa gece yarısı açık bir eczane mi? Hemen giriş yap ve etrafındaki mekanları keşfet.</p>
+        </div>
+    </div>
+
+    <div class="login-form-container">
+        <div class="form-header">
+            <h2>Tekrar Hoş Geldin! </h2>
+            <p>Mekanları keşfetmeye devam etmek için giriş yap.</p>
+        </div>
+
+       <form method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+            
+            <div class="input-group">
+                <label for="username">Kullanıcı Adı</label>
+                <input type="text" id="username" name="username" placeholder="elifguven" required>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Şifre</label>
+                <input type="password" id="password" name="password" placeholder="••••••••" required>
+            </div>
+
+            <div class="form-options">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" name="remember"> Beni Hatırla
+                </label>
+                <a href="#">Şifremi Unuttum</a>
+            </div>
+
+            <button type="submit" class="btn-submit">Giriş Yap</button>
+        </form>
+
+        <div class="register-link">
+            Hesabın yok mu? <a href="{% url 'register' %}">Hemen Üye Ol</a>
+        </div>
+    </div>
+
+</body>
+</html>

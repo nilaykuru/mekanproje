@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Üye Ol - Anlık Mekan</title>
+    <style>
+ 
+        :root { --primary-blue: #0056b3; --primary-hover: #004494; --text-dark: #1a1a1a; --text-gray: #666; --bg-light: #f8f9fa; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+        body { height: 100vh; display: flex; background-color: var(--bg-light); color: var(--text-dark); }
+        .login-image { flex: 1; background: linear-gradient(to right, rgba(0, 86, 179, 0.2), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1600') center/cover no-repeat; display: flex; align-items: center; justify-content: center; padding: 40px; }
+        .image-text { color: white; text-align: center; max-width: 500px; }
+        .image-text h1 { font-size: 48px; font-weight: 900; margin-bottom: 20px; }
+        .login-form-container { width: 100%; max-width: 550px; background-color: white; display: flex; flex-direction: column; justify-content: center; padding: 60px; box-shadow: -5px 0 25px rgba(0,0,0,0.05); overflow-y: auto; }
+        .form-header { margin-bottom: 30px; }
+        .form-header h2 { font-size: 28px; font-weight: 800; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 5px; text-transform: uppercase; }
+        .input-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; }
+        .btn-submit { width: 100%; padding: 15px; background-color: var(--primary-blue); color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+        .login-link { text-align: center; margin-top: 20px; font-size: 14px; }
+        .login-link a { color: var(--primary-blue); font-weight: 700; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="login-image">
+        <div class="image-text">
+            <h1>Aramıza Katıl.</h1>
+        </div>
+    </div>
+
+    <div class="login-form-container">
+        <div class="form-header">
+            <h2>Yeni Hesap Oluştur </h2>
+            <p>Bilgilerini girerek anlık mekan takibine başla.</p>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="input-group">
+                <label for="username">Kullanıcı Adı</label>
+                <input type="text" id="username" name="username" placeholder="elifguven" required>
+            </div>
+
+            <div class="input-group">
+                <label for="email">E-Posta Adresi</label>
+                <input type="email" id="email" name="email" placeholder="ornek@marmara.edu.tr" required>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Şifre</label>
+                <input type="password" id="password" name="password" placeholder="••••••••" required>
+            </div>
+
+            <div class="input-group">
+                <label for="password_confirm">Şifre Tekrar</label>
+                <input type="password" id="password_confirm" name="password_confirm" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn-submit">Hesabımı Oluştur</button>
+        </form>
+
+        <div class="login-link">
+            Zaten hesabın var mı? <a href="{% url 'login' %}">Giriş Yap</a>
+        </div>
+    </div>
+</body>
+</html>

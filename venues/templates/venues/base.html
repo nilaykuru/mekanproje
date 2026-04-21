@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Anlık Mekan{% endblock %}</title>
+    <style>
+        /* TÜM ORTAK CSS KODLARI */
+        :root { --primary-blue: #0056b3; --text-dark: #1a1a1a; --text-gray: #666; --bg-light: #f8f9fa; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; }
+        body { color: var(--text-dark); background-color: var(--bg-light); display: flex; flex-direction: column; min-height: 100vh; }
+        a { text-decoration: none; color: inherit; }
+
+        /* Navbar */
+        .top-navbar { background-color: var(--primary-blue); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: 900; letter-spacing: -1px; }
+        .user-menu a { font-weight: bold; font-size: 14px; border: 1px solid white; padding: 8px 15px; border-radius: 4px; transition: 0.3s; }
+        .user-menu a:hover { background: white; color: var(--primary-blue); }
+        .search-bar { flex-grow: 1; max-width: 500px; margin: 0 20px; }
+        .search-bar input { width: 100%; padding: 10px 15px; border: none; border-radius: 4px; font-size: 14px; }
+
+        /* Sub-Navbar */
+        .sub-navbar { padding: 15px 5%; background-color: white; border-bottom: 1px solid #eee; display: flex; gap: 30px; font-weight: 700; font-size: 14px; text-transform: uppercase; }
+        .sub-navbar a:hover { color: var(--primary-blue); }
+
+        /* Ana İçerik Alanı (Sayfanın alt kısıma yapışması için flex) */
+        main { flex: 1; }
+
+        /* Footer (Alt Bilgi) */
+        .site-footer { background-color: #1a1a1a; color: white; text-align: center; padding: 30px 20px; margin-top: 60px; }
+        .site-footer p { font-size: 14px; color: #888; margin-top: 10px; }
+        
+        /* ÇOCUK SAYFALARIN KENDİ CSS'LERİ BURAYA GELECEK */
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body>
+
+    <header class="top-navbar">
+        <div class="logo">ANLIK MEKAN</div>
+        <div class="search-bar">
+            <input type="text" placeholder="Ne arıyorsunuz? (Örn: Sessiz kafe, açık nöbetçi eczane...)">
+        </div>
+        <div class="user-menu">
+            {% if user.is_authenticated %}
+                <span style="margin-right: 15px; font-weight: bold; font-size: 14px;">Hoş geldin, {{ user.username }}! 👋</span>
+                <a href="{% url 'logout' %}" style="font-weight: bold; font-size: 14px; color: #ffcccc; border-color: #ffcccc;">ÇIKIŞ YAP</a>
+            {% else %}
+                <a href="{% url 'login' %}">GİRİŞ YAP / ÜYE OL</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <nav class="sub-navbar">
+        <a href="#" style="color: var(--primary-blue); border-bottom: 2px solid var(--primary-blue);"> Yakınımdakiler</a>
+        <a href="#">Şu An Açık</a>
+        <a href="#">Çalışma Alanları</a>
+        <a href="#">Acil İhtiyaçlar</a>
+    </nav>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div style="font-size: 20px; font-weight: 900; margin-bottom: 15px;">ANLIK MEKAN</div>
+        <div>
+            <a href="#" style="margin: 0 10px; color: #ccc;">Hakkımızda</a>
+            <a href="#" style="margin: 0 10px; color: #ccc;">İletişim</a>
+            <a href="#" style="margin: 0 10px; color: #ccc;">Gizlilik Politikası</a>
+        </div>
+        <p> 2026 Anlık Mekan. Tüm hakları saklıdır.</p>
+    </footer>
+
+</body>
+</html>
