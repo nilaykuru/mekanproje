@@ -31,16 +31,18 @@
         .site-footer p { font-size: 14px; color: #888; margin-top: 10px; }
         
         /* ÇOCUK SAYFALARIN KENDİ CSS'LERİ BURAYA GELECEK */
-        {% block extra_css %}{% endblock %}
+        {% block extra_css %} {% endblock %}
     </style>
 </head>
 <body>
 
     <header class="top-navbar">
         <div class="logo">ANLIK MEKAN</div>
+        {% if user.is_authenticated %}
         <div class="search-bar">
             <input type="text" placeholder="Ne arıyorsunuz? (Örn: Sessiz kafe, açık nöbetçi eczane...)">
         </div>
+        {% endif %}
         <div class="user-menu">
             {% if user.is_authenticated %}
                 <span style="margin-right: 15px; font-weight: bold; font-size: 14px;">Hoş geldin, {{ user.username }}! 👋</span>
@@ -50,13 +52,15 @@
             {% endif %}
         </div>
     </header>
-
+   {% if user.is_authenticated %}
     <nav class="sub-navbar">
         <a href="#" style="color: var(--primary-blue); border-bottom: 2px solid var(--primary-blue);"> Yakınımdakiler</a>
-        <a href="#">Şu An Açık</a>
-        <a href="#">Çalışma Alanları</a>
-        <a href="#">Acil İhtiyaçlar</a>
+        <a href="{% url 'su_an_acik' %}" class="nav-link">ŞU AN AÇIK</a>
+        <a href="{% url 'calisma_alanlari' %}" class="nav-link">ÇALIŞMA ALANLARI</a>
+        <a href="{% url 'acil_ihtiyaclar' %}" class="nav-link">ACİL İHTİYAÇLAR</a>
+        <a href="{% url 'favorilerim' %}" class="nav-link">FAVORİLERİM</a>
     </nav>
+    {% endif %}
 
     <main>
         {% block content %}

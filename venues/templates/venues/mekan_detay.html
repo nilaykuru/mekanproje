@@ -1,0 +1,171 @@
+{% extends 'venues/base.html' %}
+
+{% block title %}{{ mekan.ad }} - Detay{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Genel Konteyner */
+    .detail-container { max-width: 900px; margin: 40px auto; padding: 20px; font-family: 'Segoe UI', sans-serif; }
+    
+    /* Geri Dön Butonu */
+    .back-btn { text-decoration: none; color: #666; font-weight: 600; transition: 0.3s; display: inline-block; margin-bottom: 25px; }
+    .back-btn:hover { color: var(--primary-blue); transform: translateX(-5px); }
+
+    /* Merkezi Mekan Kartı */
+    .mekan-header { 
+        text-align: center; 
+        margin-bottom: 40px; 
+        background: #ffffff;
+        padding: 40px 20px;
+        border-radius: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
+    
+    /* Resim: Orta Boy ve Kare */
+    .mekan-img { 
+        width: 300px; 
+        height: 300px; 
+        object-fit: cover; 
+        border-radius: 25px; 
+        box-shadow: 0 15px 35px rgba(0,0,0,0.12); 
+        margin: 0 auto 25px auto; 
+        display: block;
+        border: 5px solid #fff;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .mekan-img:hover { transform: scale(1.05) rotate(2deg); }
+
+    .mekan-title { font-size: 42px; font-weight: 900; color: #1a202c; margin-bottom: 15px; letter-spacing: -1.5px; }
+
+    /* Tüm Özellikler İçin Etiket Bulutu */
+    .feature-tags { 
+        display: flex; 
+        flex-wrap: wrap; 
+        gap: 10px; 
+        justify-content: center; 
+        margin: 20px 0;
+    }
+    .tag { 
+        padding: 8px 16px; 
+        border-radius: 50px; 
+        font-size: 12px; 
+        font-weight: 800; 
+        text-transform: uppercase;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        transition: 0.2s;
+    }
+    .tag:hover { transform: translateY(-2px); }
+
+    /* Yorum Alanı */
+    .comment-form-box { 
+        background: #fff; 
+        padding: 35px; 
+        border-radius: 25px; 
+        border: 3px dashed #e2e8f0; 
+        margin-bottom: 50px;
+    }
+    .btn-send {
+        background: var(--primary-blue); color: white; border: none; padding: 18px; 
+        border-radius: 20px; font-weight: 800; cursor: pointer; transition: 0.3s;
+        width: 100%; font-size: 17px; margin-top: 20px;
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+    }
+    .btn-send:hover { background: #2980b9; transform: scale(1.01); }
+
+    .comment-card img {
+    max-width: 300px;    /* Resmin genişliğini kısıtlar (ÖNEMLİ!) */
+    max-height: 250px;   /* Resmin yüksekliğini de kısıtlar */
+    border-radius: 12px; /* Köşeleri waffle kasesi gibi yuvarlar */
+    object-fit: cover;  /* Kibar durması için resmin bozulmasını engeller */
+    margin-top: 15px;   /* Metinle arasında boşluk bırakır */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Hafif derinlik */
+    display: block;     /* Resmin tek başına bir satır almasını sağlar */
+    cursor: zoom-in;    /* Üzerine gelince "büyütülebilir" hissi verir */
+    transition: transform 0.3s ease; /* Tatlı bir efekt */
+    background: linear-gradient(to right, #ffffff, #fcfcfc);
+    border-left: 6px solid #3498db;
+    transition: transform 0.3s ease;
+    }
+
+/* Üzerine gelince resim hafifçe büyüsün */
+    .comment-card img:hover {
+    transform: scale(1.02); /* Üzerine gelince hafifçe büyür */
+    border-left-color: #f1c40f; /* Çizgi rengi sarıya döner, eğlenceli olur! */
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    <a href="{% url 'dashboard' %}" class="back-btn">← Mekanlara Geri Dön</a>
+
+    <div class="mekan-header">
+        <img src="{{ mekan.img.url }}" class="mekan-img" alt="{{ mekan.ad }}">
+        <h1 class="mekan-title">{{ mekan.ad }}</h1>
+        
+        <div class="feature-tags">
+            <span class="tag" style="background: #ebf8ff; color: #2b6cb0;">📍 {{ mekan.kategori }}</span>
+            
+            {% if mekan.su_an_acik %}
+                <span class="tag" style="background: #f0fff4; color: #2f855a;">● AÇIK</span>
+            {% else %}
+                <span class="tag" style="background: #fff5f5; color: #c53030;">● KAPALI</span>
+            {% endif %}
+
+            {% if mekan.wifi_var %}<span class="tag" style="background: #faf5ff; color: #6b46c1;">🌐 WI-FI</span>{% endif %}
+            {% if mekan.priz_var %}<span class="tag" style="background: #e6fffa; color: #2c7a7b;">🔌 PRIZ</span>{% endif %}
+            {% if mekan.otopark_var %}<span class="tag" style="background: #fffaf0; color: #9c4221;">🚗 OTOPARK</span>{% endif %}
+            {% if mekan.sigara_icin_uygun %}<span class="tag" style="background: #f7fafc; color: #4a5568;">🚬 SIGARA ALANI</span>{% endif %}
+            {% if mekan.bahce_var %}<span class="tag" style="background: #f0fff4; color: #276749;">🌿 BAHÇE</span>{% endif %}
+            {% if mekan.engelli_erisimi_var %}<span class="tag" style="background: #ebf8ff; color: #2c5282;">♿ ENGELLI DOSTU</span>{% endif %}
+            {% if mekan.canli_muzik_var %}<span class="tag" style="background: #fffdf2; color: #b7791f;">🎸 CANLI MÜZIK</span>{% endif %}
+            {% if mekan.evcil_hayvan_izinli %}<span class="tag" style="background: #fff5f5; color: #9b2c2c;">🐾 PET FRIENDLY</span>{% endif %}
+            {% if mekan.cocuk_oyun_alani_var %}<span class="tag" style="background: #ebf8ff; color: #2b6cb0;">👶 ÇOCUK ALANI</span>{% endif %}
+        </div>
+        
+        <p style="color: #a0aec0; font-size: 15px;">
+            <i class="far fa-clock"></i> Çalışma Saatleri: {{ mekan.acilis_saati|time:"H:i" }} - {{ mekan.kapanis_saati|time:"H:i" }}
+        </p>
+    </div>
+
+    <div class="comment-section">
+        <h3 style="margin-bottom: 25px; font-weight: 900; color: #2d3748;">✨ Bu Mekanı Puanla</h3>
+        
+        <div class="comment-form-box">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; margin-bottom: 10px; font-weight: 800; color: #4a5568;">Yorumun</label>
+                    {{ form.icerik }}
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 10px; font-weight: 800; color: #4a5568;">📸 Fotoğraf Paylaş</label>
+                    {{ form.fotoğraf }}
+                </div>
+                <button type="submit" class="btn-send">Yorumu Yayınla 🚀</button>
+            </form>
+        </div>
+
+        <h3 style="margin-bottom: 30px; font-weight: 900; color: #2d3748;">💬 Neler Dediler?</h3>
+        {% for yorum in yorumlar %}
+            <div class="comment-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <span style="font-weight: 900; color: var(--primary-blue); font-size: 17px;">@{{ yorum.yazar.username }}</span>
+                    <span style="font-size: 13px; color: #a0aec0; font-weight: 600;">{{ yorum.tarih|date:"d F Y" }}</span>
+                </div>
+                <p style="color: #4a5568; line-height: 1.8; font-size: 16px;">{{ yorum.icerik }}</p>
+                
+        {% if yorum.fotoğraf %}
+            <div style="margin-top: 20px; border-radius: 15px; overflow: hidden; border: 1px solid #edf2f7; max-width: 300px;">
+                <img src="{{ yorum.fotoğraf.url }}" style="width: 100%; height: 250px; object-fit: cover; display: block;">
+            </div>
+        {% endif %}
+            </div>
+        {% empty %}
+            <div style="text-align: center; padding: 50px; color: #a0aec0; background: #f7fafc; border-radius: 20px;">
+                🌈 Burası henüz çok sessiz... İlk yorumu sen yaparak canlandır!
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
