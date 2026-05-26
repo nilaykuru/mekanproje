@@ -105,6 +105,17 @@
             {{ form.img }}
         </div>
 
+        <!-- Ruhsat Belgesi -->
+        <div class="card-section">
+            <div class="card-section-title">Ruhsat Belgesi (PDF / Görsel)</div>
+            {% if mod == 'duzenle' and mekan.ruhsat_belgesi %}
+                <a href="{{ mekan.ruhsat_belgesi.url }}" target="_blank" style="display:inline-block;margin-bottom:10px;">Mevcut ruhsatı görüntüle</a>
+                <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Yeni bir dosya seçerseniz mevcut ruhsat değişir.</p>
+            {% endif %}
+            {{ form.ruhsat_belgesi }}
+            <p style="font-size:12px;color:var(--muted);margin-top:8px;">Not: Yüklediğiniz ruhsat admin tarafından incelenecektir.</p>
+        </div>
+
         <!-- Çalışma Saatleri -->
         <div class="card-section">
             <div class="card-section-title">Saatler &amp; Durum</div>

@@ -2,12 +2,16 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.conf import settings
 from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.db.models import Q
+import qrcode
+import io
+import base64
 from .models import Mekan, Yorum, Profile, Etkinlik
 from .forms import YorumForm, MekanForm, EtkinlikForm, KayitFormu
 
@@ -36,6 +40,11 @@ def landing_page(request):
 def _hesap_dogrulama_emaili_gonder(request, user, profile):
     if not user.email:
         return False
+    if settings.DEBUG:
+        # Geliştirme ortamında sahte e-posta kullandığımız için doğrulamayı otomatik tamamla.
+        profile.email_verified = True
+        profile.save(update_fields=['email_verified'])
+        return True
     dogrulama_url = request.build_absolute_uri(
         reverse('hesap_dogrula', args=[profile.email_verification_token])
     )
@@ -61,13 +70,16 @@ def register(request):
             user = form.save()
             secilen_rol = request.POST.get('rol', 'USER')
             profile = Profile.objects.create(user=user, rol=secilen_rol)
-            _hesap_dogrulama_emaili_gonder(request, user, profile)
+            
+            # Yeni kullanıcıya otomatik giriş yap
+            login(request, user)
+            
             messages.success(
                 request,
-                f"{user.email} adresine doğrulama e-postası gönderildi. "
-                f"Giriş yapıp mekan ekleyebilmek için önce bağlantıya tıklayın."
+                f"Hoş geldiniz {user.username}! Şimdi hesabınızı 2FA ile güvenli hale getirin."
             )
-            return redirect('login')
+            # Doğrudan 2FA QR kod sayfasına yönlendir
+            return redirect('qr_kod_olustur')
     else:
         form = KayitFormu()
     default_rol = request.GET.get('rol', 'USER')
@@ -87,6 +99,50 @@ def hesap_dogrula(request, token):
             return redirect('owner_dashboard')
         return redirect('dashboard')
     return redirect('login')
+
+
+# ── Gizli Yetkili Admin (Özel Arayüz) ──────────────────────────────────────
+
+def admin_login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            if user.is_staff:
+                login(request, user)
+                return redirect('admin_panel')
+            messages.error(request, 'Bu sayfaya erişim yetkiniz yok.')
+        else:
+            messages.error(request, 'Kullanıcı adı veya şifre hatalı.')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'venues/admin_login.html', {'form': form})
+
+
+@user_passes_test(lambda u: u.is_staff, login_url='admin_login')
+def admin_panel(request):
+    bekleyen_mekanlar = Mekan.objects.filter(is_approved=False)
+    return render(request, 'venues/admin_panel.html', {'mekanlar': bekleyen_mekanlar})
+
+
+@user_passes_test(lambda u: u.is_staff, login_url='admin_login')
+@require_POST
+def admin_approve(request, mekan_id):
+    mekan = get_object_or_404(Mekan, id=mekan_id)
+    mekan.is_approved = True
+    mekan.save(update_fields=['is_approved'])
+    messages.success(request, f'"{mekan.ad}" onaylandı ve sitede aktif oldu.')
+    return redirect('admin_panel')
+
+
+@user_passes_test(lambda u: u.is_staff, login_url='admin_login')
+@require_POST
+def admin_reject(request, mekan_id):
+    mekan = get_object_or_404(Mekan, id=mekan_id)
+    mekan.is_approved = False
+    mekan.save(update_fields=['is_approved'])
+    messages.success(request, f'"{mekan.ad}" reddedildi.')
+    return redirect('admin_panel')
 
 
 def user_login(request):
@@ -114,7 +170,7 @@ def user_logout(request):
 @login_required(login_url='login')
 def dashboard(request):
     sehir = request.GET.get('sehir', '')
-    mekanlar = Mekan.objects.filter(dogrulanmis_mi=True)
+    mekanlar = Mekan.objects.filter(is_approved=True)
     if sehir:
         mekanlar = mekanlar.filter(sehir=sehir)
     sehir_secenekleri = Mekan.SEHIR_SECIMLERI
@@ -130,27 +186,28 @@ def arama(request):
     q = request.GET.get('q', '').strip()
     if q:
         mekanlar = Mekan.objects.filter(
-            Q(ad__icontains=q) | Q(adres__icontains=q) | Q(kategori__icontains=q)
+            Q(ad__icontains=q) | Q(adres__icontains=q) | Q(kategori__icontains=q),
+            is_approved=True
         )
         baslik = f'"{q}" için {mekanlar.count()} sonuç'
     else:
-        mekanlar = Mekan.objects.all()
+        mekanlar = Mekan.objects.filter(is_approved=True)
         baslik = 'Tüm Mekanlar'
     return render(request, 'venues/liste.html', {'mekanlar': mekanlar, 'baslik': baslik, 'q': q})
 
 
 def su_an_acik_olanlar(request):
-    mekanlar = Mekan.objects.filter(su_an_acik=True)
+    mekanlar = Mekan.objects.filter(su_an_acik=True, is_approved=True)
     return render(request, 'venues/liste.html', {'mekanlar': mekanlar, 'baslik': 'Şu An Açık Olan Mekanlar'})
 
 
 def calisma_alanlari(request):
-    mekanlar = Mekan.objects.filter(priz_var=True, kategori__in=['KUTUPHANE'])
+    mekanlar = Mekan.objects.filter(priz_var=True, kategori__in=['KUTUPHANE'], is_approved=True)
     return render(request, 'venues/liste.html', {'mekanlar': mekanlar, 'baslik': 'Çalışma Alanları'})
 
 
 def acil_ihtiyaclar(request):
-    mekanlar = Mekan.objects.filter(kategori='ECZANE')
+    mekanlar = Mekan.objects.filter(kategori='ECZANE', is_approved=True)
     return render(request, 'venues/liste.html', {'mekanlar': mekanlar, 'baslik': 'Nöbetçi/Açık Eczaneler'})
 
 
@@ -207,9 +264,9 @@ def mekan_sahibi_paneli(request):
 
 @owner_required
 def mekan_olustur(request):
-    if not request.user.profile.email_verified:
-        messages.error(request, "Mekan ekleyebilmek için önce e-posta adresinizi doğrulamanız gerekiyor.")
-        return redirect('owner_dashboard')
+    if not request.user.profile.is_verified:
+        messages.error(request, "Mekan ekleyebilmek için önce 2FA doğrulama yapmanız gerekiyor. Lütfen QR kod doğrulama sayfasını ziyaret edin.")
+        return redirect('qr_kod_olustur')
     if request.method == 'POST':
         form = MekanForm(request.POST, request.FILES)
         if form.is_valid():
@@ -263,6 +320,11 @@ def hesap_dogrulama_yeniden_gonder(request):
     profile = request.user.profile
     if profile.email_verified:
         messages.info(request, 'E-postanız zaten doğrulanmış.')
+        return redirect('owner_dashboard')
+    if settings.DEBUG:
+        profile.email_verified = True
+        profile.save(update_fields=['email_verified'])
+        messages.success(request, 'Geliştirme modunda e-posta doğrulaması atlandı.')
         return redirect('owner_dashboard')
     gonderildi = _hesap_dogrulama_emaili_gonder(request, request.user, profile)
     if gonderildi:
@@ -364,3 +426,80 @@ def duyuru_guncelle(request, mekan_id):
         mekan.save(update_fields=['anlik_duyuru'])
         messages.success(request, "Duyuru güncellendi!")
     return redirect('owner_dashboard')
+
+
+# ── TOTP 2FA QR Kod Doğrulama ───────────────────────────────────────────────────
+
+@login_required
+def qr_kod_olustur(request):
+    """
+    Kullanıcıya özel TOTP QR kodu oluşturur ve gösterir.
+    Google Authenticator ile taranabilir.
+    """
+    profile = request.user.profile
+    
+    # Eğer henüz gizli anahtar yoksa oluştur
+    if not profile.totp_secret_key:
+        profile.generate_totp_secret()
+    
+    # TOTP URI'sini al
+    totp_uri = profile.get_totp_uri()
+    
+    # QR kod oluştur
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(totp_uri)
+    qr.make(fit=True)
+    
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    # QR kodunu base64 formatına dönüştür (HTML'de göstermek için)
+    buffer = io.BytesIO()
+    img.save(buffer, format='PNG')
+    buffer.seek(0)
+    qr_code_base64 = base64.b64encode(buffer.getvalue()).decode()
+    
+    context = {
+        'qr_code_base64': qr_code_base64,
+        'secret_key': profile.totp_secret_key,
+        'user_email': request.user.email,
+    }
+    
+    return render(request, 'venues/qr_kod_olustur.html', context)
+
+
+@login_required
+@require_POST
+def qr_kod_dogrula(request):
+    """
+    Kullanıcıdan gelen 6 haneli TOTP kodunu doğrular.
+    Doğruysa is_verified=True yapılır.
+    """
+    profile = request.user.profile
+    totp_code = request.POST.get('totp_code', '').strip()
+    
+    # Kod boş mu?
+    if not totp_code:
+        messages.error(request, "Doğrulama kodunu girin.")
+        return redirect('qr_kod_olustur')
+    
+    # Kod 6 haneli mi?
+    if not totp_code.isdigit() or len(totp_code) != 6:
+        messages.error(request, "Doğrulama kodu 6 hane olmalıdır.")
+        return redirect('qr_kod_olustur')
+    
+    # Kodu doğrula
+    if profile.verify_totp(totp_code):
+        profile.is_verified = True
+        profile.save(update_fields=['is_verified'])
+        messages.success(request, "✓ 2FA başarıyla doğrulandı! Mekan ekleyebilir ve yönetebilirsiniz.")
+        if profile.rol == 'OWNER':
+            return redirect('owner_dashboard')
+        return redirect('dashboard')
+    else:
+        messages.error(request, "✗ Doğrulama kodu yanlış. Lütfen tekrar deneyin.")
+        return redirect('qr_kod_olustur')
