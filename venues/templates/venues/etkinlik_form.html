@@ -1,0 +1,98 @@
+{% extends 'venues/base.html' %}
+{% block title %}{{ baslik }} — Anlık Mekan{% endblock %}
+
+{% block extra_css %}
+.form-wrap { max-width: 640px; margin: 0 auto; padding: 36px 24px 80px; }
+.back-link { font-size: 14px; font-weight: 600; color: var(--muted); transition: .15s; }
+.back-link:hover { color: var(--primary); }
+.form-wrap h1 { font-size: 24px; font-weight: 900; letter-spacing: -.4px; margin: 16px 0 24px; }
+
+.venue-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #eff6ff; color: var(--primary); border: 1px solid #bfdbfe;
+    padding: 8px 16px; border-radius: 10px; font-weight: 700; font-size: 14px;
+    margin-bottom: 24px;
+}
+
+.card-section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; box-shadow: var(--shadow); }
+
+.field { margin-bottom: 18px; }
+.field:last-child { margin-bottom: 0; }
+.f-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+.f-error { font-size: 12px; color: var(--danger); margin-top: 4px; display: block; }
+.field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+.current-img { width: 90px; height: 90px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); margin-bottom: 10px; display: block; }
+.status-badge-active  { background: #dcfce7; color: #15803d; padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-left: 8px; }
+.status-badge-expired { background: #fee2e2; color: #dc2626; padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-left: 8px; }
+
+.form-actions { display: flex; gap: 12px; margin-top: 20px; }
+.btn-save { background: var(--primary); color: white; padding: 13px 28px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; transition: .15s; }
+.btn-save:hover { background: var(--primary-dark); }
+.btn-cancel { background: var(--bg); color: var(--text); padding: 13px 22px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; font-weight: 600; text-decoration: none; transition: .15s; }
+.btn-cancel:hover { background: #e2e8f0; }
+
+@media (max-width: 500px) { .field-grid { grid-template-columns: 1fr; } }
+{% endblock %}
+
+{% block content %}
+<div class="form-wrap">
+    <a href="{% url 'owner_dashboard' %}" class="back-link">← Panele Dön</a>
+    <h1>{{ baslik }}</h1>
+
+    <div class="venue-badge">
+        🏠 {{ mekan.ad }}
+        {% if mod == 'duzenle' %}
+            {% if etkinlik.aktif_mi %}
+                <span class="status-badge-active">● Aktif</span>
+            {% else %}
+                <span class="status-badge-expired">○ Süresi Doldu</span>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <div class="card-section">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="field">
+                <label class="f-label">Etkinlik Başlığı *</label>
+                {{ form.baslik }}
+                {% for e in form.baslik.errors %}<span class="f-error">{{ e }}</span>{% endfor %}
+            </div>
+
+            <div class="field">
+                <label class="f-label">Açıklama</label>
+                {{ form.aciklama }}
+            </div>
+
+            <div class="field-grid">
+                <div class="field">
+                    <label class="f-label">Başlangıç *</label>
+                    {{ form.baslangic }}
+                    {% for e in form.baslangic.errors %}<span class="f-error">{{ e }}</span>{% endfor %}
+                </div>
+                <div class="field">
+                    <label class="f-label">Bitiş *</label>
+                    {{ form.bitis }}
+                    {% for e in form.bitis.errors %}<span class="f-error">{{ e }}</span>{% endfor %}
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="f-label">Afiş / Fotoğraf</label>
+                {% if mod == 'duzenle' and etkinlik.foto %}
+                    <img src="{{ etkinlik.foto.url }}" class="current-img" alt="">
+                    <p style="font-size:12px;color:var(--muted);margin-bottom:8px;">Mevcut afiş. Değiştirmek için yeni dosya seç.</p>
+                {% endif %}
+                {{ form.foto }}
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-save">Kaydet</button>
+                <a href="{% url 'owner_dashboard' %}" class="btn-cancel">İptal</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

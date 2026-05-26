@@ -4,78 +4,255 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Anlık Mekan{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    {% block extra_head %}{% endblock %}
     <style>
-        /* TÜM ORTAK CSS KODLARI */
-        :root { --primary-blue: #0056b3; --text-dark: #1a1a1a; --text-gray: #666; --bg-light: #f8f9fa; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; }
-        body { color: var(--text-dark); background-color: var(--bg-light); display: flex; flex-direction: column; min-height: 100vh; }
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --surface: #ffffff;
+            --bg: #f8fafc;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --muted: #64748b;
+            --success: #059669;
+            --danger: #dc2626;
+            --radius: 12px;
+            --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,.04), 0 10px 28px rgba(0,0,0,.07);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-size: 15px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
         a { text-decoration: none; color: inherit; }
 
-        /* Navbar */
-        .top-navbar { background-color: var(--primary-blue); color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 24px; font-weight: 900; letter-spacing: -1px; }
-        .user-menu a { font-weight: bold; font-size: 14px; border: 1px solid white; padding: 8px 15px; border-radius: 4px; transition: 0.3s; }
-        .user-menu a:hover { background: white; color: var(--primary-blue); }
-        .search-bar { flex-grow: 1; max-width: 500px; margin: 0 20px; }
-        .search-bar input { width: 100%; padding: 10px 15px; border: none; border-radius: 4px; font-size: 14px; }
+        /* ── Navbar ─────────────────────────────── */
+        .navbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 5%;
+            display: flex;
+            align-items: center;
+            height: 60px;
+            gap: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
 
-        /* Sub-Navbar */
-        .sub-navbar { padding: 15px 5%; background-color: white; border-bottom: 1px solid #eee; display: flex; gap: 30px; font-weight: 700; font-size: 14px; text-transform: uppercase; }
-        .sub-navbar a:hover { color: var(--primary-blue); }
+        .navbar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -.3px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .logo-mark {
+            width: 28px;
+            height: 28px;
+            background: var(--primary);
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 13px;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
 
-        /* Ana İçerik Alanı (Sayfanın alt kısıma yapışması için flex) */
+        .navbar-search {
+            flex: 1;
+            max-width: 400px;
+        }
+        .navbar-search input {
+            width: 100%;
+            padding: 8px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background: var(--bg);
+            color: var(--text);
+            transition: border-color .15s, box-shadow .15s;
+        }
+        .navbar-search input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+            background: white;
+        }
+        .navbar-search input::placeholder { color: var(--muted); }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .navbar-username {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+        }
+        .navbar-username strong { color: var(--text); font-weight: 700; }
+
+        .role-pill {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #eff6ff;
+            color: var(--primary);
+            letter-spacing: .2px;
+        }
+
+        .btn-nav {
+            padding: 7px 15px;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+            transition: .15s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .btn-outline { background: transparent; color: var(--text); border: 1.5px solid var(--border); }
+        .btn-outline:hover { background: var(--bg); }
+        .btn-solid  { background: var(--primary); color: white; }
+        .btn-solid:hover  { background: var(--primary-dark); }
+        .btn-ghost-danger { background: transparent; color: var(--danger); border: 1.5px solid #fca5a5; }
+        .btn-ghost-danger:hover { background: #fef2f2; }
+
+        /* ── Sub Nav ────────────────────────────── */
+        .subnav {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 5%;
+            display: flex;
+            gap: 2px;
+            overflow-x: auto;
+        }
+        .subnav::-webkit-scrollbar { display: none; }
+
+        .subnav-link {
+            padding: 11px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--muted);
+            border-bottom: 2px solid transparent;
+            white-space: nowrap;
+            transition: color .15s;
+        }
+        .subnav-link:hover { color: var(--text); }
+        .subnav-link.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+
+        /* ── Main ───────────────────────────────── */
         main { flex: 1; }
 
-        /* Footer (Alt Bilgi) */
-        .site-footer { background-color: #1a1a1a; color: white; text-align: center; padding: 30px 20px; margin-top: 60px; }
-        .site-footer p { font-size: 14px; color: #888; margin-top: 10px; }
-        
-        /* ÇOCUK SAYFALARIN KENDİ CSS'LERİ BURAYA GELECEK */
-        {% block extra_css %} {% endblock %}
+        /* ── Footer ─────────────────────────────── */
+        .footer {
+            background: var(--text);
+            color: #94a3b8;
+            padding: 36px 5%;
+            margin-top: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .footer-logo { font-size: 14px; font-weight: 800; color: white; letter-spacing: -.2px; }
+        .footer-links { display: flex; gap: 20px; }
+        .footer-links a { font-size: 13px; color: #94a3b8; transition: color .15s; }
+        .footer-links a:hover { color: white; }
+        .footer-copy { font-size: 12px; }
+
+        {% block extra_css %}{% endblock %}
     </style>
 </head>
 <body>
 
-    <header class="top-navbar">
-        <div class="logo">ANLIK MEKAN</div>
-        {% if user.is_authenticated %}
-        <div class="search-bar">
-            <input type="text" placeholder="Ne arıyorsunuz? (Örn: Sessiz kafe, açık nöbetçi eczane...)">
-        </div>
-        {% endif %}
-        <div class="user-menu">
-            {% if user.is_authenticated %}
-                <span style="margin-right: 15px; font-weight: bold; font-size: 14px;">Hoş geldin, {{ user.username }}! 👋</span>
-                <a href="{% url 'logout' %}" style="font-weight: bold; font-size: 14px; color: #ffcccc; border-color: #ffcccc;">ÇIKIŞ YAP</a>
-            {% else %}
-                <a href="{% url 'login' %}">GİRİŞ YAP / ÜYE OL</a>
-            {% endif %}
-        </div>
-    </header>
-   {% if user.is_authenticated %}
-    <nav class="sub-navbar">
-        <a href="#" style="color: var(--primary-blue); border-bottom: 2px solid var(--primary-blue);"> Yakınımdakiler</a>
-        <a href="{% url 'su_an_acik' %}" class="nav-link">ŞU AN AÇIK</a>
-        <a href="{% url 'calisma_alanlari' %}" class="nav-link">ÇALIŞMA ALANLARI</a>
-        <a href="{% url 'acil_ihtiyaclar' %}" class="nav-link">ACİL İHTİYAÇLAR</a>
-        <a href="{% url 'favorilerim' %}" class="nav-link">FAVORİLERİM</a>
-    </nav>
+<!-- Navbar -->
+<header class="navbar">
+    <a href="{% if user.is_authenticated %}{% if user.profile.rol == 'OWNER' %}{% url 'owner_dashboard' %}{% else %}{% url 'dashboard' %}{% endif %}{% else %}{% url 'landing' %}{% endif %}" class="navbar-logo">
+        <div class="logo-mark">A</div>
+        Anlık Mekan
+    </a>
+
+    {% if user.is_authenticated and user.profile.rol != 'OWNER' %}
+    <form action="{% url 'arama' %}" method="GET" class="navbar-search">
+        <input type="text" name="q" placeholder="Mekan, adres veya kategori ara..."
+               value="{% if request.GET.q %}{{ request.GET.q }}{% endif %}">
+    </form>
     {% endif %}
 
-    <main>
-        {% block content %}
-        {% endblock %}
-    </main>
+    <div class="navbar-right">
+        {% if user.is_authenticated %}
+            <span class="navbar-username">
+                {% if user.profile.rol == 'OWNER' %}
+                    <span class="role-pill">İşletme</span>&nbsp;
+                {% endif %}
+                <strong>{{ user.username }}</strong>
+            </span>
+            <a href="{% url 'logout' %}" class="btn-nav btn-ghost-danger">Çıkış</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="btn-nav btn-solid">Giriş Yap / Üye Ol</a>
+        {% endif %}
+    </div>
+</header>
 
-    <footer class="site-footer">
-        <div style="font-size: 20px; font-weight: 900; margin-bottom: 15px;">ANLIK MEKAN</div>
-        <div>
-            <a href="#" style="margin: 0 10px; color: #ccc;">Hakkımızda</a>
-            <a href="#" style="margin: 0 10px; color: #ccc;">İletişim</a>
-            <a href="#" style="margin: 0 10px; color: #ccc;">Gizlilik Politikası</a>
-        </div>
-        <p> 2026 Anlık Mekan. Tüm hakları saklıdır.</p>
-    </footer>
+<!-- Sub Navbar -->
+{% if user.is_authenticated %}
+<nav class="subnav">
+    {% if user.profile.rol == 'OWNER' %}
+        <a href="{% url 'owner_dashboard' %}" class="subnav-link {% block nav_panel %}{% endblock %}">Panelim</a>
+        <a href="{% url 'mekan_olustur' %}" class="subnav-link {% block nav_yeni %}{% endblock %}">Yeni Mekan</a>
+    {% else %}
+        <a href="{% url 'dashboard' %}" class="subnav-link {% block nav_home %}{% endblock %}">Tüm Mekanlar</a>
+        <a href="{% url 'su_an_acik' %}" class="subnav-link {% block nav_acik %}{% endblock %}">Açık Mekanlar</a>
+        <a href="{% url 'calisma_alanlari' %}" class="subnav-link {% block nav_calisma %}{% endblock %}">Çalışma Alanları</a>
+        <a href="{% url 'acil_ihtiyaclar' %}" class="subnav-link {% block nav_acil %}{% endblock %}">Eczaneler</a>
+        <a href="{% url 'favorilerim' %}" class="subnav-link {% block nav_fav %}{% endblock %}">Favorilerim</a>
+    {% endif %}
+</nav>
+{% endif %}
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+    <div class="footer-logo">Anlık Mekan</div>
+    <div class="footer-links">
+        <a href="#">Hakkımızda</a>
+        <a href="#">İletişim</a>
+        <a href="#">Gizlilik</a>
+    </div>
+    <div class="footer-copy">© 2026 Anlık Mekan</div>
+</footer>
 
 </body>
 </html>

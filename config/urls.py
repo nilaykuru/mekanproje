@@ -8,6 +8,5 @@ urlpatterns = [
     path('', include('venues.urls')),
 ]
 
-# Proje geliştirme aşamasında (DEBUG=True) medya dosyalarını görünür kılar
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

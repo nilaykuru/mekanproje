@@ -1,0 +1,257 @@
+{% extends 'venues/base.html' %}
+{% block title %}Yönetim Paneli — Anlık Mekan{% endblock %}
+{% block nav_panel %}active{% endblock %}
+
+{% block extra_css %}
+.panel-wrap { max-width: 1060px; margin: 0 auto; padding: 36px 24px 80px; }
+
+.panel-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; flex-wrap: wrap; gap: 14px; }
+.panel-top-text h1 { font-size: 22px; font-weight: 800; letter-spacing: -.3px; margin-bottom: 2px; }
+.panel-top-text p  { font-size: 13px; color: var(--muted); }
+.btn-new { background: var(--primary); color: white; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 700; transition: .15s; display: inline-block; white-space: nowrap; }
+.btn-new:hover { background: var(--primary-dark); }
+
+.alert { padding: 11px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+.alert-success { background: #dcfce7; border: 1px solid #bbf7d0; color: #15803d; }
+.alert-error   { background: #fee2e2; border: 1px solid #fecaca; color: #dc2626; }
+
+/* Kart */
+.vpc { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); margin-bottom: 24px; overflow: hidden; }
+
+.vpc-hd { display: flex; align-items: center; gap: 16px; padding: 20px 22px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.vpc-thumb { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; flex-shrink: 0; }
+.vpc-thumb-ph { width: 60px; height: 60px; border-radius: 10px; background: var(--bg); border: 1px solid var(--border); flex-shrink: 0; }
+.vpc-hd-info { flex: 1; min-width: 0; }
+.vpc-hd-name { font-size: 16px; font-weight: 800; letter-spacing: -.2px; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vpc-hd-meta { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.badge-ver  { background: #dcfce7; color: #15803d; padding: 1px 8px; border-radius: 3px; font-size: 10px; font-weight: 700; }
+.badge-pend { background: #fef9c3; color: #a16207; padding: 1px 8px; border-radius: 3px; font-size: 10px; font-weight: 700; }
+
+/* Kontroller */
+.vpc-ctrl { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 22px; background: var(--bg); border-bottom: 1px solid var(--border); }
+.toggle-btn { padding: 7px 16px; border-radius: 6px; border: none; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: .15s; }
+.is-open   { background: #dcfce7; color: #15803d; }
+.is-closed { background: var(--surface); color: var(--muted); border: 1.5px solid var(--border); }
+.doluluk-grp { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.doluluk-slider { width: 100px; accent-color: var(--primary); cursor: pointer; }
+.doluluk-val { min-width: 34px; font-size: 12px; font-weight: 700; color: var(--primary); }
+.duyuru-grp { display: flex; gap: 6px; flex: 1; min-width: 200px; }
+.duyuru-inp { flex: 1; padding: 7px 11px; border: 1.5px solid var(--border); border-radius: 6px; font-size: 13px; font-family: inherit; }
+.duyuru-inp:focus { outline: none; border-color: var(--primary); }
+.duyuru-btn { background: #0f172a; color: white; border: none; padding: 7px 13px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: .15s; white-space: nowrap; }
+.duyuru-btn:hover { background: #1e293b; }
+
+/* Sekmeler */
+.vpc-tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 22px; gap: 2px; }
+.tab-btn { padding: 10px 14px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; background: none; color: var(--muted); border-bottom: 2px solid transparent; font-family: inherit; transition: .15s; }
+.tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+.tab-pane { padding: 20px 22px; display: none; }
+.tab-pane.active { display: block; }
+
+/* Etkinlik listesi */
+.event-list { display: flex; flex-direction: column; gap: 8px; }
+.event-row { display: flex; gap: 12px; align-items: flex-start; background: var(--bg); border-radius: 10px; padding: 12px; }
+.event-row-img { width: 48px; height: 48px; border-radius: 7px; object-fit: cover; flex-shrink: 0; }
+.event-row-ph { width: 48px; height: 48px; border-radius: 7px; background: #e2e8f0; flex-shrink: 0; }
+.event-row-info { flex: 1; }
+.event-row-info strong { display: block; font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+.event-row-info small { font-size: 11px; color: var(--muted); }
+.event-row-actions { display: flex; gap: 6px; flex-shrink: 0; align-self: center; }
+.btn-xs { padding: 5px 11px; border-radius: 5px; font-size: 11px; font-weight: 700; font-family: inherit; border: none; cursor: pointer; transition: .15s; text-decoration: none; display: inline-block; }
+.btn-xs-edit { background: #eff6ff; color: var(--primary); }
+.btn-xs-edit:hover { background: #dbeafe; }
+.btn-xs-del  { background: #fef2f2; color: var(--danger); }
+.btn-xs-del:hover  { background: #fee2e2; }
+
+.btn-add { display: inline-block; background: var(--primary); color: white; padding: 8px 14px; border-radius: 7px; font-size: 12px; font-weight: 700; margin-bottom: 14px; }
+.btn-add:hover { background: var(--primary-dark); }
+
+/* Bilgi tablosu */
+.info-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.info-tbl td { padding: 7px 0; vertical-align: top; }
+.info-tbl td:first-child { color: var(--muted); width: 130px; font-weight: 600; font-size: 12px; }
+
+/* Alt butonlar */
+.vpc-ft { display: flex; gap: 8px; padding: 14px 22px; border-top: 1px solid var(--border); }
+.btn-edit-v { background: var(--primary); color: white; padding: 9px 18px; border-radius: 7px; font-size: 13px; font-weight: 700; transition: .15s; }
+.btn-edit-v:hover { background: var(--primary-dark); }
+.btn-del-v { background: white; color: var(--danger); border: 1.5px solid #fca5a5; padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; transition: .15s; }
+.btn-del-v:hover { background: #fef2f2; }
+
+/* Boş */
+.empty-panel { text-align: center; padding: 80px 20px; }
+.empty-panel h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+.empty-panel p  { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+{% endblock %}
+
+{% block content %}
+<div class="panel-wrap">
+
+    {% if messages %}
+        {% for msg in messages %}
+        <div class="alert {% if msg.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">{{ msg }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="panel-top">
+        <div class="panel-top-text">
+            <h1>Yönetim Paneli</h1>
+            <p>Merhaba, {{ request.user.username }}. Mekanlarını buradan yönet.</p>
+        </div>
+        <a href="{% url 'mekan_olustur' %}" class="btn-new">+ Yeni Mekan Ekle</a>
+    </div>
+
+    {% if mekanlar %}
+        {% for mekan in mekanlar %}
+        <div class="vpc">
+
+            <div class="vpc-hd">
+                {% if mekan.img %}
+                    <img src="{{ mekan.img.url }}" class="vpc-thumb" alt="">
+                {% else %}
+                    <div class="vpc-thumb-ph"></div>
+                {% endif %}
+                <div class="vpc-hd-info">
+                    <div class="vpc-hd-name">{{ mekan.ad }}</div>
+                    <div class="vpc-hd-meta">
+                        {{ mekan.get_kategori_display }}
+                        <span>&middot;</span>
+                        {{ mekan.adres|truncatechars:48 }}
+                        {% if mekan.dogrulanmis_mi %}
+                            <span class="badge-ver">Dogrulandı</span>
+                        {% else %}
+                            <span class="badge-pend">Onay Bekliyor</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="vpc-ctrl">
+                <button class="toggle-btn {% if mekan.su_an_acik %}is-open{% else %}is-closed{% endif %}"
+                    onclick="toggleAcik(this, {{ mekan.id }})">
+                    {% if mekan.su_an_acik %}Açık{% else %}Kapalı{% endif %}
+                </button>
+                <div class="doluluk-grp">
+                    Doluluk
+                    <input type="range" class="doluluk-slider" min="0" max="100"
+                        value="{{ mekan.doluluk_orani }}"
+                        oninput="dolulukGuncelle(this, {{ mekan.id }})">
+                    <span class="doluluk-val" id="dol-{{ mekan.id }}">%{{ mekan.doluluk_orani }}</span>
+                </div>
+                <div class="duyuru-grp">
+                    <input type="text" class="duyuru-inp" id="duyuru-{{ mekan.id }}"
+                        placeholder="Anlık duyuru..."
+                        value="{{ mekan.anlik_duyuru|default:'' }}">
+                    <button class="duyuru-btn" onclick="duyuruGuncelle({{ mekan.id }})">Yayınla</button>
+                </div>
+            </div>
+
+            <div class="vpc-tabs">
+                <button class="tab-btn active" onclick="sekmeAc(event, 'tab-e-{{ mekan.id }}')">Etkinlikler</button>
+                <button class="tab-btn" onclick="sekmeAc(event, 'tab-b-{{ mekan.id }}')">Mekan Bilgisi</button>
+            </div>
+
+            <div id="tab-e-{{ mekan.id }}" class="tab-pane active">
+                <a href="{% url 'etkinlik_olustur' mekan.id %}" class="btn-add">+ Etkinlik Ekle</a>
+                {% with etkinlikler=mekan.aktif_etkinlikler %}
+                {% if etkinlikler %}
+                <div class="event-list">
+                    {% for e in etkinlikler %}
+                    <div class="event-row">
+                        {% if e.foto %}<img src="{{ e.foto.url }}" class="event-row-img" alt="">{% else %}<div class="event-row-ph"></div>{% endif %}
+                        <div class="event-row-info">
+                            <strong>{{ e.baslik }}</strong>
+                            <small>{{ e.baslangic|date:"d M Y H:i" }} &ndash; {{ e.bitis|date:"H:i" }}</small>
+                        </div>
+                        <div class="event-row-actions">
+                            <a href="{% url 'etkinlik_duzenle' e.id %}" class="btn-xs btn-xs-edit">Düzenle</a>
+                            <form method="POST" action="{% url 'etkinlik_sil' e.id %}" onsubmit="return confirm('Silinsin mi?');" style="display:inline;">
+                                {% csrf_token %}<button type="submit" class="btn-xs btn-xs-del">Sil</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                    <p style="font-size:13px;color:var(--muted);">Henüz aktif etkinlik yok.</p>
+                {% endif %}
+                {% endwith %}
+            </div>
+
+            <div id="tab-b-{{ mekan.id }}" class="tab-pane">
+                <table class="info-tbl">
+                    {% if mekan.telefon %}<tr><td>Telefon</td><td>{{ mekan.telefon }}</td></tr>{% endif %}
+                    {% if mekan.website %}<tr><td>Web</td><td><a href="{{ mekan.website }}" target="_blank" style="color:var(--primary);">{{ mekan.website }}</a></td></tr>{% endif %}
+                    {% if mekan.acilis_saati %}<tr><td>Saatler</td><td>{{ mekan.acilis_saati|time:"H:i" }} &ndash; {{ mekan.kapanis_saati|time:"H:i" }}</td></tr>{% endif %}
+                    <tr><td>Doluluk</td><td>%{{ mekan.doluluk_orani }}</td></tr>
+                    <tr>
+                        <td>Olanaklar</td>
+                        <td style="display:flex;flex-wrap:wrap;gap:5px;padding-top:4px;">
+                            {% if mekan.wifi_var %}<span style="background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">Wi-Fi</span>{% endif %}
+                            {% if mekan.priz_var %}<span style="background:#f0fdf4;color:#15803d;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">Priz</span>{% endif %}
+                            {% if mekan.otopark_var %}<span style="background:#fff7ed;color:#c2410c;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">Otopark</span>{% endif %}
+                            {% if mekan.bahce_var %}<span style="background:#f0fdf4;color:#15803d;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">Bahçe</span>{% endif %}
+                            {% if mekan.canli_muzik_var %}<span style="background:#fefce8;color:#a16207;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">Canlı Müzik</span>{% endif %}
+                            {% if mekan.engelli_erisimi_var %}<span style="background:#f5f3ff;color:#6d28d9;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">Engelli</span>{% endif %}
+                            {% if mekan.evcil_hayvan_izinli %}<span style="background:#fdf4ff;color:#7e22ce;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">Pet</span>{% endif %}
+                            {% if mekan.cocuk_oyun_alani_var %}<span style="background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">Çocuk</span>{% endif %}
+                            {% if mekan.sigara_icin_uygun %}<span style="background:#f8fafc;color:#475569;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">Sigara</span>{% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="vpc-ft">
+                <a href="{% url 'mekan_duzenle' mekan.id %}" class="btn-edit-v">Mekan Düzenle</a>
+                <form method="POST" action="{% url 'mekan_sil' mekan.id %}" onsubmit="return confirm('{{ mekan.ad }} silinsin mi?');">
+                    {% csrf_token %}<button type="submit" class="btn-del-v">Sil</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+
+    {% else %}
+    <div class="empty-panel">
+        <h2>Henüz mekanınız yok</h2>
+        <p>Mekanınızı ekleyerek başlayın. Admin onayından sonra yayına alınır.</p>
+        <a href="{% url 'mekan_olustur' %}" class="btn-new">+ İlk Mekanımı Ekle</a>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+const CSRF = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+function post(url, data) {
+    return fetch(url, { method: 'POST', headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(data) }).then(r => r.json());
+}
+function toggleAcik(btn, id) {
+    const acik = btn.classList.contains('is-open');
+    post(`/mekan/${id}/durum/`, { alan: 'su_an_acik', deger: !acik }).then(r => {
+        if (r.ok) {
+            btn.classList.toggle('is-open', r.deger);
+            btn.classList.toggle('is-closed', !r.deger);
+            btn.textContent = r.deger ? 'Açık' : 'Kapalı';
+        }
+    });
+}
+const _dt = {};
+function dolulukGuncelle(slider, id) {
+    document.getElementById('dol-' + id).textContent = '%' + slider.value;
+    clearTimeout(_dt[id]);
+    _dt[id] = setTimeout(() => post(`/mekan/${id}/durum/`, { alan: 'doluluk_orani', deger: slider.value }), 600);
+}
+function duyuruGuncelle(id) {
+    const val = document.getElementById('duyuru-' + id).value;
+    post(`/mekan/${id}/durum/`, { alan: 'anlik_duyuru', deger: val }).then(r => { if (r.ok) alert('Duyuru yayınlandı.'); });
+}
+function sekmeAc(evt, id) {
+    const kart = evt.target.closest('.vpc');
+    kart.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    kart.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    evt.target.classList.add('active');
+}
+</script>
+{% endblock %}

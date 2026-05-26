@@ -1,127 +1,117 @@
 {% extends 'venues/base.html' %}
-
-{% block title %}{{ baslik }}{% endblock %}
+{% block title %}{{ baslik }} — Anlık Mekan{% endblock %}
 
 {% block extra_css %}
-<style>
-    /* Konteyner ve Genel Ayarlar */
-    .container { max-width: 1200px; margin: 40px auto; padding: 0 5%; }
-    
-    .bento-grid { 
-        display: grid; 
-        grid-template-columns: repeat(3, 1fr); 
-        gap: 30px; 
-    }
+.page-wrap { max-width: 1240px; margin: 0 auto; padding: 36px 24px 80px; }
+.page-header { margin-bottom: 28px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.back-link { font-size: 13px; font-weight: 600; color: var(--muted); transition: color .15s; padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); }
+.back-link:hover { color: var(--text); }
+.page-header h1 { font-size: 22px; font-weight: 800; letter-spacing: -.3px; }
 
-    .card { 
-        display: flex; 
-        flex-direction: column; 
-        background: white; 
-        border-radius: 12px; 
-        overflow: hidden; 
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
-        transition: transform 0.2s ease; 
-        height: 100%; /* Kartların boyunu eşitler */
-    }
-    .card:hover { transform: translateY(-5px); }
+{% if q %}
+.search-info { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+.search-info strong { color: var(--text); }
+{% endif %}
 
-    .card img { width: 100%; height: 200px; object-fit: cover; }
-
-    /* Kart İçeriği ve Flex Ayarları */
-    .card-content { 
-        padding: 15px; 
-        display: flex; 
-        flex-direction: column; 
-        flex-grow: 1; 
-    }
-
-    .card-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; color: var(--text-dark); }
-    .card-tags { font-size: 11px; font-weight: 700; color: var(--text-gray); text-transform: uppercase; line-height: 1.5; }
-    
-    /* Özellik Etiketleri (Badge) */
-    .feature-tags { 
-        display: flex; 
-        flex-wrap: wrap; 
-        gap: 6px; 
-        margin-top: 12px; 
-        margin-bottom: 15px;
-    }
-
-    .tag { 
-        padding: 3px 8px; 
-        border-radius: 4px; 
-        font-size: 10px; 
-        font-weight: 700; 
-        white-space: nowrap; 
-    }
-
-    /* Butonlar - Her zaman en altta kalması için */
-    .action-buttons { 
-        margin-top: auto; 
-        display: flex; 
-        gap: 10px; 
-    }
-    
-    .btn { padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; font-size: 13px; }
-    .btn-primary { flex: 1; background: var(--primary-blue); color: white; }
-    .btn-secondary { background: #f8f9fa; color: var(--text-dark); border: 1px solid #ddd; }
-
-    /* Mobil Uyumluluk */
-    @media (max-width: 900px) { 
-        .bento-grid { grid-template-columns: 1fr; } 
-    }
-</style>
+.venue-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+.venue-card { background: var(--surface); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border); display: flex; flex-direction: column; transition: box-shadow .2s, transform .2s; }
+.venue-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.venue-img-wrap { position: relative; }
+.venue-img-wrap img { width: 100%; height: 190px; object-fit: cover; display: block; }
+.venue-img-placeholder { width: 100%; height: 190px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; }
+.venue-img-placeholder span { font-size: 13px; font-weight: 600; color: #94a3b8; letter-spacing: .5px; }
+.status-pill { position: absolute; top: 10px; left: 10px; padding: 3px 9px; border-radius: 4px; font-size: 11px; font-weight: 700; letter-spacing: .3px; }
+.s-open { background: rgba(5,150,105,.9); color: white; }
+.s-close { background: rgba(100,116,139,.85); color: white; }
+.fav-btn { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,.92); display: flex; align-items: center; justify-content: center; font-size: 15px; border: 1px solid rgba(0,0,0,.06); cursor: pointer; transition: .15s; text-decoration: none; }
+.fav-btn:hover { background: white; }
+.venue-body { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+.venue-cat { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; }
+.venue-name { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 4px; letter-spacing: -.2px; text-decoration: none; transition: color .15s; display: block; }
+.venue-name:hover { color: var(--primary); }
+.venue-address { font-size: 12px; color: var(--muted); margin-bottom: 12px; line-height: 1.4; }
+.doluluk-wrap { margin-bottom: 12px; }
+.doluluk-row { display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+.doluluk-track { height: 3px; background: #e5e7eb; border-radius: 2px; }
+.doluluk-fill  { height: 100%; border-radius: 2px; }
+.tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
+.tag { padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: .2px; }
+.venue-footer { display: flex; gap: 8px; margin-top: auto; }
+.btn-map { flex: 1; background: var(--primary); color: white; padding: 9px; border-radius: 7px; font-size: 12px; font-weight: 700; text-align: center; transition: background .15s; }
+.btn-map:hover { background: var(--primary-dark); }
+.btn-detail { padding: 9px 13px; border-radius: 7px; font-size: 12px; font-weight: 700; background: var(--bg); color: var(--text); border: 1px solid var(--border); text-align: center; transition: .15s; }
+.btn-detail:hover { background: #e2e8f0; }
+.empty-state { grid-column: 1/-1; text-align: center; padding: 80px 20px; color: var(--muted); }
+.empty-state h3 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+@media (max-width: 600px) { .venue-grid { grid-template-columns: 1fr; } }
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1 style="margin-bottom: 10px;">{{ baslik }}</h1>
-    <a href="{% url 'dashboard' %}" style="text-decoration: none; color: var(--primary-blue); font-weight: bold;">← Anasayfaya Dön</a>
-    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+<div class="page-wrap">
+    <div class="page-header">
+        <a href="{% url 'dashboard' %}" class="back-link">&#8592; Geri</a>
+        <h1>{{ baslik }}</h1>
+    </div>
 
-    <div class="bento-grid">
+    <div class="venue-grid">
         {% for mekan in mekanlar %}
-            <article class="card">
-                <img src="{% if mekan.img %}{{ mekan.img.url }}{% else %}https://via.placeholder.com/600x400?text=Resim+Yok{% endif %}" alt="{{ mekan.ad }}">
-                
-                <div class="card-content">
-                    <h3 class="card-title">{{ mekan.ad }}</h3>
-                    <div class="card-tags">
-                        {{ mekan.get_kategori_display }} • %{{ mekan.doluluk_orani }} DOLU <br>
-                        {% if mekan.acilis_saati and mekan.kapanis_saati %}
-                            🕒 {{ mekan.acilis_saati|time:"H:i" }} - {{ mekan.kapanis_saati|time:"H:i" }} • 
-                        {% endif %}
-                        {% if mekan.su_an_acik %} 
-                            <span style="color: #28a745;">● AÇIK</span> 
-                        {% else %} 
-                            <span style="color: #dc3545;">○ KAPALI</span> 
-                        {% endif %}
-                    </div>
-                    
-                    <div class="feature-tags">
-                        {% if mekan.wifi_var %}<span class="tag" style="background: #e3f2fd; color: #1976d2;">🌐 WI-FI</span>{% endif %}
-                        {% if mekan.priz_var %}<span class="tag" style="background: #e8f5e9; color: #388e3c;">🔌 PRIZ</span>{% endif %}
-                        {% if mekan.otopark_var %}<span class="tag" style="background: #fff3e0; color: #e65100;">🚗 OTOPARK</span>{% endif %}
-                        {% if mekan.sigara_icin_uygun %}<span class="tag" style="background: #eceff1; color: #455a64;">🚬 SIGARA</span>{% endif %}
-                        {% if mekan.bahce_var %}<span class="tag" style="background: #f1f8e9; color: #558b2f;">🌿 BAHÇE</span>{% endif %}
-                        {% if mekan.engelli_erisimi_var %}<span class="tag" style="background: #f3e5f5; color: #7b1fa2;">♿ ENGELLI</span>{% endif %}
-                        {% if mekan.canli_muzik_var %}<span class="tag" style="background: #fff9c4; color: #fbc02d;">🎸 MÜZIK</span>{% endif %}
-                        {% if mekan.evcil_hayvan_izinli %}<span class="tag" style="background: #efebe9; color: #5d4037;">🐾 PET</span>{% endif %}
-                        {% if mekan.cocuk_oyun_alani_var %}<span class="tag" style="background: #e1f5fe; color: #0288d1;">👶 ÇOCUK</span>{% endif %}
-                    </div>
-
-                    <div class="action-buttons">
-                        <a href="https://www.google.com/maps/search/?api=1&query={{ mekan.ad|urlencode }}+{{ mekan.adres|urlencode }}" 
-                           target="_blank" class="btn btn-primary">📍 Yol Tarifi</a>
-                        
-                        <a href="{% url 'favori_islem' mekan.id %}" class="btn btn-secondary" style="padding: 10px;">
-                            {% if request.user in mekan.favorileyenler.all %} ❤️ {% else %} ⭐ {% endif %}
-                        </a>
+        <article class="venue-card">
+            <div class="venue-img-wrap">
+                {% if mekan.img %}
+                    <img src="{{ mekan.img.url }}" alt="{{ mekan.ad }}">
+                {% else %}
+                    <div class="venue-img-placeholder"><span>Fotoğraf Yok</span></div>
+                {% endif %}
+                {% if mekan.su_an_acik %}
+                    <span class="status-pill s-open">Açık</span>
+                {% else %}
+                    <span class="status-pill s-close">Kapalı</span>
+                {% endif %}
+                {% if user.is_authenticated %}
+                <a href="{% url 'favori_islem' mekan.id %}" class="fav-btn">
+                    {% if request.user in mekan.favorileyenler.all %}&#9829;{% else %}&#9825;{% endif %}
+                </a>
+                {% endif %}
+            </div>
+            <div class="venue-body">
+                <div class="venue-cat">
+                    {{ mekan.get_kategori_display }}
+                    {% if mekan.acilis_saati and mekan.kapanis_saati %}
+                    &nbsp;&middot;&nbsp; {{ mekan.acilis_saati|time:"H:i" }}&ndash;{{ mekan.kapanis_saati|time:"H:i" }}
+                    {% endif %}
+                </div>
+                <a href="{% url 'mekan_detay' mekan.id %}" class="venue-name">{{ mekan.ad }}</a>
+                <div class="venue-address">{{ mekan.adres|truncatechars:55 }}</div>
+                {% if mekan.doluluk_orani > 0 %}
+                <div class="doluluk-wrap">
+                    <div class="doluluk-row"><span>Doluluk</span><span>%{{ mekan.doluluk_orani }}</span></div>
+                    <div class="doluluk-track">
+                        <div class="doluluk-fill" style="width:{{ mekan.doluluk_orani }}%;background:{% if mekan.doluluk_orani > 80 %}#dc2626{% elif mekan.doluluk_orani > 50 %}#d97706{% else %}#059669{% endif %};"></div>
                     </div>
                 </div>
-            </article>
+                {% endif %}
+                <div class="tags">
+                    {% if mekan.wifi_var %}<span class="tag" style="background:#eff6ff;color:#1d4ed8;">Wi-Fi</span>{% endif %}
+                    {% if mekan.priz_var %}<span class="tag" style="background:#f0fdf4;color:#15803d;">Priz</span>{% endif %}
+                    {% if mekan.otopark_var %}<span class="tag" style="background:#fff7ed;color:#c2410c;">Otopark</span>{% endif %}
+                    {% if mekan.bahce_var %}<span class="tag" style="background:#f0fdf4;color:#15803d;">Bahçe</span>{% endif %}
+                    {% if mekan.canli_muzik_var %}<span class="tag" style="background:#fefce8;color:#a16207;">Canlı Müzik</span>{% endif %}
+                    {% if mekan.evcil_hayvan_izinli %}<span class="tag" style="background:#fdf4ff;color:#7e22ce;">Pet Dostu</span>{% endif %}
+                    {% if mekan.engelli_erisimi_var %}<span class="tag" style="background:#f5f3ff;color:#6d28d9;">Engelli</span>{% endif %}
+                    {% if mekan.cocuk_oyun_alani_var %}<span class="tag" style="background:#eff6ff;color:#1d4ed8;">Çocuk</span>{% endif %}
+                </div>
+                <div class="venue-footer">
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ mekan.ad|urlencode }}+{{ mekan.adres|urlencode }}"
+                       target="_blank" class="btn-map">Yol Tarifi</a>
+                    <a href="{% url 'mekan_detay' mekan.id %}" class="btn-detail">Detay</a>
+                </div>
+            </div>
+        </article>
         {% empty %}
-            <p style="grid-column: 1/-1; text-align: center; color: var(--text-gray);">Henüz favori mekanın yok.</p>
+        <div class="empty-state">
+            <h3>Sonuç bulunamadı</h3>
+            <p>Bu filtreyle eşleşen mekan yok.</p>
+        </div>
         {% endfor %}
     </div>
 </div>

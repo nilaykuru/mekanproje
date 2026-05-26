@@ -1,0 +1,194 @@
+{% extends 'venues/base.html' %}
+{% block title %}{{ baslik }} — Anlık Mekan{% endblock %}
+{% block nav_yeni %}active{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+{% endblock %}
+
+{% block extra_css %}
+.form-wrap { max-width: 860px; margin: 0 auto; padding: 36px 24px 80px; }
+.form-wrap h1 { font-size: 26px; font-weight: 900; letter-spacing: -.4px; margin: 16px 0 28px; }
+.back-link { font-size: 14px; font-weight: 600; color: var(--muted); transition: .15s; }
+.back-link:hover { color: var(--primary); }
+
+.card-section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px; margin-bottom: 20px;
+    box-shadow: var(--shadow);
+}
+.card-section-title {
+    font-size: 12px; font-weight: 800; color: var(--primary);
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;
+}
+
+.field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.field-grid.single { grid-template-columns: 1fr; }
+.field { margin-bottom: 0; }
+.field + .field { margin-top: 0; }
+.f-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+.f-error { font-size: 12px; color: var(--danger); margin-top: 4px; display: block; }
+
+.checkbox-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.checkbox-item { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; transition: .15s; }
+.checkbox-item:hover { border-color: #93c5fd; background: #eff6ff; }
+.checkbox-item input[type=checkbox]:checked + * { color: var(--primary); }
+
+#harita { height: 300px; border-radius: 12px; border: 1.5px solid var(--border); margin-bottom: 8px; }
+.harita-hint { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+
+.form-actions { display: flex; gap: 12px; }
+.btn-save { background: var(--primary); color: white; padding: 13px 28px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; transition: .15s; }
+.btn-save:hover { background: var(--primary-dark); }
+.btn-cancel { background: var(--bg); color: var(--text); padding: 13px 22px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; font-weight: 600; text-decoration: none; transition: .15s; }
+.btn-cancel:hover { background: #e2e8f0; }
+
+.current-img { width: 100px; height: 100px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); margin-bottom: 10px; display: block; }
+
+@media (max-width: 600px) {
+    .field-grid { grid-template-columns: 1fr; }
+    .checkbox-grid { grid-template-columns: 1fr 1fr; }
+}
+{% endblock %}
+
+{% block content %}
+<div class="form-wrap">
+    <a href="{% url 'owner_dashboard' %}" class="back-link">← Panele Dön</a>
+    <h1>{{ baslik }}</h1>
+
+    {% if messages %}
+        {% for msg in messages %}
+        <div style="background:#fee2e2;border:1px solid #fecaca;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:14px;font-weight:600;color:#dc2626;">{{ msg }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Temel Bilgiler -->
+        <div class="card-section">
+            <div class="card-section-title">Temel Bilgiler</div>
+            <div class="field-grid" style="margin-bottom:16px;">
+                <div class="field">
+                    <label class="f-label">Mekan Adı *</label>
+                    {{ form.ad }}
+                    {% for e in form.ad.errors %}<span class="f-error">{{ e }}</span>{% endfor %}
+                </div>
+                <div class="field">
+                    <label class="f-label">Kategori *</label>
+                    {{ form.kategori }}
+                </div>
+            </div>
+            <div style="margin-bottom:16px;">
+                <label class="f-label">Adres *</label>
+                {{ form.adres }}
+            </div>
+            <div class="field-grid">
+                <div class="field">
+                    <label class="f-label">Telefon</label>
+                    {{ form.telefon }}
+                </div>
+                <div class="field">
+                    <label class="f-label">Web Sitesi</label>
+                    {{ form.website }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Fotoğraf -->
+        <div class="card-section">
+            <div class="card-section-title">Mekan Fotoğrafı</div>
+            {% if mod == 'duzenle' and mekan.img %}
+                <img src="{{ mekan.img.url }}" class="current-img" alt="">
+                <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Mevcut fotoğraf. Değiştirmek için yeni dosya seçin.</p>
+            {% endif %}
+            {{ form.img }}
+        </div>
+
+        <!-- Çalışma Saatleri -->
+        <div class="card-section">
+            <div class="card-section-title">Saatler &amp; Durum</div>
+            <div class="field-grid" style="margin-bottom:16px;">
+                <div class="field">
+                    <label class="f-label">Açılış Saati</label>
+                    {{ form.acilis_saati }}
+                </div>
+                <div class="field">
+                    <label class="f-label">Kapanış Saati</label>
+                    {{ form.kapanis_saati }}
+                </div>
+            </div>
+            <div class="field-grid" style="margin-bottom:16px;">
+                <div class="field">
+                    <label class="f-label">Doluluk Oranı (%)</label>
+                    {{ form.doluluk_orani }}
+                </div>
+                <div class="field" style="display:flex;align-items:center;gap:10px;padding-top:24px;">
+                    {{ form.su_an_acik }}
+                    <label class="f-label" style="margin:0;">Şu an açık</label>
+                </div>
+            </div>
+            <div class="field">
+                <label class="f-label">Anlık Duyuru</label>
+                {{ form.anlik_duyuru }}
+            </div>
+        </div>
+
+        <!-- Konum -->
+        <div class="card-section">
+            <div class="card-section-title">Konum</div>
+            <p class="harita-hint">Haritaya tıklayarak mekanın konumunu işaretle. İsteğe bağlı.</p>
+            <div id="harita"></div>
+            {{ form.latitude }}{{ form.longitude }}
+            <small id="koord" style="color:var(--primary);font-weight:600;font-size:12px;"></small>
+        </div>
+
+        <!-- Olanaklar -->
+        <div class="card-section">
+            <div class="card-section-title">Olanaklar</div>
+            <div class="checkbox-grid">
+                <label class="checkbox-item">{{ form.wifi_var }} 🌐 Wi-Fi</label>
+                <label class="checkbox-item">{{ form.priz_var }} 🔌 Priz</label>
+                <label class="checkbox-item">{{ form.otopark_var }} 🚗 Otopark</label>
+                <label class="checkbox-item">{{ form.bahce_var }} 🌿 Bahçe</label>
+                <label class="checkbox-item">{{ form.canli_muzik_var }} 🎸 Canlı Müzik</label>
+                <label class="checkbox-item">{{ form.sigara_icin_uygun }} 🚬 Sigara</label>
+                <label class="checkbox-item">{{ form.engelli_erisimi_var }} ♿ Engelli Erişim</label>
+                <label class="checkbox-item">{{ form.evcil_hayvan_izinli }} 🐾 Pet Dostu</label>
+                <label class="checkbox-item">{{ form.cocuk_oyun_alani_var }} 👶 Çocuk Alanı</label>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-save">Kaydet</button>
+            <a href="{% url 'owner_dashboard' %}" class="btn-cancel">İptal</a>
+        </div>
+    </form>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const latI = document.getElementById('id_latitude');
+const lngI = document.getElementById('id_longitude');
+const koord = document.getElementById('koord');
+
+const initLat = parseFloat(latI.value) || 41.015;
+const initLng = parseFloat(lngI.value) || 28.979;
+
+const map = L.map('harita').setView([initLat, initLng], latI.value ? 15 : 12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+
+let marker = null;
+if (latI.value && lngI.value) {
+    marker = L.marker([initLat, initLng]).addTo(map);
+    koord.textContent = `Seçili: ${initLat.toFixed(5)}, ${initLng.toFixed(5)}`;
+}
+
+map.on('click', ({ latlng: { lat, lng } }) => {
+    latI.value = lat.toFixed(6); lngI.value = lng.toFixed(6);
+    koord.textContent = `Seçili: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    if (marker) marker.setLatLng([lat, lng]);
+    else marker = L.marker([lat, lng]).addTo(map);
+});
+</script>
+{% endblock %}

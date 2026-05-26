@@ -1,5 +1,19 @@
 from django.db import models
-from django.contrib.auth.models import User # Bunu ekledik
+from django.contrib.auth.models import User
+from django.utils import timezone
+
+
+class Profile(models.Model):
+    ROLE_CHOICES = [
+        ('USER', 'Kullanıcı (Öneri Alacak)'),
+        ('OWNER', 'Mekan Sahibi'),
+    ]
+    user = models.OneToOneField(User, related_name='profile', on_delete=models.CASCADE)
+    rol = models.CharField(max_length=10, choices=ROLE_CHOICES, default='USER')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.rol}"
+
 
 class Mekan(models.Model):
     KATEGORI_SECIMLERI = [
@@ -7,18 +21,26 @@ class Mekan(models.Model):
         ('KUTUPHANE', 'Kütüphane'),
         ('ECZANE', 'Eczane'),
         ('RESTORAN', 'Restoran'),
+        ('PUB', 'Pub'),
     ]
 
     ad = models.CharField(max_length=100)
     kategori = models.CharField(max_length=20, choices=KATEGORI_SECIMLERI)
     adres = models.TextField()
     img = models.ImageField(upload_to='mekanlar/', blank=True, null=True, verbose_name="Mekan Fotoğrafı")
-    
+    telefon = models.CharField(max_length=20, blank=True, null=True, verbose_name="Telefon")
+    website = models.URLField(blank=True, null=True, verbose_name="Web Sitesi")
     su_an_acik = models.BooleanField(default=True)
     doluluk_orani = models.IntegerField(default=0, help_text="Yüzde olarak doluluk (Örn: 80)")
     acilis_saati = models.TimeField(null=True, blank=True, verbose_name="Açılış Saati")
     kapanis_saati = models.TimeField(null=True, blank=True, verbose_name="Kapanış Saati")
-    
+    sahibi = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='mekanlari')
+    dogrulanmis_mi = models.BooleanField(default=False)
+    anlik_duyuru = models.CharField(max_length=500, blank=True, null=True)
+
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+
     wifi_var = models.BooleanField(default=False)
     priz_var = models.BooleanField(default=False)
     otopark_var = models.BooleanField(default=False)
@@ -28,14 +50,30 @@ class Mekan(models.Model):
     canli_muzik_var = models.BooleanField(default=False)
     evcil_hayvan_izinli = models.BooleanField(default=False)
     cocuk_oyun_alani_var = models.BooleanField(default=False)
-
-    # FAVORİ ÖZELLİĞİ İÇİN BU SATIRI EKLE:
     favorileyenler = models.ManyToManyField(User, related_name='favori_mekanlar', blank=True)
 
     def __str__(self):
         return f"{self.ad} ({self.kategori})"
 
-    # venues/models.py içindeki Mekan sınıfının ALTINA ekle:
+    def aktif_etkinlikler(self):
+        return self.etkinlikler.filter(bitis__gte=timezone.now()).order_by('baslangic')
+
+
+class Etkinlik(models.Model):
+    mekan = models.ForeignKey(Mekan, on_delete=models.CASCADE, related_name='etkinlikler')
+    baslik = models.CharField(max_length=200, verbose_name="Etkinlik Başlığı")
+    aciklama = models.TextField(blank=True, verbose_name="Açıklama")
+    baslangic = models.DateTimeField(verbose_name="Başlangıç")
+    bitis = models.DateTimeField(verbose_name="Bitiş")
+    foto = models.ImageField(upload_to='etkinlikler/', blank=True, null=True, verbose_name="Afiş / Fotoğraf")
+    olusturulma = models.DateTimeField(auto_now_add=True)
+
+    def aktif_mi(self):
+        return self.bitis >= timezone.now()
+
+    def __str__(self):
+        return f"{self.baslik} @ {self.mekan.ad}"
+
 
 class Yorum(models.Model):
     mekan = models.ForeignKey(Mekan, on_delete=models.CASCADE, related_name='yorumlar')

@@ -3,68 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Üye Ol - Anlık Mekan</title>
+    <title>Üye Ol — Anlık Mekan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
- 
-        :root { --primary-blue: #0056b3; --primary-hover: #004494; --text-dark: #1a1a1a; --text-gray: #666; --bg-light: #f8f9fa; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
-        body { height: 100vh; display: flex; background-color: var(--bg-light); color: var(--text-dark); }
-        .login-image { flex: 1; background: linear-gradient(to right, rgba(0, 86, 179, 0.2), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1600') center/cover no-repeat; display: flex; align-items: center; justify-content: center; padding: 40px; }
-        .image-text { color: white; text-align: center; max-width: 500px; }
-        .image-text h1 { font-size: 48px; font-weight: 900; margin-bottom: 20px; }
-        .login-form-container { width: 100%; max-width: 550px; background-color: white; display: flex; flex-direction: column; justify-content: center; padding: 60px; box-shadow: -5px 0 25px rgba(0,0,0,0.05); overflow-y: auto; }
-        .form-header { margin-bottom: 30px; }
-        .form-header h2 { font-size: 28px; font-weight: 800; }
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 5px; text-transform: uppercase; }
-        .input-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; }
-        .btn-submit { width: 100%; padding: 15px; background-color: var(--primary-blue); color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; margin-top: 10px; }
-        .login-link { text-align: center; margin-top: 20px; font-size: 14px; }
-        .login-link a { color: var(--primary-blue); font-weight: 700; text-decoration: none; }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .auth-visual {
+            flex: 1;
+            background:
+                linear-gradient(160deg, #0f172a 0%, #1e3a5f 100%);
+            display: flex;
+            flex-direction: column;
+            padding: 48px 52px;
+            color: white;
+        }
+        .auth-brand {
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: -.2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .auth-logo-mark {
+            width: 26px; height: 26px;
+            background: #2563eb;
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 900; color: white;
+        }
+        .auth-visual-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding-bottom: 8px;
+        }
+        .auth-visual-body h2 {
+            font-size: 30px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 12px;
+            letter-spacing: -.5px;
+        }
+        .auth-visual-body p { font-size: 14px; color: #94a3b8; line-height: 1.6; max-width: 340px; }
+
+        /* Özellik listesi */
+        .auth-features { margin-top: 32px; display: flex; flex-direction: column; gap: 12px; }
+        .auth-feat-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #94a3b8; }
+        .feat-dot { width: 6px; height: 6px; border-radius: 50%; background: #2563eb; flex-shrink: 0; }
+
+        /* ── Form paneli ── */
+        .auth-panel {
+            width: 480px;
+            flex-shrink: 0;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 56px 48px;
+            overflow-y: auto;
+            border-left: 1px solid #e2e8f0;
+        }
+
+        .auth-header { margin-bottom: 28px; }
+        .auth-header h1 { font-size: 22px; font-weight: 800; margin-bottom: 4px; letter-spacing: -.3px; }
+        .auth-header p { font-size: 13px; color: #64748b; }
+
+        .error-box {
+            background: #fef2f2; border: 1px solid #fecaca;
+            border-radius: 8px; padding: 12px 16px; margin-bottom: 18px;
+            font-size: 13px; font-weight: 600; color: #dc2626;
+        }
+        .error-box ul { margin-top: 6px; margin-left: 16px; }
+        .error-box li { margin-bottom: 2px; font-weight: 500; }
+
+        .field { margin-bottom: 14px; }
+        .f-label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 5px; text-transform: uppercase; letter-spacing: .3px; }
+        .field input {
+            width: 100%; padding: 10px 13px;
+            border: 1.5px solid #e5e7eb; border-radius: 7px;
+            font-size: 14px; font-family: inherit; color: #111827;
+            transition: .15s; background: #f9fafb;
+        }
+        .field input:focus {
+            outline: none; border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,.1); background: white;
+        }
+
+        /* Rol seçici */
+        .rol-label { font-size: 12px; font-weight: 600; color: #374151; text-transform: uppercase; letter-spacing: .3px; margin-bottom: 10px; display: block; }
+        .rol-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+        .rol-option { position: relative; }
+        .rol-option input[type=radio] { position: absolute; opacity: 0; width: 0; height: 0; }
+        .rol-option label {
+            display: block;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 14px 14px;
+            cursor: pointer;
+            transition: .15s;
+            text-align: center;
+        }
+        .rol-option label:hover { border-color: #93c5fd; background: #f8fafc; }
+        .rol-option input[type=radio]:checked + label {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+        .rol-letter {
+            width: 34px; height: 34px;
+            border-radius: 8px;
+            background: #e2e8f0;
+            margin: 0 auto 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 15px; color: #475569;
+            transition: .15s;
+        }
+        .rol-option input[type=radio]:checked + label .rol-letter {
+            background: #2563eb; color: white;
+        }
+        .rol-name { font-size: 13px; font-weight: 700; color: #111827; margin-bottom: 2px; }
+        .rol-desc { font-size: 11px; color: #64748b; }
+
+        .btn-submit {
+            width: 100%; padding: 12px;
+            background: #2563eb; color: white; border: none;
+            border-radius: 8px; font-size: 14px; font-weight: 700;
+            cursor: pointer; font-family: inherit; transition: .15s;
+        }
+        .btn-submit:hover { background: #1d4ed8; }
+
+        .auth-footer { text-align: center; margin-top: 20px; font-size: 13px; color: #64748b; }
+        .auth-footer a { color: #2563eb; font-weight: 700; }
+
+        @media (max-width: 860px) {
+            .auth-visual { display: none; }
+            .auth-panel { width: 100%; padding: 40px 24px; border-left: none; }
+        }
     </style>
 </head>
 <body>
-    <div class="login-image">
-        <div class="image-text">
-            <h1>Aramıza Katıl.</h1>
+
+<div class="auth-visual">
+    <div class="auth-brand">
+        <div class="auth-logo-mark">A</div>
+        Anlık Mekan
+    </div>
+    <div class="auth-visual-body">
+        <h2>Şehrin anlık bilgisi<br>artık elinizde.</h2>
+        <p>Mekan açık mı, ne kadar dolu, bugün etkinlik var mı — hepsi tek yerde.</p>
+        <div class="auth-features">
+            <div class="auth-feat-item"><div class="feat-dot"></div>Anlık açık/kapalı ve doluluk durumu</div>
+            <div class="auth-feat-item"><div class="feat-dot"></div>Etkinlik ve duyuru takibi</div>
+            <div class="auth-feat-item"><div class="feat-dot"></div>Favori mekanlar ve yorumlar</div>
         </div>
     </div>
+</div>
 
-    <div class="login-form-container">
-        <div class="form-header">
-            <h2>Yeni Hesap Oluştur </h2>
-            <p>Bilgilerini girerek anlık mekan takibine başla.</p>
-        </div>
-
-        <form method="POST">
-            {% csrf_token %}
-            
-            <div class="input-group">
-                <label for="username">Kullanıcı Adı</label>
-                <input type="text" id="username" name="username" placeholder="elifguven" required>
-            </div>
-
-            <div class="input-group">
-                <label for="email">E-Posta Adresi</label>
-                <input type="email" id="email" name="email" placeholder="ornek@marmara.edu.tr" required>
-            </div>
-
-            <div class="input-group">
-                <label for="password">Şifre</label>
-                <input type="password" id="password" name="password" placeholder="••••••••" required>
-            </div>
-
-            <div class="input-group">
-                <label for="password_confirm">Şifre Tekrar</label>
-                <input type="password" id="password_confirm" name="password_confirm" placeholder="••••••••" required>
-            </div>
-
-            <button type="submit" class="btn-submit">Hesabımı Oluştur</button>
-        </form>
-
-        <div class="login-link">
-            Zaten hesabın var mı? <a href="{% url 'login' %}">Giriş Yap</a>
-        </div>
+<div class="auth-panel">
+    <div class="auth-header">
+        <h1>Hesap oluştur</h1>
+        <p>Ücretsiz, hızlı, hiç reklam yok.</p>
     </div>
+
+    {% if form.errors %}
+    <div class="error-box">
+        <strong>Lütfen hataları düzeltin:</strong>
+        <ul>
+            {% for field in form %}{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}{% endfor %}
+            {% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="field">
+            <label class="f-label">Kullanıcı Adı</label>
+            <input type="text" name="username" placeholder="kullaniciadiniz" required autofocus>
+        </div>
+        <div class="field">
+            <label class="f-label">Şifre</label>
+            <input type="password" name="password1" placeholder="En az 8 karakter" required>
+        </div>
+        <div class="field">
+            <label class="f-label">Şifre Tekrar</label>
+            <input type="password" name="password2" placeholder="Şifreni tekrar gir" required>
+        </div>
+
+        <span class="rol-label">Hesap Türü</span>
+        <div class="rol-grid">
+            <div class="rol-option">
+                <input type="radio" name="rol" id="rol-user" value="USER"
+                    {% if default_rol != 'OWNER' %}checked{% endif %}>
+                <label for="rol-user">
+                    <div class="rol-letter">K</div>
+                    <div class="rol-name">Kullanıcı</div>
+                    <div class="rol-desc">Mekan keşfet</div>
+                </label>
+            </div>
+            <div class="rol-option">
+                <input type="radio" name="rol" id="rol-owner" value="OWNER"
+                    {% if default_rol == 'OWNER' %}checked{% endif %}>
+                <label for="rol-owner">
+                    <div class="rol-letter">İ</div>
+                    <div class="rol-name">İşletme</div>
+                    <div class="rol-desc">Mekanını yönet</div>
+                </label>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit">Hesabımı Oluştur</button>
+    </form>
+
+    <div class="auth-footer">
+        Zaten hesabın var mı? <a href="{% url 'login' %}">Giriş yap</a>
+    </div>
+</div>
+
 </body>
 </html>

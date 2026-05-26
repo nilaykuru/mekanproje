@@ -6,6 +6,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('venues.urls')),
+    path("__reload__/", include("django_browser_reload.urls")),
 ]
 
 # BU KISIM LISTENIN TAMAMEN DISINDA OLMALI
