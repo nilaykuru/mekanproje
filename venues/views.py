@@ -71,15 +71,17 @@ def register(request):
             secilen_rol = request.POST.get('rol', 'USER')
             profile = Profile.objects.create(user=user, rol=secilen_rol)
             
-            # Yeni kullanıcıya otomatik giriş yap
             login(request, user)
-            
-            messages.success(
-                request,
-                f"Hoş geldiniz {user.username}! Şimdi hesabınızı 2FA ile güvenli hale getirin."
-            )
-            # Doğrudan 2FA QR kod sayfasına yönlendir
-            return redirect('qr_kod_olustur')
+
+            if secilen_rol == 'OWNER':
+                messages.success(
+                    request,
+                    f"Hoş geldiniz {user.username}! Mekan sahibi hesabınızı güvenli hale getirmek için Google Authenticator kurulumunu tamamlayın."
+                )
+                return redirect('qr_kod_olustur')
+
+            messages.success(request, f"Hoş geldiniz {user.username}! Mekanları keşfetmeye başlayabilirsiniz.")
+            return redirect('dashboard')
     else:
         form = KayitFormu()
     default_rol = request.GET.get('rol', 'USER')
