@@ -27,6 +27,20 @@
 .badge-ver  { background: #dcfce7; color: #15803d; padding: 1px 8px; border-radius: 3px; font-size: 10px; font-weight: 700; }
 .badge-pend { background: #fef9c3; color: #a16207; padding: 1px 8px; border-radius: 3px; font-size: 10px; font-weight: 700; }
 
+.verify-banner {
+    background: #fffbeb; border: 1px solid #fcd34d; border-left: 4px solid #f59e0b;
+    border-radius: 10px; padding: 14px 18px; margin-bottom: 20px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+.verify-banner-text { font-size: 13px; font-weight: 600; color: #92400e; line-height: 1.5; }
+.verify-banner-text small { display: block; font-weight: 500; color: #b45309; font-size: 12px; }
+.btn-resend {
+    background: #f59e0b; color: white; border: none; padding: 7px 16px;
+    border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;
+    font-family: inherit; transition: .15s; white-space: nowrap; flex-shrink: 0;
+}
+.btn-resend:hover { background: #d97706; }
+
 /* Kontroller */
 .vpc-ctrl { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 22px; background: var(--bg); border-bottom: 1px solid var(--border); }
 .toggle-btn { padding: 7px 16px; border-radius: 6px; border: none; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: .15s; }
@@ -94,12 +108,29 @@
         {% endfor %}
     {% endif %}
 
+    {% if not request.user.profile.email_verified %}
+    <div class="verify-banner">
+        <div class="verify-banner-text">
+            E-posta adresiniz henüz doğrulanmadı — mekan ekleyemezsiniz.
+            <small>{{ request.user.email }} adresine gönderilen linke tıklayın.</small>
+        </div>
+        <form method="POST" action="{% url 'hesap_dogrulama_gonder' %}" style="margin:0;">
+            {% csrf_token %}
+            <button type="submit" class="btn-resend">Tekrar Gönder</button>
+        </form>
+    </div>
+    {% endif %}
+
     <div class="panel-top">
         <div class="panel-top-text">
             <h1>Yönetim Paneli</h1>
             <p>Merhaba, {{ request.user.username }}. Mekanlarını buradan yönet.</p>
         </div>
-        <a href="{% url 'mekan_olustur' %}" class="btn-new">+ Yeni Mekan Ekle</a>
+        {% if request.user.profile.email_verified %}
+            <a href="{% url 'mekan_olustur' %}" class="btn-new">+ Yeni Mekan Ekle</a>
+        {% else %}
+            <span class="btn-new" style="opacity:.45;cursor:not-allowed;" title="Önce e-postanızı doğrulayın">+ Yeni Mekan Ekle</span>
+        {% endif %}
     </div>
 
     {% if mekanlar %}
@@ -117,15 +148,22 @@
                     <div class="vpc-hd-meta">
                         {{ mekan.get_kategori_display }}
                         <span>&middot;</span>
-                        {{ mekan.adres|truncatechars:48 }}
+                        {{ mekan.adres|truncatechars:40 }}
                         {% if mekan.dogrulanmis_mi %}
-                            <span class="badge-ver">Dogrulandı</span>
+                            <span class="badge-ver">Yayında</span>
                         {% else %}
-                            <span class="badge-pend">Onay Bekliyor</span>
+                            <span class="badge-pend">Admin Onayı Bekleniyor</span>
                         {% endif %}
                     </div>
                 </div>
+                <a href="{% url 'mekan_duzenle' mekan.id %}" class="btn-edit-v" style="flex-shrink:0;">Bilgileri Güncelle</a>
             </div>
+
+            {% if not mekan.dogrulanmis_mi %}
+            <div style="background:#fff7ed;border-top:1px solid #fed7aa;padding:10px 22px;font-size:12px;color:#9a3412;font-weight:600;">
+                Bu mekan henüz admin tarafından onaylanmadı — kullanıcılara görünmüyor.
+            </div>
+            {% endif %}
 
             <div class="vpc-ctrl">
                 <button class="toggle-btn {% if mekan.su_an_acik %}is-open{% else %}is-closed{% endif %}"
@@ -203,9 +241,8 @@
             </div>
 
             <div class="vpc-ft">
-                <a href="{% url 'mekan_duzenle' mekan.id %}" class="btn-edit-v">Mekan Düzenle</a>
                 <form method="POST" action="{% url 'mekan_sil' mekan.id %}" onsubmit="return confirm('{{ mekan.ad }} silinsin mi?');">
-                    {% csrf_token %}<button type="submit" class="btn-del-v">Sil</button>
+                    {% csrf_token %}<button type="submit" class="btn-del-v">Mekanı Sil</button>
                 </form>
             </div>
         </div>
@@ -214,7 +251,7 @@
     {% else %}
     <div class="empty-panel">
         <h2>Henüz mekanınız yok</h2>
-        <p>Mekanınızı ekleyerek başlayın. Admin onayından sonra yayına alınır.</p>
+        <p>Mekanınızı ekleyin, admin inceler ve yayına alır.</p>
         <a href="{% url 'mekan_olustur' %}" class="btn-new">+ İlk Mekanımı Ekle</a>
     </div>
     {% endif %}

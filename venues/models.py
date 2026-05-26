@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -10,6 +11,8 @@ class Profile(models.Model):
     ]
     user = models.OneToOneField(User, related_name='profile', on_delete=models.CASCADE)
     rol = models.CharField(max_length=10, choices=ROLE_CHOICES, default='USER')
+    email_verified = models.BooleanField(default=False)
+    email_verification_token = models.UUIDField(default=uuid.uuid4, unique=True)
 
     def __str__(self):
         return f"{self.user.username} - {self.rol}"
@@ -24,8 +27,16 @@ class Mekan(models.Model):
         ('PUB', 'Pub'),
     ]
 
+    SEHIR_SECIMLERI = [
+        ('istanbul', 'İstanbul'),
+        ('izmir', 'İzmir'),
+        ('samsun', 'Samsun'),
+        ('sakarya', 'Sakarya'),
+    ]
+
     ad = models.CharField(max_length=100)
     kategori = models.CharField(max_length=20, choices=KATEGORI_SECIMLERI)
+    sehir = models.CharField(max_length=20, choices=SEHIR_SECIMLERI, blank=True, null=True, verbose_name="Şehir")
     adres = models.TextField()
     img = models.ImageField(upload_to='mekanlar/', blank=True, null=True, verbose_name="Mekan Fotoğrafı")
     telefon = models.CharField(max_length=20, blank=True, null=True, verbose_name="Telefon")
@@ -36,6 +47,7 @@ class Mekan(models.Model):
     kapanis_saati = models.TimeField(null=True, blank=True, verbose_name="Kapanış Saati")
     sahibi = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='mekanlari')
     dogrulanmis_mi = models.BooleanField(default=False)
+    dogrulama_token = models.UUIDField(default=uuid.uuid4, unique=True)
     anlik_duyuru = models.CharField(max_length=500, blank=True, null=True)
 
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)

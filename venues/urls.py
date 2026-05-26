@@ -33,6 +33,10 @@ urlpatterns = [
     path('etkinlik/<int:etkinlik_id>/duzenle/', views.etkinlik_duzenle, name='etkinlik_duzenle'),
     path('etkinlik/<int:etkinlik_id>/sil/', views.etkinlik_sil, name='etkinlik_sil'),
 
+    # Hesap e-posta doğrulama
+    path('hesap/dogrula/<uuid:token>/', views.hesap_dogrula, name='hesap_dogrula'),
+    path('hesap/dogrulama-gonder/', views.hesap_dogrulama_yeniden_gonder, name='hesap_dogrulama_gonder'),
+
     # Geriye dönük uyumluluk
     path('mekan/<int:mekan_id>/duyuru/', views.duyuru_guncelle, name='duyuru_guncelle'),
 ]

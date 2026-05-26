@@ -1,13 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
 from django.http import JsonResponse
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.db.models import Q
 from .models import Mekan, Yorum, Profile, Etkinlik
-from .forms import YorumForm, MekanForm, EtkinlikForm
+from .forms import YorumForm, MekanForm, EtkinlikForm, KayitFormu
 
 
 # ── Yardımcı decorator ──────────────────────────────────────────────────────
@@ -31,19 +33,60 @@ def landing_page(request):
     return render(request, 'venues/landing.html')
 
 
+def _hesap_dogrulama_emaili_gonder(request, user, profile):
+    if not user.email:
+        return False
+    dogrulama_url = request.build_absolute_uri(
+        reverse('hesap_dogrula', args=[profile.email_verification_token])
+    )
+    send_mail(
+        subject='Anlık Mekan — E-posta Adresinizi Doğrulayın',
+        message=(
+            f'Merhaba {user.username},\n\n'
+            f'Anlık Mekan hesabınızı doğrulamak için aşağıdaki bağlantıya tıklayın:\n\n'
+            f'{dogrulama_url}\n\n'
+            f'Bu bağlantı yalnızca size özeldir. Hesabınızı oluşturmadıysanız bu e-postayı yok sayın.'
+        ),
+        from_email='noreply@anlikmekan.com',
+        recipient_list=[user.email],
+        fail_silently=True,
+    )
+    return True
+
+
 def register(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = KayitFormu(request.POST)
         if form.is_valid():
             user = form.save()
             secilen_rol = request.POST.get('rol', 'USER')
-            Profile.objects.create(user=user, rol=secilen_rol)
-            messages.success(request, "Hesabınız oluşturuldu! Lütfen giriş yapın.")
+            profile = Profile.objects.create(user=user, rol=secilen_rol)
+            _hesap_dogrulama_emaili_gonder(request, user, profile)
+            messages.success(
+                request,
+                f"{user.email} adresine doğrulama e-postası gönderildi. "
+                f"Giriş yapıp mekan ekleyebilmek için önce bağlantıya tıklayın."
+            )
             return redirect('login')
     else:
-        form = UserCreationForm()
+        form = KayitFormu()
     default_rol = request.GET.get('rol', 'USER')
     return render(request, 'venues/register.html', {'form': form, 'default_rol': default_rol})
+
+
+def hesap_dogrula(request, token):
+    profile = get_object_or_404(Profile, email_verification_token=token)
+    if not profile.email_verified:
+        profile.email_verified = True
+        profile.save(update_fields=['email_verified'])
+        messages.success(request, 'E-postanız doğrulandı! Artık mekan ekleyebilirsiniz.')
+    else:
+        messages.info(request, 'E-postanız zaten doğrulanmış.')
+    if request.user.is_authenticated:
+        if profile.rol == 'OWNER':
+            return redirect('owner_dashboard')
+        return redirect('dashboard')
+    return redirect('login')
 
 
 def user_login(request):
@@ -70,8 +113,16 @@ def user_logout(request):
 
 @login_required(login_url='login')
 def dashboard(request):
-    mekanlar = Mekan.objects.all()
-    return render(request, 'venues/index.html', {'mekanlar': mekanlar})
+    sehir = request.GET.get('sehir', '')
+    mekanlar = Mekan.objects.filter(dogrulanmis_mi=True)
+    if sehir:
+        mekanlar = mekanlar.filter(sehir=sehir)
+    sehir_secenekleri = Mekan.SEHIR_SECIMLERI
+    return render(request, 'venues/index.html', {
+        'mekanlar': mekanlar,
+        'aktif_sehir': sehir,
+        'sehir_secenekleri': sehir_secenekleri,
+    })
 
 
 @login_required(login_url='login')
@@ -153,15 +204,22 @@ def mekan_sahibi_paneli(request):
     return render(request, 'venues/owner_dashboard.html', {'mekanlar': mekanlarim})
 
 
+
 @owner_required
 def mekan_olustur(request):
+    if not request.user.profile.email_verified:
+        messages.error(request, "Mekan ekleyebilmek için önce e-posta adresinizi doğrulamanız gerekiyor.")
+        return redirect('owner_dashboard')
     if request.method == 'POST':
         form = MekanForm(request.POST, request.FILES)
         if form.is_valid():
             mekan = form.save(commit=False)
             mekan.sahibi = request.user
             mekan.save()
-            messages.success(request, f'"{mekan.ad}" başarıyla oluşturuldu! Admin onayından sonra yayınlanacak.')
+            messages.success(
+                request,
+                f'"{mekan.ad}" eklendi. Admin inceleyip onayladıktan sonra yayına alınacak.'
+            )
             return redirect('owner_dashboard')
     else:
         form = MekanForm()
@@ -194,6 +252,23 @@ def mekan_sil(request, mekan_id):
     ad = mekan.ad
     mekan.delete()
     messages.success(request, f'"{ad}" silindi.')
+    return redirect('owner_dashboard')
+
+
+# ── Hesap Doğrulama ───────────────────────────────────────────────────────────
+
+@owner_required
+@require_POST
+def hesap_dogrulama_yeniden_gonder(request):
+    profile = request.user.profile
+    if profile.email_verified:
+        messages.info(request, 'E-postanız zaten doğrulanmış.')
+        return redirect('owner_dashboard')
+    gonderildi = _hesap_dogrulama_emaili_gonder(request, request.user, profile)
+    if gonderildi:
+        messages.success(request, f'Doğrulama e-postası {request.user.email} adresine tekrar gönderildi.')
+    else:
+        messages.error(request, 'Hesabınızda kayıtlı e-posta adresi bulunamadı.')
     return redirect('owner_dashboard')
 
 

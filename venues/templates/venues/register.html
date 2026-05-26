@@ -189,7 +189,13 @@
 
         <div class="field">
             <label class="f-label">Kullanıcı Adı</label>
-            <input type="text" name="username" placeholder="kullaniciadiniz" required autofocus>
+            <input type="text" name="username" placeholder="kullaniciadiniz" required autofocus
+                   value="{{ form.username.value|default:'' }}">
+        </div>
+        <div class="field">
+            <label class="f-label">E-posta <span style="color:#dc2626;">*</span></label>
+            <input type="email" name="email" placeholder="ornek@email.com" required
+                   value="{{ form.email.value|default:'' }}">
         </div>
         <div class="field">
             <label class="f-label">Şifre</label>

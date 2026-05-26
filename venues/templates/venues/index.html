@@ -68,6 +68,15 @@
 .btn-detail { padding: 9px 13px; border-radius: 7px; font-size: 12px; font-weight: 700; background: var(--bg); color: var(--text); border: 1px solid var(--border); text-align: center; transition: .15s; }
 .btn-detail:hover { background: #e2e8f0; }
 
+.sehir-bar { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; }
+.sehir-btn {
+    padding: 7px 18px; border-radius: 20px; font-size: 13px; font-weight: 600;
+    border: 1.5px solid var(--border); color: var(--muted); background: var(--surface);
+    text-decoration: none; transition: .15s; white-space: nowrap;
+}
+.sehir-btn:hover { border-color: var(--primary); color: var(--primary); background: #eff6ff; }
+.sehir-btn.aktif { background: var(--primary); color: white; border-color: var(--primary); }
+
 .empty-state { grid-column: 1/-1; text-align: center; padding: 80px 20px; color: var(--muted); }
 .empty-state h3 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
 
@@ -77,8 +86,15 @@
 {% block content %}
 <div class="page-wrap">
     <div class="page-header">
-        <h1>Tüm Mekanlar</h1>
+        <h1>{% if aktif_sehir %}{{ aktif_sehir|capfirst }} Mekanları{% else %}Tüm Mekanlar{% endif %}</h1>
         <span>{{ mekanlar|length }} mekan listeleniyor</span>
+    </div>
+
+    <div class="sehir-bar">
+        <a href="{% url 'dashboard' %}" class="sehir-btn {% if not aktif_sehir %}aktif{% endif %}">Tüm Şehirler</a>
+        {% for kod, ad in sehir_secenekleri %}
+        <a href="{% url 'dashboard' %}?sehir={{ kod }}" class="sehir-btn {% if aktif_sehir == kod %}aktif{% endif %}">{{ ad }}</a>
+        {% endfor %}
     </div>
 
     <div class="venue-grid">
