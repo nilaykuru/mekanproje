@@ -49,7 +49,7 @@ class MekanForm(forms.ModelForm):
         model = Mekan
         fields = [
             'ad', 'kategori', 'sehir', 'adres', 'telefon', 'website',
-            'img', 'acilis_saati', 'kapanis_saati',
+            'img', 'ruhsat_belgesi', 'acilis_saati', 'kapanis_saati',
             'su_an_acik', 'doluluk_orani', 'anlik_duyuru',
             'latitude', 'longitude',
             'wifi_var', 'priz_var', 'otopark_var', 'sigara_icin_uygun',
@@ -80,6 +80,8 @@ class MekanForm(forms.ModelForm):
             'cocuk_oyun_alani_var': forms.CheckboxInput(attrs={'style': CHECKBOX_STYLE}),
             'su_an_acik': forms.CheckboxInput(attrs={'style': CHECKBOX_STYLE}),
         }
+        # Ruhsat belgesi dosya alanı
+        ruhsat_belgesi = forms.ImageField(required=False, widget=forms.ClearableFileInput(attrs={'style': 'width:100%;'}))
 
 
 class EtkinlikForm(forms.ModelForm):

@@ -37,6 +37,16 @@ urlpatterns = [
     path('hesap/dogrula/<uuid:token>/', views.hesap_dogrula, name='hesap_dogrula'),
     path('hesap/dogrulama-gonder/', views.hesap_dogrulama_yeniden_gonder, name='hesap_dogrulama_gonder'),
 
+    # TOTP 2FA QR Kod doğrulama (yeni sistem)
+    path('2fa/qr-kod/', views.qr_kod_olustur, name='qr_kod_olustur'),
+    path('2fa/qr-kod-dogrula/', views.qr_kod_dogrula, name='qr_kod_dogrula'),
+
+    # Gizli yetkili admin sayfaları
+    path('yetkili-giris/', views.admin_login, name='admin_login'),
+    path('degerlendirme-paneli/', views.admin_panel, name='admin_panel'),
+    path('degerlendirme/onayla/<int:mekan_id>/', views.admin_approve, name='admin_approve'),
+    path('degerlendirme/reddet/<int:mekan_id>/', views.admin_reject, name='admin_reject'),
+
     # Geriye dönük uyumluluk
     path('mekan/<int:mekan_id>/duyuru/', views.duyuru_guncelle, name='duyuru_guncelle'),
 ]

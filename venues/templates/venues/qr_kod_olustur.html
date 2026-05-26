@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2FA Doğrulama - Anlık Mekan</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 48px 40px;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #64748b;
+            line-height: 1.6;
+        }
+
+        .qr-section {
+            background: #f8fafc;
+            border: 2px dashed #e2e8f0;
+            border-radius: 12px;
+            padding: 32px 24px;
+            margin-bottom: 32px;
+        }
+
+        .qr-image {
+            max-width: 280px;
+            width: 100%;
+            height: auto;
+            margin: 0 auto;
+            display: block;
+            border-radius: 8px;
+            background: white;
+            padding: 8px;
+        }
+
+        .qr-note {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 16px;
+            font-weight: 500;
+        }
+
+        .code-section {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 28px;
+            text-align: left;
+        }
+
+        .code-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .secret-code {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+            word-break: break-all;
+            padding: 12px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            letter-spacing: 1px;
+        }
+
+        .secret-help {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        .form-section {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: #cbd5e1;
+            letter-spacing: 2px;
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 8px;
+            text-align: left;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 12px;
+            letter-spacing: 0.3px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .cancel-btn {
+            width: 100%;
+            padding: 12px 24px;
+            background: #f1f5f9;
+            color: #64748b;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .cancel-btn:hover {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .steps {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .steps h3 {
+            font-size: 13px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 12px;
+        }
+
+        .steps ol {
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.8;
+            padding-left: 20px;
+        }
+
+        .steps li {
+            margin-bottom: 6px;
+        }
+
+        .messages {
+            margin-bottom: 24px;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .message.success {
+            background: #dcfce7;
+            color: #166534;
+            border-left: 4px solid #22c55e;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 32px 24px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .qr-image {
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Başlık -->
+        <div class="header">
+            <h1>🔐 İki Aşamalı Doğrulama</h1>
+            <p>Google Authenticator veya benzeri uygulamayı kullanarak hesabınızı güvenli hale getirin.</p>
+        </div>
+
+        <!-- Mesajlar -->
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Adımlar -->
+        <div class="steps">
+            <h3>Nasıl yapılır?</h3>
+            <ol>
+                <li><strong>QR kodu tarayın</strong> — Google Authenticator, Microsoft Authenticator veya Authy uygulamasını açıp "QR kod tarayın" seçeneğini kullanın</li>
+                <li><strong>Kodu girin</strong> — Uygulamada görünen 6 haneli doğrulama kodunu aşağıya girin</li>
+                <li><strong>Onaylayın</strong> — "Doğrula" butonuna tıklayın</li>
+            </ol>
+        </div>
+
+        <!-- QR Kod Bölümü -->
+        <div class="qr-section">
+            <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="TOTP QR Code" class="qr-image">
+            <p class="qr-note">📱 QR kodu Google Authenticator ile tarayın</p>
+        </div>
+
+        <!-- Gizli Anahtar (Yedek) -->
+        <div class="code-section">
+            <label class="code-label">Gizli Anahtar (Yedek Olarak Kaydedin)</label>
+            <div class="secret-code">{{ secret_key }}</div>
+            <p class="secret-help">⚠️ QR kodu tarayamıyorsanız, uygulamaya manual olarak bu kodu girin. Lütfen güvenli bir yerde saklayın!</p>
+        </div>
+
+        <!-- Doğrulama Formu -->
+        <form method="POST" action="{% url 'qr_kod_dogrula' %}">
+            {% csrf_token %}
+
+            <div class="form-section">
+                <label class="form-label">Doğrulama Kodu (6 Hane)</label>
+                <input
+                    type="text"
+                    name="totp_code"
+                    class="form-input"
+                    placeholder="000000"
+                    maxlength="6"
+                    inputmode="numeric"
+                    pattern="[0-9]{6}"
+                    required
+                    autofocus
+                >
+                <p class="form-help">Uygulamada görünen 6 haneli kodu girin</p>
+            </div>
+
+            <button type="submit" class="submit-btn">✓ Doğrula ve Devam Et</button>
+        </form>
+
+        <a href="{% url 'dashboard' %}" class="cancel-btn">İptal Et</a>
+    </div>
+</body>
+</html>

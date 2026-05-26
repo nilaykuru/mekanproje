@@ -108,16 +108,12 @@
         {% endfor %}
     {% endif %}
 
-    {% if not request.user.profile.email_verified %}
+    {% if not request.user.profile.is_verified %}
     <div class="verify-banner">
         <div class="verify-banner-text">
-            E-posta adresiniz henüz doğrulanmadı — mekan ekleyemezsiniz.
-            <small>{{ request.user.email }} adresine gönderilen linke tıklayın.</small>
+            🔐 Hesabınız henüz 2FA ile doğrulanmadı — mekan ekleyemezsiniz.
+            <small><a href="{% url 'qr_kod_olustur' %}" style="color: #b45309; font-weight: 700;">Doğrulama sayfasına gidin</a></small>
         </div>
-        <form method="POST" action="{% url 'hesap_dogrulama_gonder' %}" style="margin:0;">
-            {% csrf_token %}
-            <button type="submit" class="btn-resend">Tekrar Gönder</button>
-        </form>
     </div>
     {% endif %}
 
@@ -126,7 +122,7 @@
             <h1>Yönetim Paneli</h1>
             <p>Merhaba, {{ request.user.username }}. Mekanlarını buradan yönet.</p>
         </div>
-        {% if request.user.profile.email_verified %}
+        {% if request.user.profile.is_verified %}
             <a href="{% url 'mekan_olustur' %}" class="btn-new">+ Yeni Mekan Ekle</a>
         {% else %}
             <span class="btn-new" style="opacity:.45;cursor:not-allowed;" title="Önce e-postanızı doğrulayın">+ Yeni Mekan Ekle</span>
@@ -149,10 +145,10 @@
                         {{ mekan.get_kategori_display }}
                         <span>&middot;</span>
                         {{ mekan.adres|truncatechars:40 }}
-                        {% if mekan.dogrulanmis_mi %}
-                            <span class="badge-ver">Yayında</span>
+                        {% if mekan.is_approved %}
+                            <span class="badge-ver">Onaylandı - Sitede Aktif</span>
                         {% else %}
-                            <span class="badge-pend">Admin Onayı Bekleniyor</span>
+                            <span class="badge-pend">Onay Bekliyor</span>
                         {% endif %}
                     </div>
                 </div>

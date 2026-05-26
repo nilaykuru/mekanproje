@@ -1,4 +1,5 @@
 import uuid
+import pyotp
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -13,9 +14,37 @@ class Profile(models.Model):
     rol = models.CharField(max_length=10, choices=ROLE_CHOICES, default='USER')
     email_verified = models.BooleanField(default=False)
     email_verification_token = models.UUIDField(default=uuid.uuid4, unique=True)
+    
+    # TOTP 2FA alanları
+    totp_secret_key = models.CharField(max_length=32, default='', blank=True, help_text="TOTP gizli anahtarı")
+    is_verified = models.BooleanField(default=False, help_text="2FA doğrulama tamamlandı mı?")
 
     def __str__(self):
         return f"{self.user.username} - {self.rol}"
+    
+    def generate_totp_secret(self):
+        """Yeni bir TOTP gizli anahtarı oluştur ve kaydet."""
+        if not self.totp_secret_key:
+            self.totp_secret_key = pyotp.random_base32()
+            self.save(update_fields=['totp_secret_key'])
+        return self.totp_secret_key
+    
+    def get_totp_uri(self, issuer_name='AnlikMekan'):
+        """Google Authenticator tarafından okunabilir URI formatı."""
+        if not self.totp_secret_key:
+            self.generate_totp_secret()
+        totp = pyotp.TOTP(self.totp_secret_key)
+        return totp.provisioning_uri(
+            name=self.user.email,
+            issuer_name=issuer_name
+        )
+    
+    def verify_totp(self, token):
+        """Gelen kodu doğrula (6 haneli)."""
+        if not self.totp_secret_key:
+            return False
+        totp = pyotp.TOTP(self.totp_secret_key)
+        return totp.verify(token)
 
 
 class Mekan(models.Model):
@@ -49,6 +78,10 @@ class Mekan(models.Model):
     dogrulanmis_mi = models.BooleanField(default=False)
     dogrulama_token = models.UUIDField(default=uuid.uuid4, unique=True)
     anlik_duyuru = models.CharField(max_length=500, blank=True, null=True)
+
+    # Ruhsat ve onay durumu
+    ruhsat_belgesi = models.ImageField(upload_to='ruhsatlar/', null=True, blank=True, verbose_name='Ruhsat Belgesi')
+    is_approved = models.BooleanField(default=False)
 
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
