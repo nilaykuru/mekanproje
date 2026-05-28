@@ -2,96 +2,171 @@
 {% block title %}Anlık Mekan — Şehrin Gerçek Zamanlı Rehberi{% endblock %}
 
 {% block extra_css %}
-/* ── Hero ─────────────────────────────────── */
+/* Reset footer/navbar for landing */
+.subnav { display: none !important; }
+
+/* ── Hero ────────────────────────── */
 .hero {
-    background: #0f172a;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
     color: white;
-    padding: 100px 5% 88px;
+    padding: 120px 5% 100px;
     text-align: center;
+    position: relative;
+    overflow: hidden;
 }
-.hero-inner {
-    max-width: 680px;
-    margin: 0 auto;
+.hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(99,102,241,.25) 0%, transparent 70%);
+    pointer-events: none;
 }
-.hero-label {
-    display: inline-block;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    color: #60a5fa;
-    border: 1px solid rgba(96,165,250,.3);
-    background: rgba(96,165,250,.08);
-    padding: 5px 12px;
-    border-radius: 4px;
-    margin-bottom: 24px;
+.hero::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 80px;
+    background: linear-gradient(to bottom, transparent, var(--bg));
 }
+.hero-inner { max-width: 760px; margin: 0 auto; position: relative; z-index: 1; }
+
+.hero-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    color: #a5b4fc;
+    border: 1px solid rgba(165,180,252,.25);
+    background: rgba(165,180,252,.08);
+    padding: 6px 14px; border-radius: 20px;
+    margin-bottom: 32px;
+    backdrop-filter: blur(8px);
+}
+.hero-badge .dot { width: 6px; height: 6px; background: #6ee7b7; border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.4)} }
+
 .hero h1 {
-    font-size: 50px;
-    font-weight: 900;
-    line-height: 1.08;
-    letter-spacing: -1.5px;
-    margin-bottom: 18px;
-    color: white;
+    font-size: 62px; font-weight: 900; line-height: 1.06;
+    letter-spacing: -2.5px; margin-bottom: 22px; color: white;
 }
-.hero h1 em { font-style: normal; color: #60a5fa; }
+.hero h1 .grad {
+    background: linear-gradient(135deg, #818cf8, #c084fc, #fb7185);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
 .hero-desc {
-    font-size: 17px;
-    color: #94a3b8;
-    line-height: 1.7;
+    font-size: 18px; color: #94a3b8; line-height: 1.75;
+    max-width: 560px; margin: 0 auto 40px;
 }
+.hero-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.hero-btn-primary {
+    padding: 14px 32px; background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white; border-radius: 10px; font-size: 15px; font-weight: 700;
+    text-decoration: none; transition: transform .2s, box-shadow .2s;
+    box-shadow: 0 4px 20px rgba(99,102,241,.4);
+}
+.hero-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,.5); }
+.hero-btn-secondary {
+    padding: 14px 28px; background: rgba(255,255,255,.08);
+    color: white; border-radius: 10px; font-size: 15px; font-weight: 600;
+    text-decoration: none; border: 1px solid rgba(255,255,255,.15);
+    backdrop-filter: blur(8px); transition: background .2s;
+}
+.hero-btn-secondary:hover { background: rgba(255,255,255,.14); }
 
-/* ── Stats ────────────────────────────────── */
+/* ── Stats ─────────────────────────── */
 .stats-strip {
-    background: white;
-    border-bottom: 1px solid var(--border);
-    padding: 0 5%;
-    display: flex;
-    justify-content: center;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    display: flex; justify-content: center;
 }
-.stat-item {
-    padding: 22px 48px;
-    text-align: center;
-    border-right: 1px solid var(--border);
-}
+.stat-item { padding: 28px 52px; text-align: center; border-right: 1px solid var(--border); }
 .stat-item:last-child { border-right: none; }
-.stat-num { font-size: 22px; font-weight: 900; color: var(--text); }
-.stat-lbl { font-size: 12px; color: var(--muted); font-weight: 500; margin-top: 2px; }
+.stat-num {
+    font-size: 28px; font-weight: 900; color: var(--text);
+    background: linear-gradient(135deg, var(--primary), #7c3aed);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.stat-lbl { font-size: 12px; color: var(--muted); font-weight: 500; margin-top: 3px; }
 
-/* ── Sections ─────────────────────────────── */
-.section { max-width: 1100px; margin: 0 auto; padding: 64px 5%; }
-.section-hd { margin-bottom: 32px; }
-.section-hd h2 { font-size: 26px; font-weight: 800; letter-spacing: -.4px; margin-bottom: 6px; }
-.section-hd p { font-size: 15px; color: var(--muted); }
+/* ── Kategoriler ────────────────── */
+.kat-section { max-width: 1100px; margin: 0 auto; padding: 72px 5% 0; }
+.kat-section-hd { margin-bottom: 36px; }
+.kat-section-hd h2 { font-size: 30px; font-weight: 900; letter-spacing: -.5px; margin-bottom: 8px; }
+.kat-section-hd p { font-size: 15px; color: var(--muted); }
 
-/* Özellikler */
+.kat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+.kat-kart {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 28px 20px; text-align: center; text-decoration: none; color: var(--text);
+    transition: transform .2s, box-shadow .2s, border-color .2s;
+    position: relative; overflow: hidden;
+}
+.kat-kart::before {
+    content: ''; position: absolute; inset: 0; opacity: 0;
+    transition: opacity .2s;
+}
+.kat-kart:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,.1); border-color: var(--primary); }
+.kat-kart:hover::before { opacity: 1; }
+.kat-emoji { font-size: 36px; margin-bottom: 12px; display: block; }
+.kat-name { font-size: 14px; font-weight: 700; }
+.kat-count { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+/* ── Özellikler ─────────────────── */
+.features-section { max-width: 1100px; margin: 0 auto; padding: 72px 5%; }
 .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-.feature {
-    padding: 24px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
+.feature-card {
+    padding: 30px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 18px;
+    transition: transform .2s, box-shadow .2s;
+    position: relative; overflow: hidden;
 }
-.feature-icon-wrap {
-    width: 38px; height: 38px;
-    border-radius: 8px;
-    background: #eff6ff;
+.feature-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,.08); }
+.feature-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+}
+.feature-card:nth-child(1)::before { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+.feature-card:nth-child(2)::before { background: linear-gradient(90deg, #0ea5e9, #6366f1); }
+.feature-card:nth-child(3)::before { background: linear-gradient(90deg, #10b981, #0ea5e9); }
+.feature-card:nth-child(4)::before { background: linear-gradient(90deg, #f59e0b, #ef4444); }
+.feature-card:nth-child(5)::before { background: linear-gradient(90deg, #ec4899, #f59e0b); }
+.feature-card:nth-child(6)::before { background: linear-gradient(90deg, #8b5cf6, #ec4899); }
+.feature-icon { font-size: 32px; margin-bottom: 16px; display: block; }
+.feature-card h3 { font-size: 16px; font-weight: 800; margin-bottom: 8px; }
+.feature-card p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+
+/* ── CTA Section ────────────────── */
+.cta-section {
+    background: linear-gradient(135deg, #1e1b4b, #312e81);
+    margin: 72px 0 0; padding: 80px 5%; text-align: center;
+}
+.cta-section h2 { font-size: 36px; font-weight: 900; color: white; margin-bottom: 14px; letter-spacing: -.5px; }
+.cta-section p { font-size: 16px; color: #a5b4fc; margin-bottom: 36px; }
+.cta-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+/* ── Nasıl çalışır ──────────────── */
+.nasil-section { max-width: 900px; margin: 0 auto; padding: 72px 5% 0; }
+.adimlar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.adim {
+    text-align: center; padding: 28px 20px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+}
+.adim-no {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white; font-size: 20px; font-weight: 900;
     display: flex; align-items: center; justify-content: center;
-    margin-bottom: 14px;
+    margin: 0 auto 16px;
 }
-.feature-icon-inner {
-    width: 16px; height: 16px;
-    background: var(--primary);
-    border-radius: 3px;
-}
-.feature h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
-.feature p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.adim h3 { font-size: 15px; font-weight: 800; margin-bottom: 8px; }
+.adim p { font-size: 13px; color: var(--muted); line-height: 1.6; }
 
 @media (max-width: 900px) {
+    .hero h1 { font-size: 40px; }
+    .kat-grid { grid-template-columns: repeat(3, 1fr); }
     .features-grid { grid-template-columns: 1fr; }
-    .stat-item { padding: 18px 24px; }
-    .hero { padding: 64px 5% 56px; }
-    .hero h1 { font-size: 36px; }
+    .adimlar { grid-template-columns: 1fr; }
+    .stat-item { padding: 20px 28px; }
+}
+@media (max-width: 600px) {
+    .hero h1 { font-size: 32px; }
+    .kat-grid { grid-template-columns: repeat(2, 1fr); }
 }
 {% endblock %}
 
@@ -100,9 +175,16 @@
 <!-- Hero -->
 <section class="hero">
     <div class="hero-inner">
-        <div class="hero-label">Gerçek Zamanlı Mekan Rehberi</div>
-        <h1>Şehrin ritmini<br><em>anlık</em> takip et</h1>
-        <p class="hero-desc">Çevrenizdeki mekanlar açık mı, ne kadar dolu, bugün etkinlik var mı? Tek platformda öğren.</p>
+        <div class="hero-badge">
+            <span class="dot"></span>
+            Gerçek Zamanlı Mekan Rehberi
+        </div>
+        <h1>Şehrin ritmini<br><span class="grad">anlık</span> takip et</h1>
+        <p class="hero-desc">Çevrenizdeki mekanlar açık mı, ne kadar dolu, bugün etkinlik var mı? Hepsini tek platformda, anında öğren.</p>
+        <div class="hero-btns">
+            <a href="{% url 'register' %}" class="hero-btn-primary">Ücretsiz Başla →</a>
+            <a href="{% url 'login' %}" class="hero-btn-secondary">Giriş Yap</a>
+        </div>
     </div>
 </section>
 
@@ -117,33 +199,122 @@
         <div class="stat-lbl">Durum güncellemesi</div>
     </div>
     <div class="stat-item">
+        <div class="stat-num">4 Şehir</div>
+        <div class="stat-lbl">İstanbul, İzmir, Samsun, Sakarya</div>
+    </div>
+    <div class="stat-item">
         <div class="stat-num">Ücretsiz</div>
         <div class="stat-lbl">Her zaman</div>
     </div>
 </div>
 
+<!-- Kategoriler -->
+<div class="kat-section">
+    <div class="kat-section-hd">
+        <h2>Ne arıyorsun?</h2>
+        <p>Kategori seç, anlık durumu gör.</p>
+    </div>
+    <div class="kat-grid">
+        <a href="{% url 'login' %}" class="kat-kart">
+            <span class="kat-emoji">☕</span>
+            <div class="kat-name">Kafeler</div>
+            <div class="kat-count">Çalışmak için ideal</div>
+        </a>
+        <a href="{% url 'login' %}" class="kat-kart">
+            <span class="kat-emoji">🍽️</span>
+            <div class="kat-name">Restoranlar</div>
+            <div class="kat-count">Yemek arayanlar için</div>
+        </a>
+        <a href="{% url 'login' %}" class="kat-kart">
+            <span class="kat-emoji">📚</span>
+            <div class="kat-name">Kütüphaneler</div>
+            <div class="kat-count">Sessiz çalışma alanı</div>
+        </a>
+        <a href="{% url 'login' %}" class="kat-kart">
+            <span class="kat-emoji">🍺</span>
+            <div class="kat-name">Pub & Bar</div>
+            <div class="kat-count">Eğlence için</div>
+        </a>
+        <a href="{% url 'login' %}" class="kat-kart">
+            <span class="kat-emoji">💊</span>
+            <div class="kat-name">Eczaneler</div>
+            <div class="kat-count">Nöbetçi bilgisi</div>
+        </a>
+    </div>
+</div>
+
+<!-- Nasıl Çalışır -->
+<div class="nasil-section">
+    <div style="text-align:center;margin-bottom:36px;">
+        <h2 style="font-size:30px;font-weight:900;letter-spacing:-.5px;margin-bottom:8px;">Nasıl Çalışır?</h2>
+        <p style="color:var(--muted);font-size:15px;">3 adımda mekanları keşfet.</p>
+    </div>
+    <div class="adimlar">
+        <div class="adim">
+            <div class="adim-no">1</div>
+            <h3>Kayıt Ol</h3>
+            <p>Ücretsiz hesap oluştur. Kullanıcı veya mekan sahibi olarak devam et.</p>
+        </div>
+        <div class="adim">
+            <div class="adim-no">2</div>
+            <h3>Mekanı Keşfet</h3>
+            <p>Harita, liste veya kategorilere göre çevrenizdeki mekanları bul.</p>
+        </div>
+        <div class="adim">
+            <div class="adim-no">3</div>
+            <h3>Anlık Bil</h3>
+            <p>Açık mı, dolu mu, etkinlik var mı? Gerçek zamanlı bilgiyle karar ver.</p>
+        </div>
+    </div>
+</div>
+
 <!-- Özellikler -->
-<div class="section">
-    <div class="section-hd">
-        <h2>Neden Anlık Mekan?</h2>
-        <p>Mekan sahipleri ve kullanıcılar için tek platform.</p>
+<div class="features-section">
+    <div style="text-align:center;margin-bottom:40px;">
+        <h2 style="font-size:30px;font-weight:900;letter-spacing:-.5px;margin-bottom:8px;">Neden Anlık Mekan?</h2>
+        <p style="color:var(--muted);font-size:15px;">Mekan sahipleri ve kullanıcılar için tasarlandı.</p>
     </div>
     <div class="features-grid">
-        <div class="feature">
-            <div class="feature-icon-wrap"><div class="feature-icon-inner"></div></div>
+        <div class="feature-card">
+            <span class="feature-icon">⚡</span>
             <h3>Gerçek Zamanlı Durum</h3>
             <p>Mekan sahipleri açık/kapalı durumunu ve doluluk bilgisini canlı günceller. Boşa yola çıkmazsın.</p>
         </div>
-        <div class="feature">
-            <div class="feature-icon-wrap" style="background:#f0fdf4;"><div class="feature-icon-inner" style="background:#059669;"></div></div>
+        <div class="feature-card">
+            <span class="feature-icon">🗺️</span>
+            <h3>İnteraktif Harita</h3>
+            <p>Kategoriye, şehre ve özelliklere göre filtrele. Mekana gitmeden önce haritada gör.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">🎉</span>
             <h3>Etkinlik Takibi</h3>
             <p>Canlı müzik, özel geceler, kampanyalar... Mekan sahipleri etkinliklerini buradan duyurur.</p>
         </div>
-        <div class="feature">
-            <div class="feature-icon-wrap" style="background:#fff7ed;"><div class="feature-icon-inner" style="background:#ea580c;"></div></div>
-            <h3>Favoriler ve Yorumlar</h3>
-            <p>Beğendiğin mekanları kaydet, deneyimlerini paylaş, topluluktan fikir al.</p>
+        <div class="feature-card">
+            <span class="feature-icon">❤️</span>
+            <h3>Favori ve Listeler</h3>
+            <p>Beğendiğin mekanları kaydet, listeler oluştur, arkadaşlarınla paylaş.</p>
         </div>
+        <div class="feature-card">
+            <span class="feature-icon">⭐</span>
+            <h3>Gerçek Yorumlar</h3>
+            <p>Deneyimini paylaş, diğerlerinin deneyimlerini oku. Fotoğraf ekle, puan ver.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">🔔</span>
+            <h3>Anlık Bildirimler</h3>
+            <p>Takip ettiğin mekanların kampanyalarını, etkinliklerini kaçırma. Anında haberdar ol.</p>
+        </div>
+    </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-section">
+    <h2>Hemen Başla</h2>
+    <p>Ücretsiz hesap oluştur, şehrin ritmini yakala.</p>
+    <div class="cta-btns">
+        <a href="{% url 'register' %}" class="hero-btn-primary">Kullanıcı Olarak Başla</a>
+        <a href="{% url 'register' %}?rol=OWNER" class="hero-btn-secondary">Mekan Sahibiyim</a>
     </div>
 </div>
 

@@ -6,6 +6,7 @@ from urllib.error import URLError
 
 from django.core.management.base import BaseCommand
 from venues.models import Mekan
+from venues.management.commands.saatleri_guncelle import parse_opening_hours
 
 
 SEHIR_AYARLARI = {
@@ -99,6 +100,10 @@ class Command(BaseCommand):
                     if website and not website.startswith(('http://', 'https://')):
                         website = ''
 
+                    # Çalışma saatleri (OSM opening_hours)
+                    oh_str = tags.get('opening_hours', '')
+                    acilis, kapanis = parse_opening_hours(oh_str)
+
                     mekan, olusturuldu = Mekan.objects.get_or_create(
                         ad=ad,
                         sehir=sehir_kodu,
@@ -111,6 +116,8 @@ class Command(BaseCommand):
                             'longitude': el.get('lon'),
                             'dogrulanmis_mi': True,
                             'su_an_acik': True,
+                            'acilis_saati': acilis,
+                            'kapanis_saati': kapanis,
                         }
                     )
                     if olusturuldu:

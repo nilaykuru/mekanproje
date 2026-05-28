@@ -17,6 +17,8 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -108,6 +110,21 @@ STATIC_URL = 'static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# E-posta — geliştirme ortamında terminale yazar, production'da SMTP ile değiştir
+# ── E-posta ──────────────────────────────────────────────────────────────────
+# Varsayılan: konsola yaz (geliştirme modu)
+# Gerçek mail göndermek için config/local_settings.py dosyasını oluştur.
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
 DEFAULT_FROM_EMAIL = 'noreply@anlikmekan.com'
+
+# ── Yerel Ayarlar ─────────────────────────────────────────────────────────────
+# config/local_settings.py dosyası git'e commit edilmez.
+# İçine EMAIL_* değişkenlerini yaz, üstteki değerlerin üzerine yazar.
+try:
+    from .local_settings import *  # noqa
+except ImportError:
+    pass

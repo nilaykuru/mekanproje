@@ -1,0 +1,114 @@
+{% extends 'venues/base.html' %}
+{% block title %}{{ hedef.username }} — Anlık Mekan{% endblock %}
+
+{% block extra_css %}
+.profil-wrap { max-width: 740px; margin: 0 auto; padding: 36px 24px 80px; }
+.profil-kart { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; box-shadow: var(--shadow-md); margin-bottom: 28px; display: flex; align-items: flex-start; gap: 22px; flex-wrap: wrap; }
+.profil-avatar { width: 72px; height: 72px; border-radius: 50%; background: var(--primary); color: white; font-size: 28px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; border: 3px solid var(--border); }
+.profil-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.profil-bilgi { flex: 1; min-width: 0; }
+.profil-isim { font-size: 22px; font-weight: 900; letter-spacing: -.3px; margin-bottom: 6px; }
+.profil-stats { display: flex; gap: 20px; font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+.profil-stats strong { color: var(--text); font-weight: 800; }
+.takip-btn { padding: 9px 20px; border-radius: 8px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; font-family: inherit; transition: .15s; }
+.takip-btn.takip-et { background: var(--primary); color: white; }
+.takip-btn.takip-et:hover { background: var(--primary-dark); }
+.takip-btn.takibi-birak { background: var(--surface); color: var(--danger); border: 1.5px solid #fca5a5; }
+.takip-btn.takibi-birak:hover { background: #fef2f2; }
+
+.section-baslik { font-size: 17px; font-weight: 800; margin-bottom: 14px; letter-spacing: -.2px; }
+.yorum-kart { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 10px; box-shadow: var(--shadow); }
+.yorum-mekan { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 5px; }
+.yorum-icerik { font-size: 14px; color: var(--text); line-height: 1.6; margin-bottom: 6px; }
+.yorum-meta { font-size: 12px; color: var(--muted); }
+.yorum-puan { color: #f59e0b; font-size: 12px; }
+
+.liste-kart { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+.liste-kart-info strong { display: block; font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+.liste-kart-info small { font-size: 12px; color: var(--muted); }
+{% endblock %}
+
+{% block content %}
+<div class="profil-wrap">
+    <div class="profil-kart">
+        <div class="profil-avatar">
+            {% if hedef.profile.foto %}
+                <img src="{{ hedef.profile.foto.url }}" alt="{{ hedef.username }}">
+            {% else %}
+                {{ hedef.username|first|upper }}
+            {% endif %}
+        </div>
+        <div class="profil-bilgi">
+            <div class="profil-isim">{{ hedef.username }}</div>
+            <div class="profil-stats">
+                <span><strong id="takipci-sayi">{{ takipci_sayisi }}</strong> takipçi</span>
+                <span><strong>{{ takip_sayisi }}</strong> takip</span>
+                <span><strong>{{ yorumlar.count }}</strong> yorum</span>
+                <span><strong>{{ listeler.count }}</strong> liste</span>
+            </div>
+            {% if user.is_authenticated and user != hedef %}
+            <button class="takip-btn {% if takip_ediyor %}takibi-birak{% else %}takip-et{% endif %}"
+                    id="takip-btn"
+                    onclick="takipToggle({{ hedef.id }})">
+                {% if takip_ediyor %}Takibi Bırak{% else %}Takip Et{% endif %}
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if listeler %}
+    <h2 class="section-baslik">Listeleri</h2>
+    {% for liste in listeler %}
+    <div class="liste-kart">
+        <div class="liste-kart-info">
+            <strong>{{ liste.ad }}</strong>
+            <small>{{ liste.mekanlar.count }} mekan{% if liste.aciklama %} · {{ liste.aciklama|truncatechars:50 }}{% endif %}</small>
+        </div>
+        <a href="{% url 'liste_detay' liste.id %}" style="font-size:12px;font-weight:700;color:var(--primary);">Görüntüle →</a>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <h2 class="section-baslik" style="margin-top:28px;">Yorumları ({{ yorumlar.count }})</h2>
+    {% for yorum in yorumlar %}
+    <div class="yorum-kart">
+        <a href="{% url 'mekan_detay' yorum.mekan.id %}" class="yorum-mekan">📍 {{ yorum.mekan.ad }}</a>
+        {% if yorum.puan %}
+        <div class="yorum-puan">
+            {% for i in "12345" %}{% if forloop.counter <= yorum.puan %}★{% else %}<span style="color:#e5e7eb;">★</span>{% endif %}{% endfor %}
+        </div>
+        {% endif %}
+        <p class="yorum-icerik">{{ yorum.icerik|truncatechars:200 }}</p>
+        <div class="yorum-meta">{{ yorum.tarih|date:"d F Y" }}</div>
+    </div>
+    {% empty %}
+    <div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;">Henüz yorum yok.</div>
+    {% endfor %}
+</div>
+
+<script>
+const CSRF_TOKEN = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+function takipToggle(kullaniciId) {
+    fetch(`/kullanici/${kullaniciId}/takip/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': CSRF_TOKEN },
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.hata) { alert(data.hata); return; }
+        const btn = document.getElementById('takip-btn');
+        const sayiEl = document.getElementById('takipci-sayi');
+        if (data.takip_ediyor) {
+            btn.textContent = 'Takibi Bırak';
+            btn.classList.remove('takip-et');
+            btn.classList.add('takibi-birak');
+        } else {
+            btn.textContent = 'Takip Et';
+            btn.classList.remove('takibi-birak');
+            btn.classList.add('takip-et');
+        }
+        if (sayiEl) sayiEl.textContent = data.takipci_sayisi;
+    });
+}
+</script>
+{% endblock %}

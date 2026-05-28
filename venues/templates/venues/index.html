@@ -3,168 +3,382 @@
 {% block nav_home %}active{% endblock %}
 
 {% block extra_css %}
-.page-wrap { max-width: 1240px; margin: 0 auto; padding: 36px 24px 80px; }
-.page-header { margin-bottom: 28px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.page-header h1 { font-size: 22px; font-weight: 800; letter-spacing: -.3px; }
-.page-header span { font-size: 13px; color: var(--muted); }
+.page-wrap { max-width: 1400px; margin: 0 auto; padding: 24px 24px 80px; }
+
+/* ── Filtre Paneli ─────────────────────────────────────────────── */
+.filtre-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+}
+.filtre-form { display: flex; flex-direction: column; gap: 14px; }
+
+.filtre-satir {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.filtre-baslik {
+    font-size: 11px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .4px;
+    min-width: 70px; flex-shrink: 0;
+}
+
+/* Chip toggle */
+.chip-group { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+    padding: 5px 13px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    border: 1.5px solid var(--border); color: var(--muted); background: var(--surface);
+    cursor: pointer; transition: all .15s; white-space: nowrap;
+    text-decoration: none; display: inline-block;
+}
+.chip:hover { border-color: var(--primary); color: var(--primary); background: #eff6ff; }
+.chip.aktif { background: var(--primary); color: white !important; border-color: var(--primary); }
+.chip.aktif-yesil { background: #059669; color: white !important; border-color: #059669; }
+
+/* Özellik checkbox chip'leri */
+.ozellik-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 11px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    border: 1.5px solid var(--border); color: var(--muted); background: var(--surface);
+    cursor: pointer; transition: all .15s; white-space: nowrap; user-select: none;
+}
+.ozellik-chip input[type=checkbox] { display: none; }
+.ozellik-chip:has(input:checked) { background: #0f172a; color: white; border-color: #0f172a; }
+.ozellik-chip:hover { border-color: #0f172a; color: #0f172a; }
+
+/* Sıralama select */
+.sort-select {
+    padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    border: 1.5px solid var(--border); color: var(--text); background: var(--surface);
+    cursor: pointer; font-family: inherit; outline: none;
+}
+.sort-select:focus { border-color: var(--primary); }
+
+/* Aktif filtreler özeti */
+.filtre-ozet {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 10px 0 0; border-top: 1px solid var(--border); margin-top: 4px;
+}
+.filtre-ozet-label { font-size: 12px; font-weight: 600; color: var(--muted); }
+.aktif-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+    background: #0f172a; color: white;
+}
+.aktif-chip a { color: rgba(255,255,255,.7); text-decoration: none; margin-left: 2px; font-size: 13px; line-height: 1; }
+.aktif-chip a:hover { color: white; }
+.temizle-btn {
+    font-size: 12px; font-weight: 600; color: var(--danger);
+    text-decoration: none; padding: 3px 8px; border-radius: 6px;
+    transition: background .15s;
+}
+.temizle-btn:hover { background: #fef2f2; }
+
+/* Grid */
+.sayfa-ust { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.sayfa-ust h1 { font-size: 20px; font-weight: 800; letter-spacing: -.3px; }
+.sayfa-ust span { font-size: 13px; color: var(--muted); }
 
 .venue-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-
 .venue-card {
     background: var(--surface); border-radius: 14px; overflow: hidden;
     box-shadow: var(--shadow); border: 1px solid var(--border);
     display: flex; flex-direction: column;
-    transition: box-shadow .2s, transform .2s;
+    transition: box-shadow .25s, transform .25s;
+    cursor: pointer; position: relative;
 }
-.venue-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
-
+.venue-card::after {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 14px;
+    opacity: 0;
+    background: linear-gradient(135deg, rgba(99,102,241,.04), rgba(139,92,246,.04));
+    transition: opacity .25s;
+    pointer-events: none;
+}
+.venue-card:hover::after { opacity: 1; }
+.venue-card:hover { box-shadow: 0 20px 60px rgba(0,0,0,.12); transform: translateY(-4px); }
 .venue-img-wrap { position: relative; }
-.venue-img-wrap img { width: 100%; height: 190px; object-fit: cover; display: block; }
-.venue-img-placeholder { width: 100%; height: 190px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; }
-.venue-img-placeholder span { font-size: 13px; font-weight: 600; color: #94a3b8; letter-spacing: .5px; }
-
-.status-pill {
-    position: absolute; top: 10px; left: 10px;
-    padding: 3px 9px; border-radius: 4px; font-size: 11px; font-weight: 700;
-    letter-spacing: .3px;
-}
-.s-open  { background: rgba(5,150,105,.9); color: white; }
-.s-close { background: rgba(100,116,139,.85); color: white; }
-
-.fav-btn {
-    position: absolute; top: 10px; right: 10px;
-    width: 32px; height: 32px; border-radius: 50%;
-    background: rgba(255,255,255,.92);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 15px; border: 1px solid rgba(0,0,0,.06); cursor: pointer; transition: .15s;
-    text-decoration: none;
-}
+.venue-img-wrap img { width: 100%; height: 185px; object-fit: cover; display: block; }
+.venue-img-ph { width: 100%; height: 185px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 36px; }
+.status-pill { position: absolute; top: 10px; left: 10px; padding: 3px 9px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+.s-open  { background: rgba(16,185,129,.15); color: #059669; border: 1px solid rgba(16,185,129,.3); }
+.s-close { background: rgba(100,116,139,.12); color: #64748b; border: 1px solid rgba(100,116,139,.2); }
+.fav-btn { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,.92); display: flex; align-items: center; justify-content: center; font-size: 15px; border: 1px solid rgba(0,0,0,.06); cursor: pointer; transition: .15s; text-decoration: none; }
 .fav-btn:hover { background: white; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
-
-.venue-body { padding: 16px; flex: 1; display: flex; flex-direction: column; }
-
-.venue-cat { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; }
-
-.venue-name {
-    font-size: 16px; font-weight: 800; color: var(--text);
-    margin-bottom: 4px; letter-spacing: -.2px;
-    text-decoration: none; transition: color .15s; display: block;
-}
+.venue-body { padding: 14px 16px; flex: 1; display: flex; flex-direction: column; }
+.venue-cat { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+.venue-name { font-size: 15px; font-weight: 800; color: var(--text); margin-bottom: 3px; letter-spacing: -.2px; text-decoration: none; transition: color .15s; display: block; }
 .venue-name:hover { color: var(--primary); }
-
-.venue-address { font-size: 12px; color: var(--muted); margin-bottom: 12px; line-height: 1.4; }
-
-.doluluk-wrap { margin-bottom: 12px; }
-.doluluk-row { display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+.venue-rating { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; }
+.stars { color: #f59e0b; font-size: 12px; }
+.stars .e { color: #e5e7eb; }
+.rating-val { font-size: 12px; font-weight: 700; }
+.rating-cnt { font-size: 11px; color: var(--muted); }
+.venue-address { font-size: 12px; color: var(--muted); margin-bottom: 10px; line-height: 1.4; }
+.doluluk-wrap { margin-bottom: 10px; }
+.doluluk-row { display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 3px; }
 .doluluk-track { height: 3px; background: #e5e7eb; border-radius: 2px; }
 .doluluk-fill  { height: 100%; border-radius: 2px; }
-
-.tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
-.tag { padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: .2px; }
-
+.tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px; }
+.tag { padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; }
 .venue-footer { display: flex; gap: 8px; margin-top: auto; }
-.btn-map  { flex: 1; background: var(--primary); color: white; padding: 9px; border-radius: 7px; font-size: 12px; font-weight: 700; text-align: center; transition: background .15s; }
-.btn-map:hover  { background: var(--primary-dark); }
-.btn-detail { padding: 9px 13px; border-radius: 7px; font-size: 12px; font-weight: 700; background: var(--bg); color: var(--text); border: 1px solid var(--border); text-align: center; transition: .15s; }
-.btn-detail:hover { background: #e2e8f0; }
-
-.sehir-bar { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; }
-.sehir-btn {
-    padding: 7px 18px; border-radius: 20px; font-size: 13px; font-weight: 600;
-    border: 1.5px solid var(--border); color: var(--muted); background: var(--surface);
-    text-decoration: none; transition: .15s; white-space: nowrap;
+.btn-map {
+    flex: 1; background: linear-gradient(135deg, var(--primary), #7c3aed);
+    color: white; padding: 8px; border-radius: 8px;
+    font-size: 12px; font-weight: 700; text-align: center;
+    transition: opacity .15s;
 }
-.sehir-btn:hover { border-color: var(--primary); color: var(--primary); background: #eff6ff; }
-.sehir-btn.aktif { background: var(--primary); color: white; border-color: var(--primary); }
-
+.btn-map:hover { opacity: .9; background: linear-gradient(135deg, var(--primary), #7c3aed); }
+.btn-detail { padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; background: var(--bg); color: var(--text); border: 1px solid var(--border); transition: .15s; }
+.btn-detail:hover { background: #e2e8f0; }
 .empty-state { grid-column: 1/-1; text-align: center; padding: 80px 20px; color: var(--muted); }
 .empty-state h3 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
 
-@media (max-width: 600px) { .venue-grid { grid-template-columns: 1fr; } }
+/* Pagination */
+.pagination-wrap { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 48px; flex-wrap: wrap; }
+.page-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 38px; height: 38px; padding: 0 10px; border-radius: 8px; font-size: 14px; font-weight: 600; border: 1.5px solid var(--border); background: var(--surface); color: var(--text); transition: .15s; text-decoration: none; }
+.page-btn:hover { border-color: var(--primary); color: var(--primary); background: #eff6ff; }
+.page-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+.page-btn.disabled { opacity: .4; pointer-events: none; }
+.page-ellipsis { font-size: 14px; color: var(--muted); padding: 0 4px; }
+
+@media (max-width: 600px) {
+    .venue-grid { grid-template-columns: 1fr; }
+    .filtre-baslik { min-width: 100%; }
+}
 {% endblock %}
 
 {% block content %}
 <div class="page-wrap">
-    <div class="page-header">
-        <h1>{% if aktif_sehir %}{{ aktif_sehir|capfirst }} Mekanları{% else %}Tüm Mekanlar{% endif %}</h1>
-        <span>{{ mekanlar|length }} mekan listeleniyor</span>
-    </div>
 
-    <div class="sehir-bar">
-        <a href="{% url 'dashboard' %}" class="sehir-btn {% if not aktif_sehir %}aktif{% endif %}">Tüm Şehirler</a>
-        {% for kod, ad in sehir_secenekleri %}
-        <a href="{% url 'dashboard' %}?sehir={{ kod }}" class="sehir-btn {% if aktif_sehir == kod %}aktif{% endif %}">{{ ad }}</a>
-        {% endfor %}
-    </div>
+<!-- ── Filtre Paneli ──────────────────────────────────────────────────── -->
+<form method="GET" action="{% url 'dashboard' %}" class="filtre-panel" id="filtre-form">
+    <div class="filtre-form">
 
-    <div class="venue-grid">
-        {% for mekan in mekanlar %}
-        <article class="venue-card">
-            <div class="venue-img-wrap">
-                {% if mekan.img %}
-                    <img src="{{ mekan.img.url }}" alt="{{ mekan.ad }}">
-                {% else %}
-                    <div class="venue-img-placeholder"><span>Fotoğraf Yok</span></div>
-                {% endif %}
-
-                {% if mekan.su_an_acik %}
-                    <span class="status-pill s-open">Açık</span>
-                {% else %}
-                    <span class="status-pill s-close">Kapalı</span>
-                {% endif %}
-
-                {% if user.is_authenticated %}
-                <a href="{% url 'favori_islem' mekan.id %}" class="fav-btn" title="Favorilere ekle">
-                    {% if request.user in mekan.favorileyenler.all %}&#9829;{% else %}&#9825;{% endif %}
-                </a>
-                {% endif %}
+        <!-- Şehir -->
+        <div class="filtre-satir">
+            <span class="filtre-baslik">Şehir</span>
+            <div class="chip-group">
+                <a href="javascript:void(0)" class="chip {% if not f.sehir %}aktif{% endif %}" onclick="setFiltre('sehir','')">Tümü</a>
+                {% for kod, ad in sehir_secenekleri %}
+                <a href="javascript:void(0)" class="chip {% if f.sehir == kod %}aktif{% endif %}" onclick="setFiltre('sehir','{{ kod }}')">{{ ad }}</a>
+                {% endfor %}
             </div>
-
-            <div class="venue-body">
-                <div class="venue-cat">
-                    {{ mekan.get_kategori_display }}
-                    {% if mekan.acilis_saati and mekan.kapanis_saati %}
-                    &nbsp;&middot;&nbsp; {{ mekan.acilis_saati|time:"H:i" }}&ndash;{{ mekan.kapanis_saati|time:"H:i" }}
-                    {% endif %}
-                </div>
-
-                <a href="{% url 'mekan_detay' mekan.id %}" class="venue-name">{{ mekan.ad }}</a>
-                <div class="venue-address">{{ mekan.adres|truncatechars:55 }}</div>
-
-                {% if mekan.doluluk_orani > 0 %}
-                <div class="doluluk-wrap">
-                    <div class="doluluk-row"><span>Doluluk</span><span>%{{ mekan.doluluk_orani }}</span></div>
-                    <div class="doluluk-track">
-                        <div class="doluluk-fill" style="width:{{ mekan.doluluk_orani }}%;background:{% if mekan.doluluk_orani > 80 %}#dc2626{% elif mekan.doluluk_orani > 50 %}#d97706{% else %}#059669{% endif %};"></div>
-                    </div>
-                </div>
-                {% endif %}
-
-                <div class="tags">
-                    {% if mekan.wifi_var %}<span class="tag" style="background:#eff6ff;color:#1d4ed8;">Wi-Fi</span>{% endif %}
-                    {% if mekan.priz_var %}<span class="tag" style="background:#f0fdf4;color:#15803d;">Priz</span>{% endif %}
-                    {% if mekan.otopark_var %}<span class="tag" style="background:#fff7ed;color:#c2410c;">Otopark</span>{% endif %}
-                    {% if mekan.bahce_var %}<span class="tag" style="background:#f0fdf4;color:#15803d;">Bahçe</span>{% endif %}
-                    {% if mekan.canli_muzik_var %}<span class="tag" style="background:#fefce8;color:#a16207;">Canlı Müzik</span>{% endif %}
-                    {% if mekan.evcil_hayvan_izinli %}<span class="tag" style="background:#fdf4ff;color:#7e22ce;">Pet Dostu</span>{% endif %}
-                    {% if mekan.engelli_erisimi_var %}<span class="tag" style="background:#f5f3ff;color:#6d28d9;">Engelli</span>{% endif %}
-                    {% if mekan.sigara_icin_uygun %}<span class="tag" style="background:#f8fafc;color:#475569;">Sigara</span>{% endif %}
-                    {% if mekan.cocuk_oyun_alani_var %}<span class="tag" style="background:#eff6ff;color:#1d4ed8;">Çocuk</span>{% endif %}
-                </div>
-
-                <div class="venue-footer">
-                    <a href="https://www.google.com/maps/search/?api=1&query={{ mekan.ad|urlencode }}+{{ mekan.adres|urlencode }}"
-                       target="_blank" class="btn-map">Yol Tarifi</a>
-                    <a href="{% url 'mekan_detay' mekan.id %}" class="btn-detail">Detay</a>
-                </div>
-            </div>
-        </article>
-        {% empty %}
-        <div class="empty-state">
-            <h3>Henüz mekan eklenmemiş</h3>
-            <p>Sistemde kayıtlı mekan bulunmuyor.</p>
         </div>
-        {% endfor %}
+
+        <!-- Kategori -->
+        <div class="filtre-satir">
+            <span class="filtre-baslik">Kategori</span>
+            <div class="chip-group">
+                <a href="javascript:void(0)" class="chip {% if not f.kategori %}aktif{% endif %}" onclick="setFiltre('kategori','')">Tümü</a>
+                {% for kod, ad in kategori_secenekleri %}
+                <a href="javascript:void(0)" class="chip {% if f.kategori == kod %}aktif{% endif %}" onclick="setFiltre('kategori','{{ kod }}')">
+                    {% if kod == 'KAFE' %}☕{% elif kod == 'RESTORAN' %}🍽️{% elif kod == 'ECZANE' %}💊{% elif kod == 'KUTUPHANE' %}📚{% elif kod == 'PUB' %}🍺{% endif %}
+                    {{ ad }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Durum + Sıralama -->
+        <div class="filtre-satir">
+            <span class="filtre-baslik">Durum</span>
+            <label class="ozellik-chip">
+                <input type="checkbox" name="acik" value="1" {% if f.acik %}checked{% endif %} onchange="this.form.submit()">
+                🟢 Şu An Açık
+            </label>
+            <span style="margin-left:12px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;">Sırala</span>
+            <select name="siralama" class="sort-select" onchange="this.form.submit()">
+                <option value="" {% if not f.siralama %}selected{% endif %}>Varsayılan</option>
+                <option value="puan" {% if f.siralama == 'puan' %}selected{% endif %}>⭐ En Yüksek Puan</option>
+                <option value="doluluk_az" {% if f.siralama == 'doluluk_az' %}selected{% endif %}>🟢 En Az Dolu</option>
+                <option value="doluluk_cok" {% if f.siralama == 'doluluk_cok' %}selected{% endif %}>🔴 En Çok Dolu</option>
+                <option value="isim_az" {% if f.siralama == 'isim_az' %}selected{% endif %}>🔤 İsim A → Z</option>
+                <option value="isim_za" {% if f.siralama == 'isim_za' %}selected{% endif %}>🔤 İsim Z → A</option>
+            </select>
+        </div>
+
+        <!-- Özellikler -->
+        <div class="filtre-satir">
+            <span class="filtre-baslik">Özellikler</span>
+            <div class="chip-group">
+                <label class="ozellik-chip"><input type="checkbox" name="wifi" value="1" {% if f.wifi %}checked{% endif %} onchange="this.form.submit()">📶 Wi-Fi</label>
+                <label class="ozellik-chip"><input type="checkbox" name="priz" value="1" {% if f.priz %}checked{% endif %} onchange="this.form.submit()">🔌 Priz</label>
+                <label class="ozellik-chip"><input type="checkbox" name="bahce" value="1" {% if f.bahce %}checked{% endif %} onchange="this.form.submit()">🌿 Bahçe</label>
+                <label class="ozellik-chip"><input type="checkbox" name="pet" value="1" {% if f.pet %}checked{% endif %} onchange="this.form.submit()">🐾 Pet Dostu</label>
+                <label class="ozellik-chip"><input type="checkbox" name="engelli" value="1" {% if f.engelli %}checked{% endif %} onchange="this.form.submit()">♿ Engelli Erişimi</label>
+                <label class="ozellik-chip"><input type="checkbox" name="muzik" value="1" {% if f.muzik %}checked{% endif %} onchange="this.form.submit()">🎵 Canlı Müzik</label>
+                <label class="ozellik-chip"><input type="checkbox" name="cocuk" value="1" {% if f.cocuk %}checked{% endif %} onchange="this.form.submit()">🧒 Çocuk Alanı</label>
+            </div>
+        </div>
+
+        <!-- Aktif filtreler özeti -->
+        {% if aktif_filtre_sayisi %}
+        <div class="filtre-ozet">
+            <span class="filtre-ozet-label">Aktif:</span>
+            {% if f.sehir %}<span class="aktif-chip">{{ f.sehir_adi }} <a href="javascript:setFiltre('sehir','')">×</a></span>{% endif %}
+            {% if f.kategori %}<span class="aktif-chip">{{ f.kategori_adi }} <a href="javascript:setFiltre('kategori','')">×</a></span>{% endif %}
+            {% if f.acik %}<span class="aktif-chip">Açık <a href="javascript:clearCheck('acik')">×</a></span>{% endif %}
+            {% if f.wifi %}<span class="aktif-chip">Wi-Fi <a href="javascript:clearCheck('wifi')">×</a></span>{% endif %}
+            {% if f.priz %}<span class="aktif-chip">Priz <a href="javascript:clearCheck('priz')">×</a></span>{% endif %}
+            {% if f.bahce %}<span class="aktif-chip">Bahçe <a href="javascript:clearCheck('bahce')">×</a></span>{% endif %}
+            {% if f.pet %}<span class="aktif-chip">Pet Dostu <a href="javascript:clearCheck('pet')">×</a></span>{% endif %}
+            {% if f.engelli %}<span class="aktif-chip">Engelli Erişimi <a href="javascript:clearCheck('engelli')">×</a></span>{% endif %}
+            {% if f.muzik %}<span class="aktif-chip">Canlı Müzik <a href="javascript:clearCheck('muzik')">×</a></span>{% endif %}
+            {% if f.cocuk %}<span class="aktif-chip">Çocuk Alanı <a href="javascript:clearCheck('cocuk')">×</a></span>{% endif %}
+            {% if f.siralama %}<span class="aktif-chip">Sıralı <a href="javascript:clearSelect('siralama')">×</a></span>{% endif %}
+            <a href="{% url 'dashboard' %}" class="temizle-btn">Tümünü Temizle</a>
+        </div>
+        {% endif %}
+
     </div>
+    <!-- Gizli alanlar — mevcut filtre değerlerini koru -->
+    <input type="hidden" name="sehir" id="h-sehir" value="{{ f.sehir }}">
+    <input type="hidden" name="kategori" id="h-kategori" value="{{ f.kategori }}">
+</form>
+
+<!-- ── Sonuç başlığı ─────────────────────────────────────────────────── -->
+<div class="sayfa-ust">
+    <h1>
+        {% if f.sehir %}{{ f.sehir_adi }} · {% endif %}
+        {% if f.kategori %}{{ f.kategori_adi }} · {% endif %}
+        Mekanlar
+    </h1>
+    <span>{{ toplam_sonuc }} mekan bulundu</span>
 </div>
+
+<!-- ── Kart Grid ─────────────────────────────────────────────────────── -->
+<div class="venue-grid">
+    {% for mekan in mekanlar %}
+    <article class="venue-card" onclick="kartaTikla(event, '{% url 'mekan_detay' mekan.id %}')" role="button">
+        <div class="venue-img-wrap">
+            {% if mekan.img %}
+                <img src="{{ mekan.img.url }}" alt="{{ mekan.ad }}" loading="lazy">
+            {% else %}
+                <div class="venue-img-ph">
+                    {% if mekan.kategori == 'KAFE' %}☕{% elif mekan.kategori == 'RESTORAN' %}🍽️{% elif mekan.kategori == 'ECZANE' %}💊{% elif mekan.kategori == 'KUTUPHANE' %}📚{% elif mekan.kategori == 'PUB' %}🍺{% else %}🏠{% endif %}
+                </div>
+            {% endif %}
+            {% if mekan.acik_mi %}
+                <span class="status-pill s-open">Açık</span>
+            {% else %}
+                <span class="status-pill s-close">Kapalı</span>
+            {% endif %}
+            {% if user.is_authenticated %}
+            <a href="{% url 'favori_islem' mekan.id %}" class="fav-btn" title="Favori">
+                {% if request.user in mekan.favorileyenler.all %}❤️{% else %}🤍{% endif %}
+            </a>
+            {% endif %}
+        </div>
+        <div class="venue-body">
+            <div class="venue-cat">
+                {{ mekan.get_kategori_display }}
+                {% if mekan.acilis_saati and mekan.kapanis_saati %}
+                &nbsp;·&nbsp; {{ mekan.acilis_saati|time:"H:i" }}–{{ mekan.kapanis_saati|time:"H:i" }}
+                {% endif %}
+            </div>
+            <a href="{% url 'mekan_detay' mekan.id %}" class="venue-name">{{ mekan.ad }}</a>
+            {% if mekan.ort_puan %}
+            <div class="venue-rating">
+                <span class="stars">
+                    {% with p=mekan.ort_puan %}
+                    {% if p >= 1 %}★{% else %}<span class="e">★</span>{% endif %}
+                    {% if p >= 2 %}★{% else %}<span class="e">★</span>{% endif %}
+                    {% if p >= 3 %}★{% else %}<span class="e">★</span>{% endif %}
+                    {% if p >= 4 %}★{% else %}<span class="e">★</span>{% endif %}
+                    {% if p >= 5 %}★{% else %}<span class="e">★</span>{% endif %}
+                    {% endwith %}
+                </span>
+                <span class="rating-val">{{ mekan.ort_puan|floatformat:1 }}</span>
+                <span class="rating-cnt">({{ mekan.yorum_sayisi }})</span>
+            </div>
+            {% endif %}
+            <div class="venue-address">{{ mekan.adres|truncatechars:52 }}</div>
+            {% if mekan.doluluk_orani > 0 %}
+            <div class="doluluk-wrap">
+                <div class="doluluk-row"><span>Doluluk</span><span>%{{ mekan.doluluk_orani }}</span></div>
+                <div class="doluluk-track">
+                    <div class="doluluk-fill" style="width:{{ mekan.doluluk_orani }}%;background:{% if mekan.doluluk_orani > 80 %}#dc2626{% elif mekan.doluluk_orani > 50 %}#d97706{% else %}#059669{% endif %};"></div>
+                </div>
+            </div>
+            {% endif %}
+            <div class="tags">
+                {% if mekan.wifi_var %}<span class="tag" style="background:#eff6ff;color:#1d4ed8;">Wi-Fi</span>{% endif %}
+                {% if mekan.priz_var %}<span class="tag" style="background:#f0fdf4;color:#15803d;">Priz</span>{% endif %}
+                {% if mekan.otopark_var %}<span class="tag" style="background:#fff7ed;color:#c2410c;">Otopark</span>{% endif %}
+                {% if mekan.bahce_var %}<span class="tag" style="background:#f0fdf4;color:#15803d;">Bahçe</span>{% endif %}
+                {% if mekan.canli_muzik_var %}<span class="tag" style="background:#fefce8;color:#a16207;">Canlı Müzik</span>{% endif %}
+                {% if mekan.evcil_hayvan_izinli %}<span class="tag" style="background:#fdf4ff;color:#7e22ce;">Pet Dostu</span>{% endif %}
+                {% if mekan.engelli_erisimi_var %}<span class="tag" style="background:#f5f3ff;color:#6d28d9;">Engelli</span>{% endif %}
+                {% if mekan.sigara_icin_uygun %}<span class="tag" style="background:#f8fafc;color:#475569;">Sigara</span>{% endif %}
+                {% if mekan.cocuk_oyun_alani_var %}<span class="tag" style="background:#eff6ff;color:#1d4ed8;">Çocuk</span>{% endif %}
+            </div>
+            <div class="venue-footer">
+                <a href="https://www.google.com/maps/search/?api=1&query={{ mekan.ad|urlencode }}+{{ mekan.adres|urlencode }}"
+                   target="_blank" class="btn-map">📍 Yol Tarifi</a>
+                <a href="{% url 'mekan_detay' mekan.id %}" class="btn-detail">Detay →</a>
+            </div>
+        </div>
+    </article>
+    {% empty %}
+    <div class="empty-state">
+        <h3>Sonuç bulunamadı</h3>
+        <p>Filtrelerinizle eşleşen mekan yok. <a href="{% url 'dashboard' %}" style="color:var(--primary);font-weight:700;">Filtreleri temizle</a></p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- ── Pagination ────────────────────────────────────────────────────── -->
+{% if page_obj.has_other_pages %}
+<div class="pagination-wrap">
+    {% if page_obj.has_previous %}
+        <a href="{% url 'dashboard' %}?sehir={{ f.sehir }}&kategori={{ f.kategori }}&acik={{ f.acik }}&wifi={{ f.wifi }}&priz={{ f.priz }}&bahce={{ f.bahce }}&pet={{ f.pet }}&engelli={{ f.engelli }}&muzik={{ f.muzik }}&cocuk={{ f.cocuk }}&siralama={{ f.siralama }}&page={{ page_obj.previous_page_number }}" class="page-btn">←</a>
+    {% else %}
+        <span class="page-btn disabled">←</span>
+    {% endif %}
+
+    {% for num in sayfa_araligi %}
+        {% if num == page_obj.paginator.ELLIPSIS %}
+            <span class="page-ellipsis">…</span>
+        {% elif num == page_obj.number %}
+            <span class="page-btn active">{{ num }}</span>
+        {% else %}
+            <a href="{% url 'dashboard' %}?sehir={{ f.sehir }}&kategori={{ f.kategori }}&acik={{ f.acik }}&wifi={{ f.wifi }}&priz={{ f.priz }}&bahce={{ f.bahce }}&pet={{ f.pet }}&engelli={{ f.engelli }}&muzik={{ f.muzik }}&cocuk={{ f.cocuk }}&siralama={{ f.siralama }}&page={{ num }}" class="page-btn">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+        <a href="{% url 'dashboard' %}?sehir={{ f.sehir }}&kategori={{ f.kategori }}&acik={{ f.acik }}&wifi={{ f.wifi }}&priz={{ f.priz }}&bahce={{ f.bahce }}&pet={{ f.pet }}&engelli={{ f.engelli }}&muzik={{ f.muzik }}&cocuk={{ f.cocuk }}&siralama={{ f.siralama }}&page={{ page_obj.next_page_number }}" class="page-btn">→</a>
+    {% else %}
+        <span class="page-btn disabled">→</span>
+    {% endif %}
+</div>
+{% endif %}
+
+</div>
+
+<script>
+function setFiltre(isim, deger) {
+    document.getElementById('h-' + isim).value = deger;
+    document.getElementById('filtre-form').submit();
+}
+function clearCheck(isim) {
+    const cb = document.querySelector('input[name="' + isim + '"]');
+    if (cb) cb.checked = false;
+    document.getElementById('filtre-form').submit();
+}
+function clearSelect(isim) {
+    const sel = document.querySelector('select[name="' + isim + '"]');
+    if (sel) sel.value = '';
+    document.getElementById('filtre-form').submit();
+}
+// Mekan kartına tıkla — link ve butonlara tıklanırsa iptal et
+function kartaTikla(e, url) {
+    if (e.target.closest('a, button, form')) return;
+    window.location.href = url;
+}
+</script>
 {% endblock %}

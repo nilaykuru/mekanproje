@@ -1,0 +1,68 @@
+{% extends 'venues/base.html' %}
+{% block title %}{{ liste.ad }} — Anlık Mekan{% endblock %}
+
+{% block extra_css %}
+.liste-detay-wrap { max-width: 900px; margin: 0 auto; padding: 36px 24px 80px; }
+.back-link { font-size: 13px; font-weight: 600; color: var(--muted); padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); display: inline-block; margin-bottom: 24px; transition: color .15s; }
+.back-link:hover { color: var(--text); }
+.liste-header { margin-bottom: 28px; }
+.liste-header h1 { font-size: 24px; font-weight: 900; letter-spacing: -.3px; margin-bottom: 6px; }
+.liste-header p { font-size: 14px; color: var(--muted); }
+
+.mekan-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.mekan-kart { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); transition: .2s; }
+.mekan-kart:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.mekan-kart-img { width: 100%; height: 150px; object-fit: cover; display: block; }
+.mekan-kart-ph { width: 100%; height: 150px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 36px; }
+.mekan-kart-body { padding: 16px; }
+.mekan-kart-ad { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+.mekan-kart-meta { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.mekan-kart-link { display: inline-block; font-size: 12px; font-weight: 700; color: var(--primary); }
+.bos { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
+{% endblock %}
+
+{% block content %}
+<div class="liste-detay-wrap">
+    <a href="{% url 'listelerim' %}" class="back-link">&#8592; Listelerim</a>
+
+    <div class="liste-header">
+        <h1>📂 {{ liste.ad }}</h1>
+        <p>
+            {{ liste.mekanlar.count }} mekan
+            {% if liste.aciklama %} · {{ liste.aciklama }}{% endif %}
+            {% if not liste.herkese_acik %} · 🔒 Gizli{% else %} · 🌐 Herkese Açık{% endif %}
+            · Oluşturan: <a href="{% url 'kullanici_profil' liste.olusturan.id %}" style="color:var(--primary);font-weight:700;">{{ liste.olusturan.username }}</a>
+        </p>
+    </div>
+
+    {% with mekanlar=liste.mekanlar.all %}
+    {% if mekanlar %}
+    <div class="mekan-grid">
+        {% for mekan in mekanlar %}
+        <div class="mekan-kart">
+            {% if mekan.img %}
+            <img src="{{ mekan.img.url }}" class="mekan-kart-img" alt="{{ mekan.ad }}">
+            {% else %}
+            <div class="mekan-kart-ph">
+                {% if mekan.kategori == 'KAFE' %}☕
+                {% elif mekan.kategori == 'RESTORAN' %}🍽️
+                {% elif mekan.kategori == 'KUTUPHANE' %}📚
+                {% elif mekan.kategori == 'ECZANE' %}💊
+                {% elif mekan.kategori == 'PUB' %}🍺
+                {% else %}📍{% endif %}
+            </div>
+            {% endif %}
+            <div class="mekan-kart-body">
+                <div class="mekan-kart-ad">{{ mekan.ad }}</div>
+                <div class="mekan-kart-meta">{{ mekan.get_kategori_display }} · {{ mekan.adres|truncatechars:40 }}</div>
+                <a href="{% url 'mekan_detay' mekan.id %}" class="mekan-kart-link">Detayları Gör →</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bos">Bu listede henüz mekan yok.</div>
+    {% endif %}
+    {% endwith %}
+</div>
+{% endblock %}

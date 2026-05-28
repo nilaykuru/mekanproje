@@ -1,0 +1,114 @@
+{% extends 'venues/base.html' %}
+{% block title %}Etkinlik Takvimi — Anlık Mekan{% endblock %}
+{% block nav_takvim %}active{% endblock %}
+
+{% block extra_head %}
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css' rel='stylesheet' />
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+{% endblock %}
+
+{% block extra_css %}
+.takvim-wrap { max-width: 1000px; margin: 0 auto; padding: 36px 24px 80px; }
+.takvim-baslik { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+.takvim-alt { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+#takvim-container { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--shadow-md); margin-bottom: 32px; }
+
+.yaklasan-baslik { font-size: 17px; font-weight: 800; margin-bottom: 14px; }
+.etkinlik-kart { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; margin-bottom: 8px; box-shadow: var(--shadow); display: flex; gap: 14px; align-items: center; }
+.etkinlik-tarih-blok { background: var(--primary); color: white; border-radius: 8px; padding: 8px 12px; text-align: center; flex-shrink: 0; min-width: 54px; }
+.etkinlik-tarih-blok .gun { font-size: 22px; font-weight: 900; line-height: 1; }
+.etkinlik-tarih-blok .ay { font-size: 11px; font-weight: 700; text-transform: uppercase; }
+.etkinlik-bilgi { flex: 1; }
+.etkinlik-baslik { font-size: 15px; font-weight: 800; margin-bottom: 2px; }
+.etkinlik-mekan { font-size: 13px; color: var(--primary); font-weight: 600; margin-bottom: 2px; }
+.etkinlik-saat { font-size: 12px; color: var(--muted); }
+
+/* FullCalendar dark mode uyumu */
+[data-theme="dark"] .fc { color: var(--text); }
+[data-theme="dark"] .fc-toolbar-title { color: var(--text); }
+[data-theme="dark"] .fc-daygrid-day { background: var(--surface); }
+[data-theme="dark"] .fc-col-header-cell { background: var(--bg); color: var(--muted); }
+[data-theme="dark"] .fc-scrollgrid { border-color: var(--border); }
+{% endblock %}
+
+{% block content %}
+<div class="takvim-wrap">
+    <h1 class="takvim-baslik">📅 Etkinlik Takvimi</h1>
+    <p class="takvim-alt">Yaklaşan etkinlikler — takip ettiklerinden veya favorilerinden filtrele.</p>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+        <a href="?filtre=tumu"
+           style="padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;border:1.5px solid var(--border);text-decoration:none;
+                  {% if aktif_filtre == 'tumu' %}background:var(--primary);color:white;border-color:var(--primary);{% else %}background:var(--surface);color:var(--text);{% endif %}">
+            🌐 Tüm Etkinlikler
+        </a>
+        <a href="?filtre=takip"
+           style="padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;border:1.5px solid var(--border);text-decoration:none;
+                  {% if aktif_filtre == 'takip' %}background:#7c3aed;color:white;border-color:#7c3aed;{% else %}background:var(--surface);color:var(--text);{% endif %}">
+            👥 Takip Ettiklerim
+        </a>
+        <a href="?filtre=favori"
+           style="padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;border:1.5px solid var(--border);text-decoration:none;
+                  {% if aktif_filtre == 'favori' %}background:#dc2626;color:white;border-color:#dc2626;{% else %}background:var(--surface);color:var(--text);{% endif %}">
+            ❤️ Favorilerim
+        </a>
+    </div>
+
+    <div id="takvim-container">
+        <div id="fullcalendar"></div>
+    </div>
+
+    <h2 class="yaklasan-baslik">Yaklaşan Etkinlikler ({{ etkinlikler.count }})</h2>
+    {% for e in etkinlikler %}
+    <a href="{% url 'mekan_detay' e.mekan.id %}" style="text-decoration:none;display:block;">
+        <div class="etkinlik-kart">
+            <div class="etkinlik-tarih-blok">
+                <div class="gun">{{ e.baslangic|date:"d" }}</div>
+                <div class="ay">{{ e.baslangic|date:"M" }}</div>
+            </div>
+            <div class="etkinlik-bilgi">
+                <div class="etkinlik-baslik">{{ e.baslik }}</div>
+                <div class="etkinlik-mekan">📍 {{ e.mekan.ad }}</div>
+                <div class="etkinlik-saat">{{ e.baslangic|date:"H:i" }} – {{ e.bitis|date:"H:i" }}</div>
+            </div>
+        </div>
+    </a>
+    {% empty %}
+    <div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;">Yaklaşan etkinlik yok.</div>
+    {% endfor %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('fullcalendar');
+    if (!calendarEl || typeof FullCalendar === 'undefined') return;
+
+    var events = {{ events_json|safe }};
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'tr',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,listWeek'
+        },
+        events: events,
+        eventClick: function(info) {
+            if (info.event.url) {
+                info.jsEvent.preventDefault();
+                window.location.href = info.event.url;
+            }
+        },
+        height: 'auto',
+        buttonText: {
+            today: 'Bugün',
+            month: 'Ay',
+            list: 'Liste'
+        }
+    });
+
+    calendar.render();
+});
+</script>
+{% endblock %}

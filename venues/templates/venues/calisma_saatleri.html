@@ -1,0 +1,402 @@
+{% extends 'venues/base.html' %}
+{% block title %}Çalışma Saatleri — {{ mekan.ad }}{% endblock %}
+{% block nav_panel %}active{% endblock %}
+
+{% block extra_css %}
+.cs-wrap { max-width: 720px; margin: 0 auto; padding: 36px 24px 80px; }
+.back-link { font-size: 13px; font-weight: 600; color: var(--muted); padding: 6px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); display: inline-flex; align-items: center; gap: 6px; margin-bottom: 24px; transition: .15s; text-decoration: none; }
+.back-link:hover { color: var(--text); background: var(--bg); }
+.cs-baslik { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+.cs-alt { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+
+/* Haftalık özet */
+.haftalik-ozet {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 20px; margin-bottom: 24px; box-shadow: var(--shadow);
+}
+.haftalik-ozet h3 { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 14px; }
+.ozet-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.ozet-gun {
+    text-align: center; padding: 10px 4px; border-radius: 10px;
+    border: 1.5px solid var(--border); transition: .2s; cursor: default;
+}
+.ozet-gun.acik-gun { background: linear-gradient(135deg, #eff6ff, #dbeafe); border-color: #93c5fd; }
+.ozet-gun.kapali-gun { background: #f9fafb; opacity: .5; }
+[data-theme="dark"] .ozet-gun.acik-gun { background: linear-gradient(135deg, #1e3a5f, #1e40af33); border-color: #3b82f6; }
+[data-theme="dark"] .ozet-gun.kapali-gun { background: var(--bg); }
+.ozet-gun-ad { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .3px; margin-bottom: 4px; }
+.ozet-gun-durum { font-size: 12px; font-weight: 800; color: var(--primary); }
+.ozet-gun.kapali-gun .ozet-gun-durum { color: var(--muted); font-size: 11px; }
+.ozet-gun-saat { font-size: 10px; color: var(--muted); margin-top: 2px; white-space: nowrap; }
+
+/* Toplu işlemler */
+.toplu-kart {
+    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    border: 1px solid #bae6fd; border-radius: 14px; padding: 16px 20px; margin-bottom: 20px;
+}
+[data-theme="dark"] .toplu-kart { background: linear-gradient(135deg, #0c2340, #0c4a6e33); border-color: #0369a1; }
+.toplu-kart h3 { font-size: 12px; font-weight: 700; color: #0369a1; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px; }
+[data-theme="dark"] .toplu-kart h3 { color: #38bdf8; }
+.toplu-satirlar { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+.toplu-saat-grup { display: flex; align-items: center; gap: 8px; }
+.toplu-saat-label { font-size: 12px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.toplu-saat-input { padding: 7px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; background: var(--bg); color: var(--text); width: 110px; }
+.toplu-saat-input:focus { outline: none; border-color: var(--primary); }
+.toplu-btn-grup { display: flex; gap: 6px; flex-wrap: wrap; }
+.toplu-btn { padding: 7px 14px; border-radius: 8px; border: 1.5px solid #bae6fd; background: white; color: #0369a1; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: .15s; white-space: nowrap; }
+.toplu-btn:hover { background: #0369a1; color: white; border-color: #0369a1; }
+[data-theme="dark"] .toplu-btn { background: #0c2340; color: #38bdf8; border-color: #0369a1; }
+[data-theme="dark"] .toplu-btn:hover { background: #0369a1; color: white; }
+
+/* Gün kartları */
+.gun-kart {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 14px; padding: 0; margin-bottom: 10px;
+    box-shadow: var(--shadow); transition: border-color .2s, box-shadow .2s;
+    overflow: hidden;
+}
+.gun-kart.acik { border-color: #93c5fd; box-shadow: 0 2px 12px rgba(59,130,246,.1); }
+.gun-baslik { display: flex; align-items: center; gap: 14px; padding: 16px 20px; }
+.gun-adi { font-size: 15px; font-weight: 800; min-width: 110px; display: flex; align-items: center; gap: 8px; }
+.gun-adi .gun-emoji { font-size: 18px; }
+
+/* Toggle */
+.toggle-wrap { display: flex; align-items: center; gap: 8px; }
+.toggle-input { display: none; }
+.toggle-label {
+    width: 46px; height: 26px; background: #e5e7eb; border-radius: 13px;
+    cursor: pointer; position: relative; transition: .2s; flex-shrink: 0;
+}
+.toggle-label::after {
+    content: ''; position: absolute; top: 4px; left: 4px;
+    width: 18px; height: 18px; background: white; border-radius: 50%;
+    transition: .25s; box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+.toggle-input:checked + .toggle-label { background: var(--primary); }
+.toggle-input:checked + .toggle-label::after { left: 24px; }
+.toggle-badge { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+.toggle-badge.acik-badge { background: #dcfce7; color: #15803d; }
+.toggle-badge.kapali-badge { background: #f1f5f9; color: var(--muted); }
+[data-theme="dark"] .toggle-badge.acik-badge { background: #14532d44; color: #4ade80; }
+[data-theme="dark"] .toggle-badge.kapali-badge { background: #1e293b; color: var(--muted); }
+
+/* 24 saat toggle */
+.yirmidort-wrap { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.yirmidort-label { font-size: 12px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.yirmidort-cb { accent-color: var(--primary); width: 14px; height: 14px; cursor: pointer; }
+
+/* Saat satırı */
+.saat-satirı {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 20px 16px; border-top: 1px solid var(--border);
+    flex-wrap: wrap; background: var(--bg);
+}
+.saat-grup { display: flex; align-items: center; gap: 8px; }
+.saat-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .3px; }
+.saat-input {
+    padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 9px;
+    font-size: 14px; font-family: inherit; background: var(--surface);
+    color: var(--text); width: 130px; transition: .15s;
+}
+.saat-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+.saat-ayrac { font-size: 18px; color: var(--muted); font-weight: 300; }
+
+/* Hızlı şablonlar */
+.hizli-wrap { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.hizli-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+.hizli-btn {
+    padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text); font-size: 11px; font-weight: 600;
+    cursor: pointer; font-family: inherit; transition: .15s; white-space: nowrap;
+}
+.hizli-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+/* Kopyala */
+.kopyala-wrap { margin-left: auto; position: relative; }
+.kopyala-btn {
+    padding: 6px 12px; border-radius: 8px; border: 1.5px solid var(--border);
+    background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: inherit; transition: .15s; display: flex; align-items: center; gap: 5px;
+}
+.kopyala-btn:hover { border-color: var(--primary); color: var(--primary); }
+.kopyala-dropdown {
+    position: absolute; right: 0; top: calc(100% + 6px); background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow-md);
+    min-width: 180px; z-index: 100; display: none; overflow: hidden;
+}
+.kopyala-dropdown.goster { display: block; }
+.kopyala-dropdown-item {
+    padding: 9px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: .1s; border: none; background: none; width: 100%; text-align: left;
+    color: var(--text); font-family: inherit;
+}
+.kopyala-dropdown-item:hover { background: var(--bg); color: var(--primary); }
+
+/* Kaydet */
+.kaydet-wrap { margin-top: 24px; }
+.btn-kaydet {
+    background: linear-gradient(135deg, var(--primary), #4f46e5);
+    color: white; border: none; padding: 14px 32px;
+    border-radius: 12px; font-size: 16px; font-weight: 800;
+    cursor: pointer; font-family: inherit; transition: .2s;
+    width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 4px 14px rgba(37,99,235,.3);
+}
+.btn-kaydet:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37,99,235,.4); }
+.btn-kaydet:active { transform: translateY(0); }
+
+.mesaj-basari { background: #dcfce7; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px 16px; font-size: 14px; font-weight: 600; color: #15803d; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+{% endblock %}
+
+{% block content %}
+<div class="cs-wrap">
+    <a href="{% url 'owner_dashboard' %}" class="back-link">← Panele Dön</a>
+    <h1 class="cs-baslik">🕐 Çalışma Saatleri</h1>
+    <p class="cs-alt">{{ mekan.ad }} — Her gün için farklı saat ve durum belirleyebilirsiniz.</p>
+
+    {% if messages %}
+    {% for msg in messages %}
+    <div class="mesaj-basari">✅ {{ msg }}</div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Haftalık Özet -->
+    <div class="haftalik-ozet">
+        <h3>📊 Haftalık Özet</h3>
+        <div class="ozet-grid">
+            {% for gun in gun_listesi %}
+            <div class="ozet-gun {% if gun.obj and gun.obj.acik %}acik-gun{% elif not gun.obj %}acik-gun{% else %}kapali-gun{% endif %}" id="ozet-{{ gun.no }}">
+                <div class="ozet-gun-ad">{{ gun.kisalt }}</div>
+                <div class="ozet-gun-durum" id="ozet-durum-{{ gun.no }}">
+                    {% if gun.obj and not gun.obj.acik %}Kapalı{% else %}Açık{% endif %}
+                </div>
+                <div class="ozet-gun-saat" id="ozet-saat-{{ gun.no }}">
+                    {% if gun.obj and gun.obj.acik and gun.obj.acilis %}{{ gun.obj.acilis|time:"H:i" }}-{{ gun.obj.kapanis|time:"H:i" }}{% elif gun.obj and gun.obj.acik %}—{% elif not gun.obj %}—{% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Toplu İşlemler -->
+    <div class="toplu-kart">
+        <h3>⚡ Toplu İşlem — Hızlı Doldur</h3>
+        <div class="toplu-satirlar">
+            <div class="toplu-saat-grup">
+                <span class="toplu-saat-label">Açılış:</span>
+                <input type="time" id="toplu-acilis" class="toplu-saat-input" value="09:00">
+                <span class="toplu-saat-label">Kapanış:</span>
+                <input type="time" id="toplu-kapanis" class="toplu-saat-input" value="22:00">
+            </div>
+            <div class="toplu-btn-grup">
+                <button type="button" class="toplu-btn" onclick="topluUygula('hafta_ici')">📅 Hafta içi (Pzt–Cum)</button>
+                <button type="button" class="toplu-btn" onclick="topluUygula('hafta_sonu')">🎉 Hafta sonu (Cmt–Paz)</button>
+                <button type="button" class="toplu-btn" onclick="topluUygula('tum_gunler')">🌐 Tüm günler</button>
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" id="cs-form">
+        {% csrf_token %}
+        {% for gun in gun_listesi %}
+        <div class="gun-kart {% if not gun.obj or gun.obj.acik %}acik{% endif %}" id="kart-{{ gun.no }}">
+            <div class="gun-baslik">
+                <div class="gun-adi">
+                    <span class="gun-emoji">{{ gun.emoji }}</span>
+                    {{ gun.ad }}
+                </div>
+
+                <!-- Açık/Kapalı toggle -->
+                <div class="toggle-wrap">
+                    <input type="checkbox" name="gun_{{ gun.no }}_acik" id="acik-{{ gun.no }}" class="toggle-input"
+                        {% if gun.obj and gun.obj.acik %}checked{% elif not gun.obj %}checked{% endif %}
+                        onchange="toggleGun({{ gun.no }})">
+                    <label for="acik-{{ gun.no }}" class="toggle-label"></label>
+                    <span class="toggle-badge {% if gun.obj and not gun.obj.acik %}kapali-badge{% else %}acik-badge{% endif %}" id="toggle-badge-{{ gun.no }}">
+                        {% if gun.obj and not gun.obj.acik %}Kapalı{% else %}Açık{% endif %}
+                    </span>
+                </div>
+
+                <!-- 24 saat -->
+                <div class="yirmidort-wrap">
+                    <input type="checkbox" id="yirmidort-{{ gun.no }}" class="yirmidort-cb"
+                           {% if gun.obj and gun.obj.acilis and gun.obj.acilis|time:"H:i" == "00:00" and gun.obj.kapanis|time:"H:i" == "23:59" %}checked{% endif %}
+                           onchange="toggle24({{ gun.no }})">
+                    <label for="yirmidort-{{ gun.no }}" class="yirmidort-label" style="cursor:pointer;">24 saat açık</label>
+                </div>
+
+                <!-- Kopyala dropdown -->
+                <div class="kopyala-wrap">
+                    <button type="button" class="kopyala-btn" onclick="toggleKopyalaMenu({{ gun.no }}, event)">
+                        📋 Kopyala <span style="font-size:9px;">▼</span>
+                    </button>
+                    <div class="kopyala-dropdown" id="kopyala-menu-{{ gun.no }}">
+                        <button type="button" class="kopyala-dropdown-item" onclick="kopyalaGun({{ gun.no }}, 'hafta_ici')">📅 Hafta içine kopyala</button>
+                        <button type="button" class="kopyala-dropdown-item" onclick="kopyalaGun({{ gun.no }}, 'hafta_sonu')">🎉 Hafta sonuna kopyala</button>
+                        <button type="button" class="kopyala-dropdown-item" onclick="kopyalaGun({{ gun.no }}, 'tum_gunler')">🌐 Tüm günlere kopyala</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Saat satırı -->
+            <div class="saat-satirı" id="saat-row-{{ gun.no }}"
+                 {% if gun.obj and not gun.obj.acik %}style="opacity:.4;pointer-events:none;"{% endif %}>
+                <div class="saat-grup">
+                    <span class="saat-label">Açılış</span>
+                    <input type="time" name="gun_{{ gun.no }}_acilis" id="acilis-{{ gun.no }}" class="saat-input"
+                           value="{% if gun.obj and gun.obj.acilis %}{{ gun.obj.acilis|time:'H:i' }}{% endif %}"
+                           onchange="ozetGuncelle({{ gun.no }})">
+                </div>
+                <div class="saat-ayrac">→</div>
+                <div class="saat-grup">
+                    <span class="saat-label">Kapanış</span>
+                    <input type="time" name="gun_{{ gun.no }}_kapanis" id="kapanis-{{ gun.no }}" class="saat-input"
+                           value="{% if gun.obj and gun.obj.kapanis %}{{ gun.obj.kapanis|time:'H:i' }}{% endif %}"
+                           onchange="ozetGuncelle({{ gun.no }})">
+                </div>
+                <div class="hizli-wrap">
+                    <span class="hizli-label">Hızlı:</span>
+                    <button type="button" class="hizli-btn" onclick="hizliSec({{ gun.no }}, '08:00', '18:00')">08–18</button>
+                    <button type="button" class="hizli-btn" onclick="hizliSec({{ gun.no }}, '09:00', '22:00')">09–22</button>
+                    <button type="button" class="hizli-btn" onclick="hizliSec({{ gun.no }}, '10:00', '23:00')">10–23</button>
+                    <button type="button" class="hizli-btn" onclick="hizliSec({{ gun.no }}, '12:00', '00:00')">12–24</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="kaydet-wrap">
+            <button type="submit" class="btn-kaydet">💾 Çalışma Saatlerini Kaydet</button>
+        </div>
+    </form>
+</div>
+
+<script>
+const GUN_ADLARI = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
+
+// Toggle açık/kapalı
+function toggleGun(no) {
+    const cb = document.getElementById('acik-' + no);
+    const row = document.getElementById('saat-row-' + no);
+    const badge = document.getElementById('toggle-badge-' + no);
+    const kart = document.getElementById('kart-' + no);
+    const acik = cb.checked;
+
+    if (acik) {
+        row.style.opacity = '1';
+        row.style.pointerEvents = 'auto';
+        badge.textContent = 'Açık';
+        badge.className = 'toggle-badge acik-badge';
+        kart.classList.add('acik');
+    } else {
+        row.style.opacity = '.4';
+        row.style.pointerEvents = 'none';
+        badge.textContent = 'Kapalı';
+        badge.className = 'toggle-badge kapali-badge';
+        kart.classList.remove('acik');
+    }
+    ozetGuncelle(no);
+}
+
+// 24 saat açık
+function toggle24(no) {
+    const cb = document.getElementById('yirmidort-' + no);
+    const acilis = document.getElementById('acilis-' + no);
+    const kapanis = document.getElementById('kapanis-' + no);
+    if (cb.checked) {
+        acilis.value = '00:00';
+        kapanis.value = '23:59';
+        acilis.disabled = true;
+        kapanis.disabled = true;
+    } else {
+        acilis.disabled = false;
+        kapanis.disabled = false;
+    }
+    ozetGuncelle(no);
+}
+
+// Hızlı saat seçimi
+function hizliSec(no, ac, kap) {
+    document.getElementById('acilis-' + no).value = ac;
+    document.getElementById('kapanis-' + no).value = kap;
+    ozetGuncelle(no);
+}
+
+// Toplu uygula
+function topluUygula(hedef) {
+    const ac = document.getElementById('toplu-acilis').value;
+    const kap = document.getElementById('toplu-kapanis').value;
+    const gunler = hedefGunler(hedef);
+    gunler.forEach(no => {
+        document.getElementById('acilis-' + no).value = ac;
+        document.getElementById('kapanis-' + no).value = kap;
+        const cb = document.getElementById('acik-' + no);
+        if (!cb.checked) { cb.checked = true; toggleGun(no); }
+        ozetGuncelle(no);
+    });
+}
+
+// Gün kopyala
+function kopyalaGun(kaynakNo, hedef) {
+    const ac = document.getElementById('acilis-' + kaynakNo).value;
+    const kap = document.getElementById('kapanis-' + kaynakNo).value;
+    const acik = document.getElementById('acik-' + kaynakNo).checked;
+    hedefGunler(hedef).forEach(no => {
+        if (no === kaynakNo) return;
+        document.getElementById('acilis-' + no).value = ac;
+        document.getElementById('kapanis-' + no).value = kap;
+        const cb = document.getElementById('acik-' + no);
+        if (cb.checked !== acik) { cb.checked = acik; toggleGun(no); }
+        ozetGuncelle(no);
+    });
+    document.querySelectorAll('.kopyala-dropdown').forEach(d => d.classList.remove('goster'));
+    const toplu = document.getElementById('toplu-acilis');
+    toplu.style.borderColor = '#22c55e';
+    setTimeout(() => toplu.style.borderColor = '', 800);
+}
+
+function hedefGunler(hedef) {
+    if (hedef === 'hafta_ici') return [0,1,2,3,4];
+    if (hedef === 'hafta_sonu') return [5,6];
+    return [0,1,2,3,4,5,6];
+}
+
+// Kopyala dropdown aç/kapat
+function toggleKopyalaMenu(no, e) {
+    e.stopPropagation();
+    const menu = document.getElementById('kopyala-menu-' + no);
+    document.querySelectorAll('.kopyala-dropdown').forEach(d => {
+        if (d !== menu) d.classList.remove('goster');
+    });
+    menu.classList.toggle('goster');
+}
+document.addEventListener('click', () => {
+    document.querySelectorAll('.kopyala-dropdown').forEach(d => d.classList.remove('goster'));
+});
+
+// Özet kutularını güncelle
+function ozetGuncelle(no) {
+    const acik = document.getElementById('acik-' + no).checked;
+    const ac = document.getElementById('acilis-' + no).value;
+    const kap = document.getElementById('kapanis-' + no).value;
+    const ozet = document.getElementById('ozet-' + no);
+    const ozetDurum = document.getElementById('ozet-durum-' + no);
+    const ozetSaat = document.getElementById('ozet-saat-' + no);
+
+    if (acik) {
+        ozet.className = 'ozet-gun acik-gun';
+        ozetDurum.textContent = 'Açık';
+        ozetSaat.textContent = (ac && kap) ? ac + '–' + kap : '—';
+    } else {
+        ozet.className = 'ozet-gun kapali-gun';
+        ozetDurum.textContent = 'Kapalı';
+        ozetSaat.textContent = '';
+    }
+}
+
+// Form submit: disabled input'ları enable et (23:59 kayıt için)
+document.getElementById('cs-form').addEventListener('submit', function() {
+    document.querySelectorAll('.saat-input').forEach(inp => inp.disabled = false);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,255 @@
+{% extends 'venues/base.html' %}
+{% block title %}Profilim — Anlık Mekan{% endblock %}
+
+{% block extra_css %}
+.profil-wrap { max-width: 860px; margin: 0 auto; padding: 36px 24px 80px; }
+
+/* Header */
+.profil-header {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px; margin-bottom: 24px;
+    box-shadow: var(--shadow); display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+}
+.avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: var(--primary); color: white;
+    font-size: 28px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; letter-spacing: -.5px;
+}
+.profil-bilgi h1 { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+.profil-bilgi p { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.profil-stat-row { display: flex; gap: 20px; flex-wrap: wrap; }
+.stat-item { text-align: center; }
+.stat-sayi { font-size: 20px; font-weight: 800; color: var(--text); display: block; }
+.stat-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+.profil-header-actions { margin-left: auto; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+.btn-kucuk { padding: 7px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; border: 1.5px solid var(--border); background: var(--surface); color: var(--text); transition: .15s; text-decoration: none; text-align: center; }
+.btn-kucuk:hover { background: var(--bg); }
+.btn-kucuk-blue { background: var(--primary); color: white; border-color: var(--primary); }
+.btn-kucuk-blue:hover { background: var(--primary-dark); }
+
+/* Sekmeler */
+.sekme-bar { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+.sekme {
+    padding: 10px 18px; font-size: 14px; font-weight: 600; color: var(--muted);
+    border-bottom: 2px solid transparent; cursor: pointer; transition: .15s; border: none;
+    background: none; font-family: inherit;
+}
+.sekme:hover { color: var(--text); }
+.sekme.aktif { color: var(--primary); border-bottom-color: var(--primary); }
+.sekme-icerik { display: none; }
+.sekme-icerik.goster { display: block; }
+
+/* E-posta güncelleme formu */
+.form-kart { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; box-shadow: var(--shadow); max-width: 420px; }
+.form-kart h3 { font-size: 16px; font-weight: 800; margin-bottom: 16px; }
+.f-label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 5px; text-transform: uppercase; letter-spacing: .3px; }
+.f-input { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: var(--bg); transition: .15s; box-sizing: border-box; }
+.f-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); background: white; }
+.f-grup { margin-bottom: 16px; }
+.btn-kaydet { padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: .15s; }
+.btn-kaydet:hover { background: var(--primary-dark); }
+
+/* Yorum kartları */
+.yorum-kart { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 12px; box-shadow: var(--shadow); }
+.yorum-kart-ust { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; flex-wrap: wrap; }
+.mekan-link { font-size: 14px; font-weight: 700; color: var(--primary); text-decoration: none; }
+.mekan-link:hover { text-decoration: underline; }
+.yorum-meta { display: flex; align-items: center; gap: 10px; }
+.yorum-puan { color: #f59e0b; font-size: 13px; }
+.yorum-puan .e { color: #e5e7eb; }
+.yorum-tarih { font-size: 12px; color: var(--muted); }
+.yorum-icerik { font-size: 14px; color: var(--text); line-height: 1.7; }
+
+/* Favori kart */
+.favori-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.favori-kart { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); transition: transform .2s; display: block; text-decoration: none; color: inherit; }
+.favori-kart:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.favori-kart img { width: 100%; height: 110px; object-fit: cover; display: block; }
+.favori-kart-ph { width: 100%; height: 110px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+.favori-kart-body { padding: 12px; }
+.favori-kart-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+.favori-kart-cat { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+
+.mesaj-basari { background: #dcfce7; border: 1px solid #bbf7d0; border-radius: 8px; padding: 11px 16px; font-size: 14px; font-weight: 600; color: #15803d; margin-bottom: 16px; }
+.bos-durum { text-align: center; padding: 48px 20px; color: var(--muted); font-size: 14px; }
+.bos-durum h3 { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+{% endblock %}
+
+{% block content %}
+<div class="profil-wrap">
+
+    {% if messages %}
+    {% for msg in messages %}
+    <div class="mesaj-basari">{{ msg }}</div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Profil Başlığı -->
+    <div class="profil-header">
+        <div class="avatar">
+            {% if profil_kullanici.profile.foto %}
+                <img src="{{ profil_kullanici.profile.foto.url }}" alt="{{ profil_kullanici.username }}"
+                     style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+            {% else %}
+                {{ profil_kullanici.username|first|upper }}
+            {% endif %}
+        </div>
+        <div class="profil-bilgi">
+            <h1>{{ profil_kullanici.username }}</h1>
+            <p>{{ profil_kullanici.email|default:"E-posta eklenmemiş" }} &nbsp;·&nbsp; Üye: {{ profil_kullanici.date_joined|date:"F Y" }}</p>
+            <div class="profil-stat-row">
+                <div class="stat-item">
+                    <span class="stat-sayi">{{ yorum_sayisi }}</span>
+                    <span class="stat-label">Yorum</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-sayi">{{ favori_sayisi }}</span>
+                    <span class="stat-label">Favori</span>
+                </div>
+                {% if profil_kullanici.profile.rol == 'OWNER' %}
+                <div class="stat-item">
+                    <span class="stat-sayi">{{ profil_kullanici.mekanlari.count }}</span>
+                    <span class="stat-label">Mekan</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="profil-header-actions">
+            {% if profil_kullanici.profile.rol == 'OWNER' %}
+            <a href="{% url 'owner_dashboard' %}" class="btn-kucuk btn-kucuk-blue">Mekan Panelim</a>
+            {% endif %}
+            <a href="{% url 'sifre_sifirla_talep' %}" class="btn-kucuk">Şifre Değiştir</a>
+        </div>
+    </div>
+
+    <!-- Sekmeler -->
+    <div class="sekme-bar">
+        <button class="sekme aktif" onclick="sekmeAc(this,'tab-yorumlar')">💬 Yorumlarım ({{ yorum_sayisi }})</button>
+        <button class="sekme" onclick="sekmeAc(this,'tab-favoriler')">❤️ Favorilerim ({{ favori_sayisi }})</button>
+        <button class="sekme" onclick="window.location.href='{% url 'listelerim' %}'">📋 Listelerim</button>
+        <button class="sekme" onclick="sekmeAc(this,'tab-hesap')">⚙️ Hesap Ayarları</button>
+    </div>
+
+    <!-- Yorumlarım -->
+    <div id="tab-yorumlar" class="sekme-icerik goster">
+        {% for yorum in yorumlar %}
+        <div class="yorum-kart">
+            <div class="yorum-kart-ust">
+                <a href="{% url 'mekan_detay' yorum.mekan.id %}" class="mekan-link">{{ yorum.mekan.ad }}</a>
+                <div class="yorum-meta">
+                    {% if yorum.puan %}
+                    <span class="yorum-puan">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= yorum.puan %}★{% else %}<span class="e">★</span>{% endif %}
+                        {% endfor %}
+                    </span>
+                    {% endif %}
+                    <span class="yorum-tarih">{{ yorum.tarih|date:"d F Y" }}</span>
+                </div>
+            </div>
+            <p class="yorum-icerik">{{ yorum.icerik }}</p>
+        </div>
+        {% empty %}
+        <div class="bos-durum">
+            <h3>Henüz yorum yapmadın</h3>
+            <p>Mekan detay sayfalarından yorum bırakabilirsin.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Favorilerim -->
+    <div id="tab-favoriler" class="sekme-icerik">
+        {% if favori_mekanlar %}
+        <div class="favori-grid">
+            {% for mekan in favori_mekanlar %}
+            <a href="{% url 'mekan_detay' mekan.id %}" class="favori-kart">
+                {% if mekan.img %}
+                    <img src="{{ mekan.img.url }}" alt="{{ mekan.ad }}">
+                {% else %}
+                    <div class="favori-kart-ph">
+                        {% if mekan.kategori == 'KAFE' %}☕{% elif mekan.kategori == 'RESTORAN' %}🍽️{% elif mekan.kategori == 'ECZANE' %}💊{% elif mekan.kategori == 'KUTUPHANE' %}📚{% elif mekan.kategori == 'PUB' %}🍺{% else %}🏠{% endif %}
+                    </div>
+                {% endif %}
+                <div class="favori-kart-body">
+                    <div class="favori-kart-name">{{ mekan.ad }}</div>
+                    <div class="favori-kart-cat">{{ mekan.get_kategori_display }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bos-durum">
+            <h3>Henüz favori eklemedin</h3>
+            <p>Mekan kartlarındaki ❤️ butonuna tıklayarak favori ekleyebilirsin.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Hesap Ayarları -->
+    <div id="tab-hesap" class="sekme-icerik">
+
+        <!-- Profil Fotoğrafı -->
+        <div class="form-kart" style="margin-bottom:16px;">
+            <h3>Profil Fotoğrafı</h3>
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+                {% if profil_kullanici.profile.foto %}
+                    <img src="{{ profil_kullanici.profile.foto.url }}" alt="Profil"
+                         style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--border);">
+                {% else %}
+                    <div style="width:64px;height:64px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;">
+                        {{ profil_kullanici.username|first|upper }}
+                    </div>
+                {% endif %}
+                <div>
+                    <form method="POST" enctype="multipart/form-data" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="islem" value="foto">
+                        <input type="file" name="foto" accept="image/*" id="foto-input" style="display:none;"
+                               onchange="this.form.submit()">
+                        <label for="foto-input" class="btn-kaydet" style="cursor:pointer;display:inline-block;">
+                            📷 Fotoğraf Yükle
+                        </label>
+                    </form>
+                    {% if profil_kullanici.profile.foto %}
+                    <form method="POST" style="display:inline;margin-left:8px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="islem" value="foto">
+                        <input type="hidden" name="foto_sil" value="1">
+                        <button type="submit" style="background:none;border:none;color:var(--danger);font-size:13px;font-weight:600;cursor:pointer;padding:0;">
+                            Kaldır
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- E-posta -->
+        <div class="form-kart">
+            <h3>E-posta Güncelle</h3>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="islem" value="email">
+                <div class="f-grup">
+                    <label class="f-label">E-posta Adresi</label>
+                    <input type="email" name="email" class="f-input"
+                           value="{{ profil_kullanici.email|default:'' }}"
+                           placeholder="ornek@email.com">
+                </div>
+                <button type="submit" class="btn-kaydet">Kaydet</button>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function sekmeAc(btn, tabId) {
+    document.querySelectorAll('.sekme').forEach(s => s.classList.remove('aktif'));
+    document.querySelectorAll('.sekme-icerik').forEach(t => t.classList.remove('goster'));
+    btn.classList.add('aktif');
+    document.getElementById(tabId).classList.add('goster');
+}
+</script>
+{% endblock %}

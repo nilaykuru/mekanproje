@@ -1,0 +1,60 @@
+{% extends 'venues/base.html' %}
+{% block title %}Kampanya Oluştur — Anlık Mekan{% endblock %}
+{% block nav_panel %}active{% endblock %}
+
+{% block extra_css %}
+.kamp-wrap { max-width: 600px; margin: 0 auto; padding: 36px 24px 80px; }
+.back-link { font-size: 13px; font-weight: 600; color: var(--muted); padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); display: inline-block; margin-bottom: 24px; transition: color .15s; }
+.back-link:hover { color: var(--text); }
+.kamp-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; box-shadow: var(--shadow-md); }
+.kamp-card h1 { font-size: 20px; font-weight: 900; margin-bottom: 6px; }
+.kamp-card p { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+.f-row { margin-bottom: 16px; }
+.f-label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; }
+.btn-kaydet { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 9px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; transition: .15s; margin-top: 6px; }
+.btn-kaydet:hover { background: var(--primary-dark); }
+{% endblock %}
+
+{% block content %}
+<div class="kamp-wrap">
+    <a href="{% url 'owner_dashboard' %}" class="back-link">&#8592; Panele Dön</a>
+
+    <div class="kamp-card">
+        <h1>🎁 Kampanya Oluştur</h1>
+        <p>{{ mekan.ad }} için yeni bir kampanya belirleyin. Mekânı takip eden kullanıcılar bildirim alacak.</p>
+
+        {% if messages %}
+        {% for msg in messages %}
+        <div style="padding:11px 16px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:14px;background:{% if msg.tags == 'error' %}#fee2e2{% else %}#dcfce7{% endif %};color:{% if msg.tags == 'error' %}#dc2626{% else %}#15803d{% endif %};">{{ msg }}</div>
+        {% endfor %}
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="f-row">
+                <label class="f-label">Kampanya Başlığı</label>
+                {{ form.baslik }}
+            </div>
+            <div class="f-row">
+                <label class="f-label">Açıklama</label>
+                {{ form.aciklama }}
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div class="f-row">
+                    <label class="f-label">Başlangıç</label>
+                    {{ form.baslangic }}
+                </div>
+                <div class="f-row">
+                    <label class="f-label">Bitiş</label>
+                    {{ form.bitis }}
+                </div>
+            </div>
+            <div class="f-row">
+                <label class="f-label">Kampanya Fotoğrafı (isteğe bağlı)</label>
+                {{ form.foto }}
+            </div>
+            <button type="submit" class="btn-kaydet">Kampanyayı Oluştur ve Yayınla</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

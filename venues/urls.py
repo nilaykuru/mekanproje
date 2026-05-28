@@ -49,4 +49,68 @@ urlpatterns = [
 
     # Geriye dönük uyumluluk
     path('mekan/<int:mekan_id>/duyuru/', views.duyuru_guncelle, name='duyuru_guncelle'),
+
+    # Profil
+    path('profil/', views.profil, name='profil'),
+
+    # Harita
+    path('harita/', views.mekan_harita, name='mekan_harita'),
+
+    # Yorum düzenle / sil
+    path('yorum/<int:yorum_id>/sil/', views.yorum_sil, name='yorum_sil'),
+    path('yorum/<int:yorum_id>/duzenle/', views.yorum_duzenle, name='yorum_duzenle'),
+    path('yorum/foto/<int:foto_id>/sil/', views.yorum_foto_sil, name='yorum_foto_sil'),
+
+    # Mekan galerisi (çoklu fotoğraf)
+    path('mekan/<int:mekan_id>/foto/yukle/', views.mekan_foto_yukle, name='mekan_foto_yukle'),
+    path('mekan/foto/<int:foto_id>/sil/', views.mekan_foto_sil, name='mekan_foto_sil'),
+
+    # OTP şifre sıfırlama (URL'siz, Outlook uyumlu)
+    path('sifremi-sifirla/', views.sifre_sifirla_talep, name='sifre_sifirla_talep'),
+    path('sifremi-sifirla/kod/', views.sifre_sifirla_kod, name='sifre_sifirla_kod'),
+
+    # Bildirimler
+    path('bildirimler/', views.bildirimler, name='bildirimler'),
+    path('bildirim/sayi/', views.bildirim_okundu_isle, name='bildirim_sayi'),
+
+    # Yorum beğeni
+    path('yorum/<int:yorum_id>/begen/', views.yorum_begen, name='yorum_begen'),
+
+    # Takip
+    path('kullanici/<int:kullanici_id>/takip/', views.kullanici_takip, name='kullanici_takip'),
+    path('kullanici/<int:kullanici_id>/', views.kullanici_profil, name='kullanici_profil'),
+
+    # Listeler
+    path('listelerim/', views.listelerim, name='listelerim'),
+    path('liste/<int:liste_id>/', views.liste_detay, name='liste_detay'),
+    path('liste/<int:liste_id>/ekle/<int:mekan_id>/', views.liste_mekan_ekle, name='liste_mekan_ekle'),
+    path('liste/<int:liste_id>/cikar/<int:mekan_id>/', views.liste_mekan_cikar, name='liste_mekan_cikar'),
+    path('liste/<int:liste_id>/sil/', views.liste_sil, name='liste_sil'),
+
+    # Yorum yanıt
+    path('yorum/<int:yorum_id>/yanit/', views.yorum_yanit, name='yorum_yanit'),
+
+    # Rezervasyon
+    path('mekan/<int:mekan_id>/rezervasyon/', views.rezervasyon_olustur, name='rezervasyon_olustur'),
+    path('rezervasyonlarim/', views.rezervasyonlarim, name='rezervasyonlarim'),
+    path('rezervasyon/<int:rezervasyon_id>/guncelle/', views.rezervasyon_guncelle, name='rezervasyon_guncelle'),
+
+    # Kampanya
+    path('mekan/<int:mekan_id>/kampanya/olustur/', views.kampanya_olustur, name='kampanya_olustur'),
+    path('kampanya/<int:kampanya_id>/sil/', views.kampanya_sil, name='kampanya_sil'),
+
+    # Menü
+    path('mekan/<int:mekan_id>/menu/', views.menu_yukle, name='menu_yukle'),
+
+    # Çalışma saatleri
+    path('mekan/<int:mekan_id>/calisma-saatleri/', views.calisma_saatleri_duzenle, name='calisma_saatleri_duzenle'),
+
+    # Duyuru (takipçilere)
+    path('mekan/<int:mekan_id>/duyuru/yayinla/', views.duyuru_yayinla, name='duyuru_yayinla'),
+
+    # Popüler
+    path('populer/', views.populer_mekanlar, name='populer_mekanlar'),
+
+    # Etkinlik takvimi
+    path('etkinlikler/takvim/', views.etkinlik_takvimi, name='etkinlik_takvimi'),
 ]

@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" id="html-root">
 <head>
+    <!-- Dark mode flash önleme: tema hemen yükle (documentElement = <html>) -->
+    <script>(function(){var t=localStorage.getItem('am-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');})()</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Anlık Mekan{% endblock %}</title>
@@ -24,6 +26,80 @@
             --shadow-md: 0 4px 6px rgba(0,0,0,.04), 0 10px 28px rgba(0,0,0,.07);
         }
 
+        /* ── Karanlık Mod ───────────────────── */
+        [data-theme="dark"] {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --surface: #1e293b;
+            --bg: #0f172a;
+            --border: #334155;
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+            --success: #34d399;
+            --danger: #f87171;
+            --shadow: 0 1px 3px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.25);
+            --shadow-md: 0 4px 6px rgba(0,0,0,.25), 0 10px 28px rgba(0,0,0,.35);
+        }
+        [data-theme="dark"] .navbar { background: #1e293b; }
+        [data-theme="dark"] .subnav { background: #1e293b; }
+        [data-theme="dark"] .footer { background: #020617; }
+        [data-theme="dark"] .navbar-search input { background: #0f172a; color: #f1f5f9; }
+        [data-theme="dark"] .navbar-search input:focus { background: #1e293b; }
+        [data-theme="dark"] input, [data-theme="dark"] textarea, [data-theme="dark"] select {
+            background: #0f172a !important; color: #f1f5f9 !important; border-color: #334155 !important;
+        }
+        [data-theme="dark"] input:focus, [data-theme="dark"] textarea:focus, [data-theme="dark"] select:focus {
+            background: #1e293b !important;
+        }
+        [data-theme="dark"] .role-pill { background: #1e3a5f; color: #93c5fd; }
+        [data-theme="dark"] .btn-outline { border-color: #334155; color: #f1f5f9; }
+        [data-theme="dark"] .btn-outline:hover { background: #334155; }
+
+        /* Karanlık mod toggle butonu */
+        .dark-toggle {
+            width: 34px; height: 34px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: .15s;
+            flex-shrink: 0;
+        }
+        .dark-toggle:hover { background: var(--surface); border-color: var(--primary); }
+
+        /* Bildirim zili */
+        .notif-bell {
+            position: relative;
+            width: 34px; height: 34px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: .15s;
+            flex-shrink: 0;
+            text-decoration: none;
+        }
+        .notif-bell:hover { background: var(--surface); border-color: var(--primary); }
+        .notif-badge {
+            position: absolute;
+            top: -5px; right: -5px;
+            background: #dc2626;
+            color: white;
+            font-size: 10px;
+            font-weight: 800;
+            min-width: 17px; height: 17px;
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 4px;
+            line-height: 1;
+        }
+
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
@@ -44,6 +120,7 @@
         .navbar {
             background: var(--surface);
             border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(12px);
             padding: 0 5%;
             display: flex;
             align-items: center;
@@ -58,18 +135,18 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 15px;
-            font-weight: 800;
+            font-size: 16px;
+            font-weight: 900;
             color: var(--text);
-            letter-spacing: -.3px;
+            letter-spacing: -.4px;
             white-space: nowrap;
             flex-shrink: 0;
         }
         .logo-mark {
-            width: 28px;
-            height: 28px;
-            background: var(--primary);
-            border-radius: 7px;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -114,8 +191,23 @@
             font-size: 13px;
             font-weight: 600;
             color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .navbar-username strong { color: var(--text); font-weight: 700; }
+
+        /* Mini avatar */
+        .nav-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: var(--primary); color: white;
+            font-size: 13px; font-weight: 800;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; overflow: hidden; border: 2px solid var(--border);
+            text-decoration: none;
+        }
+        .nav-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .nav-avatar:hover { border-color: var(--primary); }
 
         .role-pill {
             font-size: 11px;
@@ -174,7 +266,7 @@
 
         /* ── Footer ─────────────────────────────── */
         .footer {
-            background: var(--text);
+            background: linear-gradient(135deg, #0f172a, #1e1b4b);
             color: #94a3b8;
             padding: 36px 5%;
             margin-top: 80px;
@@ -210,12 +302,24 @@
     {% endif %}
 
     <div class="navbar-right">
+        <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()" title="Karanlık Mod">🌙</button>
         {% if user.is_authenticated %}
+            <a href="{% url 'bildirimler' %}" class="notif-bell" title="Bildirimler" id="notif-bell-link">
+                🔔
+                <span class="notif-badge" id="notif-badge" style="display:none;">0</span>
+            </a>
+            <a href="{% url 'profil' %}" class="nav-avatar" title="Profilim">
+                {% if user.profile.foto %}
+                    <img src="{{ user.profile.foto.url }}" alt="{{ user.username }}">
+                {% else %}
+                    {{ user.username|first|upper }}
+                {% endif %}
+            </a>
             <span class="navbar-username">
                 {% if user.profile.rol == 'OWNER' %}
-                    <span class="role-pill">İşletme</span>&nbsp;
+                    <span class="role-pill">İşletme</span>
                 {% endif %}
-                <strong>{{ user.username }}</strong>
+                <a href="{% url 'profil' %}" style="color:inherit;font-weight:700;">{{ user.username }}</a>
             </span>
             <a href="{% url 'logout' %}" class="btn-nav btn-ghost-danger">Çıkış</a>
         {% else %}
@@ -230,12 +334,16 @@
     {% if user.profile.rol == 'OWNER' %}
         <a href="{% url 'owner_dashboard' %}" class="subnav-link {% block nav_panel %}{% endblock %}">Panelim</a>
         <a href="{% url 'mekan_olustur' %}" class="subnav-link {% block nav_yeni %}{% endblock %}">Yeni Mekan</a>
+        <a href="{% url 'bildirimler' %}" class="subnav-link {% block nav_bildirimler_owner %}{% endblock %}">Bildirimler</a>
     {% else %}
         <a href="{% url 'dashboard' %}" class="subnav-link {% block nav_home %}{% endblock %}">Tüm Mekanlar</a>
-        <a href="{% url 'su_an_acik' %}" class="subnav-link {% block nav_acik %}{% endblock %}">Açık Mekanlar</a>
+        <a href="{% url 'mekan_harita' %}" class="subnav-link {% block nav_harita %}{% endblock %}">🗺️ Harita</a>
         <a href="{% url 'calisma_alanlari' %}" class="subnav-link {% block nav_calisma %}{% endblock %}">Çalışma Alanları</a>
-        <a href="{% url 'acil_ihtiyaclar' %}" class="subnav-link {% block nav_acil %}{% endblock %}">Eczaneler</a>
         <a href="{% url 'favorilerim' %}" class="subnav-link {% block nav_fav %}{% endblock %}">Favorilerim</a>
+        <a href="{% url 'listelerim' %}" class="subnav-link {% block nav_listeler %}{% endblock %}">Listelerim</a>
+        <a href="{% url 'rezervasyonlarim' %}" class="subnav-link {% block nav_rezervasyonlar %}{% endblock %}">Rezervasyonlarım</a>
+        <a href="{% url 'populer_mekanlar' %}" class="subnav-link {% block nav_populer %}{% endblock %}">Popüler</a>
+        <a href="{% url 'etkinlik_takvimi' %}" class="subnav-link {% block nav_takvim %}{% endblock %}">Takvim</a>
     {% endif %}
 </nav>
 {% endif %}
@@ -243,6 +351,47 @@
 <main>
     {% block content %}{% endblock %}
 </main>
+
+<script>
+function toggleDark() {
+    const root = document.documentElement;
+    const isDark = root.getAttribute('data-theme') === 'dark';
+    root.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    localStorage.setItem('am-theme', isDark ? 'light' : 'dark');
+    const btn = document.getElementById('dark-toggle');
+    if (btn) btn.textContent = isDark ? '🌙' : '☀️';
+}
+
+// Sayfa yüklendiğinde ikon senkronize et
+document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('dark-toggle');
+    if (!btn) return;
+    const isDark = document.getElementById('html-root').getAttribute('data-theme') === 'dark';
+    btn.textContent = isDark ? '☀️' : '🌙';
+});
+</script>
+
+{% if user.is_authenticated %}
+<script>
+function guncelleBildirimBadge() {
+    fetch('{% url "bildirim_sayi" %}')
+        .then(r => r.json())
+        .then(data => {
+            const badge = document.getElementById('notif-badge');
+            if (!badge) return;
+            if (data.sayi > 0) {
+                badge.textContent = data.sayi > 99 ? '99+' : data.sayi;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        })
+        .catch(() => {});
+}
+guncelleBildirimBadge();
+setInterval(guncelleBildirimBadge, 60000);
+</script>
+{% endif %}
 
 <footer class="footer">
     <div class="footer-logo">Anlık Mekan</div>

@@ -1,6 +1,9 @@
 {% extends 'venues/base.html' %}
 {% block title %}Yönetim Paneli — Anlık Mekan{% endblock %}
 {% block nav_panel %}active{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+{% endblock %}
 
 {% block extra_css %}
 .panel-wrap { max-width: 1060px; margin: 0 auto; padding: 36px 24px 80px; }
@@ -184,6 +187,12 @@
             <div class="vpc-tabs">
                 <button class="tab-btn active" onclick="sekmeAc(event, 'tab-e-{{ mekan.id }}')">Etkinlikler</button>
                 <button class="tab-btn" onclick="sekmeAc(event, 'tab-b-{{ mekan.id }}')">Mekan Bilgisi</button>
+                <button class="tab-btn" onclick="sekmeAc(event, 'tab-g-{{ mekan.id }}')">📷 Galeri</button>
+                <button class="tab-btn" onclick="sekmeAc(event, 'tab-rez-{{ mekan.id }}')">📅 Rezervasyonlar</button>
+                <button class="tab-btn" onclick="sekmeAc(event, 'tab-kamp-{{ mekan.id }}')">🎁 Kampanyalar</button>
+                <button class="tab-btn" onclick="sekmeAc(event, 'tab-menu-{{ mekan.id }}')">📋 Menü</button>
+                <button class="tab-btn" onclick="sekmeAc(event, 'tab-cs-{{ mekan.id }}')">🕐 Çalışma Saatleri</button>
+                <button class="tab-btn" onclick="sekmeAc(event, 'tab-s-{{ mekan.id }}')">📊 İstatistik</button>
             </div>
 
             <div id="tab-e-{{ mekan.id }}" class="tab-pane active">
@@ -234,6 +243,242 @@
                         </td>
                     </tr>
                 </table>
+            </div>
+
+            <!-- Galeri Sekmesi -->
+            <div id="tab-g-{{ mekan.id }}" class="tab-pane">
+                <form method="POST" action="{% url 'mekan_foto_yukle' mekan.id %}" enctype="multipart/form-data" style="margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                    {% csrf_token %}
+                    <input type="file" name="fotolar" accept="image/*" multiple style="font-size:13px;flex:1;min-width:180px;">
+                    <button type="submit" class="btn-add" style="margin:0;">📤 Fotoğraf Yükle</button>
+                </form>
+                {% with fotolar=mekan.fotolar.all %}
+                {% if fotolar %}
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;">
+                    {% for f in fotolar %}
+                    <div style="position:relative;border-radius:10px;overflow:hidden;aspect-ratio:1;background:var(--bg);">
+                        <img src="{{ f.foto.url }}" style="width:100%;height:100%;object-fit:cover;" alt="">
+                        <form method="POST" action="{% url 'mekan_foto_sil' f.id %}" style="position:absolute;top:5px;right:5px;" onsubmit="return confirm('Fotoğraf silinsin mi?');">
+                            {% csrf_token %}
+                            <button type="submit" style="background:rgba(220,38,38,.85);color:white;border:none;border-radius:5px;width:24px;height:24px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="font-size:13px;color:var(--muted);">Henüz ek fotoğraf yok. Yukarıdan yükleyebilirsin.</p>
+                {% endif %}
+                {% endwith %}
+            </div>
+
+            <!-- Rezervasyonlar Sekmesi -->
+            <div id="tab-rez-{{ mekan.id }}" class="tab-pane">
+                {% with bekleyenler=mekan.rezervasyonlar.all %}
+                {% if bekleyenler %}
+                <div style="overflow-x:auto;">
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                        <thead>
+                            <tr style="border-bottom:2px solid var(--border);">
+                                <th style="padding:8px 10px;text-align:left;font-weight:700;color:var(--muted);font-size:11px;">Kullanıcı</th>
+                                <th style="padding:8px 10px;text-align:left;font-weight:700;color:var(--muted);font-size:11px;">Tarih / Saat</th>
+                                <th style="padding:8px 10px;text-align:left;font-weight:700;color:var(--muted);font-size:11px;">Kişi</th>
+                                <th style="padding:8px 10px;text-align:left;font-weight:700;color:var(--muted);font-size:11px;">Durum</th>
+                                <th style="padding:8px 10px;text-align:left;font-weight:700;color:var(--muted);font-size:11px;">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for rez in bekleyenler %}
+                        <tr style="border-bottom:1px solid var(--border);">
+                            <td style="padding:9px 10px;font-weight:600;">{{ rez.kullanici.username }}</td>
+                            <td style="padding:9px 10px;">{{ rez.tarih|date:"d M Y" }} {{ rez.saat|time:"H:i" }}</td>
+                            <td style="padding:9px 10px;">{{ rez.kisi_sayisi }}</td>
+                            <td style="padding:9px 10px;">
+                                {% if rez.durum == 'BEKLIYOR' %}<span style="background:#fef9c3;color:#a16207;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">Bekliyor</span>
+                                {% elif rez.durum == 'ONAYLANDI' %}<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">Onaylandı</span>
+                                {% elif rez.durum == 'REDDEDILDI' %}<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">Reddedildi</span>
+                                {% else %}<span style="background:#f1f5f9;color:#64748b;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">İptal</span>{% endif %}
+                            </td>
+                            <td style="padding:9px 10px;">
+                                {% if rez.durum == 'BEKLIYOR' %}
+                                <form method="POST" action="{% url 'rezervasyon_guncelle' rez.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="durum" value="ONAYLANDI">
+                                    <button type="submit" class="btn-xs btn-xs-edit">Onayla</button>
+                                </form>
+                                <form method="POST" action="{% url 'rezervasyon_guncelle' rez.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="durum" value="REDDEDILDI">
+                                    <button type="submit" class="btn-xs btn-xs-del">Reddet</button>
+                                </form>
+                                {% endif %}
+                                {% if rez.not_mesaj %}<div style="font-size:11px;color:var(--muted);margin-top:3px;">Not: {{ rez.not_mesaj }}</div>{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p style="font-size:13px;color:var(--muted);">Henüz rezervasyon talebi yok.</p>
+                {% endif %}
+                {% endwith %}
+                <div style="margin-top:14px;display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:12px;font-weight:600;color:var(--muted);">Rezervasyon alma:</span>
+                    <form method="POST" action="{% url 'mekan_duzenle' mekan.id %}" id="rez-aktif-form-{{ mekan.id }}" style="display:inline;">
+                    </form>
+                    <a href="{% url 'mekan_duzenle' mekan.id %}" class="btn-xs btn-xs-edit">Mekan ayarlarından düzenle</a>
+                </div>
+            </div>
+
+            <!-- Kampanyalar Sekmesi -->
+            <div id="tab-kamp-{{ mekan.id }}" class="tab-pane">
+                <a href="{% url 'kampanya_olustur' mekan.id %}" class="btn-add">+ Yeni Kampanya</a>
+                {% with kampanyalar=mekan.kampanyalar.all %}
+                {% if kampanyalar %}
+                <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+                {% for k in kampanyalar %}
+                <div style="background:{% if k.aktif_mi %}#eff6ff{% else %}var(--bg){% endif %};border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+                    <div>
+                        <strong style="display:block;font-size:14px;margin-bottom:3px;">{{ k.baslik }}</strong>
+                        <small style="font-size:11px;color:var(--muted);">{{ k.baslangic|date:"d M Y H:i" }} – {{ k.bitis|date:"d M Y H:i" }}</small>
+                        {% if k.aktif_mi %}<span style="background:#dcfce7;color:#15803d;padding:1px 8px;border-radius:4px;font-size:10px;font-weight:700;margin-left:6px;">AKTİF</span>{% else %}<span style="background:#f1f5f9;color:#64748b;padding:1px 8px;border-radius:4px;font-size:10px;font-weight:700;margin-left:6px;">Sona Erdi</span>{% endif %}
+                        <p style="font-size:12px;color:var(--muted);margin-top:4px;">{{ k.aciklama|truncatechars:80 }}</p>
+                    </div>
+                    <form method="POST" action="{% url 'kampanya_sil' k.id %}" onsubmit="return confirm('Kampanya silinsin mi?');" style="flex-shrink:0;">
+                        {% csrf_token %}<button type="submit" class="btn-xs btn-xs-del">Sil</button>
+                    </form>
+                </div>
+                {% endfor %}
+                </div>
+                {% else %}
+                <p style="font-size:13px;color:var(--muted);margin-top:8px;">Henüz kampanya yok.</p>
+                {% endif %}
+                {% endwith %}
+            </div>
+
+            <!-- Menü Sekmesi -->
+            <div id="tab-menu-{{ mekan.id }}" class="tab-pane">
+                <form method="POST" action="{% url 'menu_yukle' mekan.id %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div style="margin-bottom:14px;">
+                        <label style="display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;">Menü Fotoğrafı</label>
+                        {% if mekan.menu_foto %}<img src="{{ mekan.menu_foto.url }}" style="max-width:200px;border-radius:8px;border:1px solid var(--border);display:block;margin-bottom:8px;" alt="Menü">{% endif %}
+                        <input type="file" name="menu_foto" accept="image/*" style="font-size:13px;width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);">
+                    </div>
+                    <div style="margin-bottom:14px;">
+                        <label style="display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;">Menü PDF</label>
+                        {% if mekan.menu_pdf %}<a href="{{ mekan.menu_pdf.url }}" target="_blank" style="font-size:13px;color:var(--primary);font-weight:600;display:block;margin-bottom:8px;">Mevcut PDF'i görüntüle</a>{% endif %}
+                        <input type="file" name="menu_pdf" accept="application/pdf" style="font-size:13px;width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);">
+                    </div>
+                    <button type="submit" class="btn-add" style="margin:0;">Menüyü Güncelle</button>
+                </form>
+            </div>
+
+            <!-- Çalışma Saatleri Sekmesi -->
+            <div id="tab-cs-{{ mekan.id }}" class="tab-pane">
+                <a href="{% url 'calisma_saatleri_duzenle' mekan.id %}" class="btn-add" style="margin-bottom:12px;">Çalışma Saatlerini Düzenle</a>
+                {% with gunler=mekan.calisma_gunleri.all %}
+                {% if gunler %}
+                <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;">
+                    <thead><tr style="border-bottom:2px solid var(--border);">
+                        <th style="padding:6px 8px;text-align:left;font-weight:700;color:var(--muted);">Gün</th>
+                        <th style="padding:6px 8px;text-align:left;font-weight:700;color:var(--muted);">Durum</th>
+                        <th style="padding:6px 8px;text-align:left;font-weight:700;color:var(--muted);">Saatler</th>
+                    </tr></thead>
+                    <tbody>
+                    {% for g in gunler %}
+                    <tr style="border-bottom:1px solid var(--border);">
+                        <td style="padding:6px 8px;font-weight:600;">{{ g.get_gun_display }}</td>
+                        <td style="padding:6px 8px;">{% if g.acik %}<span style="color:#059669;font-weight:700;">Açık</span>{% else %}<span style="color:#dc2626;font-weight:700;">Kapalı</span>{% endif %}</td>
+                        <td style="padding:6px 8px;">{% if g.acilis and g.kapanis %}{{ g.acilis|time:"H:i" }} – {{ g.kapanis|time:"H:i" }}{% else %}—{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p style="font-size:13px;color:var(--muted);margin-top:8px;">Henüz çalışma saati girilmemiş. Düzenle butonuna tıklayın.</p>
+                {% endif %}
+                {% endwith %}
+            </div>
+
+            <!-- İstatistik Sekmesi -->
+            <div id="tab-s-{{ mekan.id }}" class="tab-pane">
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-bottom:24px;">
+                    <div style="background:var(--bg);border-radius:10px;padding:16px;text-align:center;">
+                        <div style="font-size:24px;font-weight:900;color:var(--primary);">{{ mekan.goruntuleme_sayisi }}</div>
+                        <div style="font-size:12px;color:var(--muted);font-weight:600;margin-top:4px;">Görüntülenme</div>
+                    </div>
+                    <div style="background:var(--bg);border-radius:10px;padding:16px;text-align:center;">
+                        <div style="font-size:24px;font-weight:900;color:#e11d48;">{{ mekan.favorileyenler.count }}</div>
+                        <div style="font-size:12px;color:var(--muted);font-weight:600;margin-top:4px;">Favori</div>
+                    </div>
+                    <div style="background:var(--bg);border-radius:10px;padding:16px;text-align:center;">
+                        <div style="font-size:24px;font-weight:900;color:#059669;">{{ mekan.yorumlar.count }}</div>
+                        <div style="font-size:12px;color:var(--muted);font-weight:600;margin-top:4px;">Yorum</div>
+                    </div>
+                    <div style="background:var(--bg);border-radius:10px;padding:16px;text-align:center;">
+                        <div style="font-size:24px;font-weight:900;color:#f59e0b;">
+                            {% with p=mekan.ortalama_puan %}{{ p|default:"—" }}{% endwith %}
+                        </div>
+                        <div style="font-size:12px;color:var(--muted);font-weight:600;margin-top:4px;">Ort. Puan</div>
+                    </div>
+                    <div style="background:var(--bg);border-radius:10px;padding:16px;text-align:center;">
+                        <div style="font-size:24px;font-weight:900;color:var(--text);">{{ mekan.fotolar.count }}</div>
+                        <div style="font-size:12px;color:var(--muted);font-weight:600;margin-top:4px;">Fotoğraf</div>
+                    </div>
+                    <div style="background:var(--bg);border-radius:10px;padding:16px;text-align:center;">
+                        <div style="font-size:24px;font-weight:900;color:#7c3aed;">{{ mekan.rezervasyonlar.count }}</div>
+                        <div style="font-size:12px;color:var(--muted);font-weight:600;margin-top:4px;">Rezervasyon</div>
+                    </div>
+                </div>
+                <!-- Chart.js grafikler -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;flex-wrap:wrap;">
+                    <div style="background:var(--bg);border-radius:12px;padding:16px;">
+                        <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text);">Yıldız Dağılımı</div>
+                        <canvas id="chart-puan-{{ mekan.id }}" height="180"></canvas>
+                    </div>
+                    <div style="background:var(--bg);border-radius:12px;padding:16px;">
+                        <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text);">Özet</div>
+                        <canvas id="chart-ozet-{{ mekan.id }}" height="180"></canvas>
+                    </div>
+                </div>
+                <script>
+                document.addEventListener('DOMContentLoaded', function(){
+                    if (typeof Chart === 'undefined') return;
+                    var ctxP = document.getElementById('chart-puan-{{ mekan.id }}');
+                    if (ctxP) {
+                        var puanlar = {{ puan_dagilim_json|safe }};
+                        var pd = (puanlar[{{ mekan.id }}] || [0,0,0,0,0]);
+                        new Chart(ctxP, {
+                            type: 'bar',
+                            data: {
+                                labels: ['1★','2★','3★','4★','5★'],
+                                datasets: [{
+                                    label: 'Yorum',
+                                    data: pd,
+                                    backgroundColor: ['#fca5a5','#fdba74','#fcd34d','#86efac','#6ee7b7'],
+                                    borderRadius: 6,
+                                }]
+                            },
+                            options: { responsive:true, plugins: { legend: { display: false }}, scales:{ y:{ beginAtZero:true, ticks:{stepSize:1}}}}
+                        });
+                    }
+                    var ctxO = document.getElementById('chart-ozet-{{ mekan.id }}');
+                    if (ctxO) {
+                        new Chart(ctxO, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['Görüntülenme/10','Yorum','Favori'],
+                                datasets: [{
+                                    data: [Math.round({{ mekan.goruntuleme_sayisi }}/10), {{ mekan.yorumlar.count }}, {{ mekan.favorileyenler.count }}],
+                                    backgroundColor: ['#3b82f6','#10b981','#f43f5e'],
+                                }]
+                            },
+                            options: { responsive:true, plugins: { legend: { position:'bottom', labels:{font:{size:11}}}}}
+                        });
+                    }
+                });
+                </script>
             </div>
 
             <div class="vpc-ft">

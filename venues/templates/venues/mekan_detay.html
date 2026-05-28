@@ -6,16 +6,22 @@
 .back-link { font-size: 13px; font-weight: 600; color: var(--muted); padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); display: inline-block; margin-bottom: 24px; transition: color .15s; }
 .back-link:hover { color: var(--text); }
 
-/* Hero */
 .venue-hero { background: var(--surface); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-md); border: 1px solid var(--border); margin-bottom: 20px; }
 .venue-hero img { width: 100%; height: 300px; object-fit: cover; display: block; }
 .venue-hero-ph { width: 100%; height: 160px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; }
 .venue-hero-ph span { font-size: 13px; color: #94a3b8; font-weight: 600; }
 .venue-hero-body { padding: 28px 28px 24px; }
-.venue-hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
+.venue-hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 8px; flex-wrap: wrap; }
 .venue-title { font-size: 26px; font-weight: 900; letter-spacing: -.4px; }
 .s-pill-open  { background: #dcfce7; color: #15803d; padding: 5px 12px; border-radius: 5px; font-size: 12px; font-weight: 700; white-space: nowrap; }
-.s-pill-close { background: #f1f5f9; color: #64748b;  padding: 5px 12px; border-radius: 5px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.s-pill-close { background: #f1f5f9; color: #64748b; padding: 5px 12px; border-radius: 5px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+
+/* Yıldız özeti */
+.rating-summary { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.rating-big { font-size: 32px; font-weight: 900; color: var(--text); line-height: 1; }
+.rating-stars-big { color: #f59e0b; font-size: 20px; letter-spacing: 2px; }
+.rating-stars-big .empty { color: #e5e7eb; }
+.rating-label { font-size: 13px; color: var(--muted); }
 
 .venue-meta-row { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted); margin-bottom: 18px; }
 .venue-meta-row a { color: var(--primary); font-weight: 600; }
@@ -28,10 +34,8 @@
 .tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .tag { padding: 4px 10px; border-radius: 5px; font-size: 11px; font-weight: 700; letter-spacing: .2px; }
 
-/* Duyuru */
 .duyuru-bar { background: #fffbeb; border: 1px solid #fcd34d; border-left: 3px solid #f59e0b; border-radius: 8px; padding: 13px 16px; margin-bottom: 20px; font-size: 14px; font-weight: 600; color: #92400e; }
 
-/* Etkinlikler */
 .section-title { font-size: 17px; font-weight: 800; margin-bottom: 14px; letter-spacing: -.2px; }
 .event-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; gap: 14px; margin-bottom: 10px; box-shadow: var(--shadow); }
 .event-img-wrap { width: 64px; height: 64px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: #e2e8f0; display: flex; align-items: center; justify-content: center; }
@@ -41,55 +45,180 @@
 .event-time { font-size: 12px; color: var(--primary); font-weight: 600; margin-bottom: 5px; }
 .event-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
 
-/* Yorumlar */
+/* Yorum formu */
 .comment-form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow); }
 .comment-form-card h3 { font-size: 16px; font-weight: 800; margin-bottom: 18px; }
-.f-label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 5px; text-transform: uppercase; letter-spacing: .3px; }
+.f-label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .3px; }
+.f-group { margin-bottom: 16px; }
 textarea { width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 90px; background: var(--bg); transition: .15s; }
 textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); background: white; }
-.f-group { margin-bottom: 14px; }
 .btn-comment { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: .15s; }
 .btn-comment:hover { background: var(--primary-dark); }
 
+/* Yıldız seçici */
+.star-picker { display: flex; flex-direction: row-reverse; gap: 4px; justify-content: flex-end; margin-bottom: 4px; }
+.star-picker input { display: none; }
+.star-picker label {
+    font-size: 28px; color: #e5e7eb; cursor: pointer;
+    transition: color .15s, transform .1s;
+    line-height: 1;
+}
+.star-picker label:hover,
+.star-picker label:hover ~ label,
+.star-picker input:checked ~ label { color: #f59e0b; }
+.star-picker label:hover { transform: scale(1.15); }
+.star-hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+/* Yorum kartları */
 .comment-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 12px; box-shadow: var(--shadow); }
-.comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.comment-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 10px; }
+.comment-author-wrap { display: flex; flex-direction: column; gap: 3px; }
 .comment-author { font-size: 14px; font-weight: 700; color: var(--primary); }
-.comment-date { font-size: 12px; color: var(--muted); }
+.comment-puan { color: #f59e0b; font-size: 13px; letter-spacing: 1px; }
+.comment-puan .empty { color: #e5e7eb; }
+.comment-date { font-size: 12px; color: var(--muted); white-space: nowrap; }
 .comment-text { font-size: 14px; color: var(--text); line-height: 1.7; }
-.comment-img { margin-top: 12px; max-width: 260px; border-radius: 8px; border: 1px solid var(--border); display: block; }
+.comment-imgs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.comment-img { max-width: 160px; max-height: 160px; border-radius: 8px; border: 1px solid var(--border); object-fit: cover; cursor: zoom-in; transition: .2s; }
+.comment-img.expanded { max-width: 100%; max-height: none; cursor: zoom-out; }
 
 .login-prompt { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; font-size: 14px; margin-bottom: 24px; color: var(--muted); }
 .login-prompt a { color: var(--primary); font-weight: 700; }
 .empty-comments { text-align: center; padding: 40px 20px; background: var(--bg); border-radius: 12px; color: var(--muted); font-size: 14px; }
+
+/* Yorum düzenle/sil butonları */
+.comment-action-btn { border: none; background: none; cursor: pointer; font-size: 14px; padding: 3px 5px; border-radius: 5px; transition: .15s; text-decoration: none; }
+.edit-btn:hover { background: #eff6ff; }
+.del-btn:hover { background: #fef2f2; }
+
+/* Galeri */
+.gallery-strip { position: relative; width: 100%; height: 320px; overflow: hidden; background: #e2e8f0; }
+.gallery-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .35s; cursor: pointer; }
+.gallery-img.active { opacity: 1; }
+.gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,.4); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: .15s; z-index: 2; }
+.gallery-nav:hover { background: rgba(0,0,0,.65); }
+.gallery-nav-prev { left: 12px; }
+.gallery-nav-next { right: 12px; }
+.gallery-dots { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; z-index: 2; }
+.gallery-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.5); cursor: pointer; transition: .15s; }
+.gallery-dot.active { background: white; transform: scale(1.2); }
+
+/* Beğeni butonu */
+.begen-btn { background: none; border: 1.5px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; color: var(--muted); transition: .15s; font-family: inherit; }
+.begen-btn.begendim { background: #fef2f2; border-color: #fca5a5; color: #dc2626; }
+.begen-btn:hover { border-color: #fca5a5; color: #dc2626; }
+
+/* Yanıt kutusu */
+.yanit-box { background: var(--bg); border-left: 3px solid var(--primary); border-radius: 0 8px 8px 0; padding: 12px 14px; margin-top: 10px; font-size: 13px; }
+.yanit-box strong { display: block; font-size: 12px; color: var(--primary); font-weight: 700; margin-bottom: 4px; }
+
+/* Rezervasyon kutusu */
+.rezervasyon-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 28px; box-shadow: var(--shadow); }
+.rezervasyon-card h3 { font-size: 16px; font-weight: 800; margin-bottom: 16px; }
+
+/* Kampanya kartı */
+.kampanya-card { background: linear-gradient(135deg,#eff6ff,#e0f2fe); border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px; margin-bottom: 10px; }
+.kampanya-card h4 { font-size: 15px; font-weight: 800; margin-bottom: 4px; color: #1e40af; }
+.kampanya-card p { font-size: 13px; color: #1d4ed8; margin-bottom: 4px; }
+.kampanya-card small { font-size: 11px; color: #3b82f6; }
+
+/* Menü bölümü */
+.menu-section { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 28px; box-shadow: var(--shadow); }
+.menu-section h3 { font-size: 16px; font-weight: 800; margin-bottom: 14px; }
+
+/* Çalışma saatleri */
+.calisma-kart { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 28px; box-shadow: var(--shadow); }
+.calisma-tbl { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 0; }
+.calisma-tbl td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.calisma-tbl tr:last-child td { border-bottom: none; }
+.calisma-tbl .bugun-satir td { background: linear-gradient(90deg, #eff6ff, #f0f9ff); font-weight: 700; color: var(--primary); border-left: 3px solid var(--primary); }
+[data-theme="dark"] .calisma-tbl .bugun-satir td { background: linear-gradient(90deg, #1e3a5f22, #0c4a6e22); }
+.calisma-gun-adi { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px; }
+.bugun-etiket { font-size: 10px; font-weight: 800; background: var(--primary); color: white; padding: 2px 7px; border-radius: 10px; text-transform: uppercase; letter-spacing: .3px; }
+.durum-pil { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+.durum-acik { background: #dcfce7; color: #15803d; }
+.durum-kapali { background: #fee2e2; color: #b91c1c; }
+[data-theme="dark"] .durum-acik { background: #14532d44; color: #4ade80; }
+[data-theme="dark"] .durum-kapali { background: #7f1d1d44; color: #f87171; }
+.durum-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.saat-text { font-size: 13px; font-weight: 600; color: var(--text); }
+.saat-text.kapali { color: var(--muted); font-weight: 400; }
+.acik-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+
+/* Liste dropdown */
+.liste-dropdown { position: relative; display: inline-block; }
+.liste-dropdown-menu { position: absolute; right: 0; top: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow-md); min-width: 220px; z-index: 50; padding: 6px; display: none; }
+.liste-dropdown-menu.open { display: block; }
+.liste-dropdown-item { display: block; padding: 8px 12px; border-radius: 6px; font-size: 13px; color: var(--text); cursor: pointer; transition: .1s; background: none; border: none; width: 100%; text-align: left; font-family: inherit; }
+.liste-dropdown-item:hover { background: var(--bg); }
 {% endblock %}
 
 {% block content %}
 <div class="detay-wrap">
-    <a href="{% url 'dashboard' %}" class="back-link">&#8592; Mekanlara Dön</a>
+    <a href="{% url 'dashboard' %}" id="geri-btn" class="back-link">&#8592; Geri Dön</a>
+    <script>
+        (function(){
+            var btn = document.getElementById('geri-btn');
+            if (document.referrer && window.history.length > 1) {
+                btn.addEventListener('click', function(e){ e.preventDefault(); history.back(); });
+            }
+        })();
+    </script>
 
     <div class="venue-hero">
-        {% if mekan.img %}
-            <img src="{{ mekan.img.url }}" alt="{{ mekan.ad }}">
+        {% if fotolar or mekan.img %}
+        <div class="gallery-strip" id="gallery">
+            {% if mekan.img %}
+            <img src="{{ mekan.img.url }}" class="gallery-img active" alt="{{ mekan.ad }}" onclick="galeriAc(0)">
+            {% endif %}
+            {% for f in fotolar %}
+            <img src="{{ f.foto.url }}" class="gallery-img" alt="" onclick="galeriAc({{ forloop.counter }})">
+            {% endfor %}
+        </div>
+        {% if fotolar.count > 0 or mekan.img %}
+        <div class="gallery-dots" id="gallery-dots">
+            {% if mekan.img %}<span class="gallery-dot active" onclick="galeriAc(0)"></span>{% endif %}
+            {% for f in fotolar %}<span class="gallery-dot" onclick="galeriAc({{ forloop.counter }})"></span>{% endfor %}
+        </div>
+        {% endif %}
         {% else %}
-            <div class="venue-hero-ph"><span>Fotoğraf Yok</span></div>
+            <div class="venue-hero-ph"><span>{% if mekan.kategori == 'KAFE' %}☕{% elif mekan.kategori == 'RESTORAN' %}🍽️{% elif mekan.kategori == 'KUTUPHANE' %}📚{% elif mekan.kategori == 'ECZANE' %}💊{% elif mekan.kategori == 'PUB' %}🍺{% else %}📍{% endif %}</span></div>
         {% endif %}
         <div class="venue-hero-body">
             <div class="venue-hero-top">
                 <h1 class="venue-title">{{ mekan.ad }}</h1>
-                {% if mekan.su_an_acik %}
-                    <span class="s-pill-open">Açık</span>
+                {% if mekan.acik_mi %}
+                    <span class="s-pill-open">&#9679; Açık</span>
                 {% else %}
-                    <span class="s-pill-close">Kapalı</span>
+                    <span class="s-pill-close">&#9679; Kapalı</span>
                 {% endif %}
             </div>
 
+            {% with puan=mekan.ortalama_puan sayisi=mekan.yorum_sayisi %}
+            {% if puan %}
+            <div class="rating-summary">
+                <span class="rating-big">{{ puan }}</span>
+                <div>
+                    <div class="rating-stars-big">
+                        {% if puan >= 1 %}★{% else %}<span class="empty">★</span>{% endif %}
+                        {% if puan >= 2 %}★{% else %}<span class="empty">★</span>{% endif %}
+                        {% if puan >= 3 %}★{% else %}<span class="empty">★</span>{% endif %}
+                        {% if puan >= 4 %}★{% else %}<span class="empty">★</span>{% endif %}
+                        {% if puan >= 5 %}★{% else %}<span class="empty">★</span>{% endif %}
+                    </div>
+                    <div class="rating-label">{{ sayisi }} yorum</div>
+                </div>
+            </div>
+            {% endif %}
+            {% endwith %}
+
             <div class="venue-meta-row">
-                <span>{{ mekan.adres }}</span>
+                <span>📍 {{ mekan.adres }}</span>
                 {% if mekan.acilis_saati and mekan.kapanis_saati %}
-                <span>{{ mekan.acilis_saati|time:"H:i" }} &ndash; {{ mekan.kapanis_saati|time:"H:i" }}</span>
+                <span>🕐 {{ mekan.acilis_saati|time:"H:i" }} &ndash; {{ mekan.kapanis_saati|time:"H:i" }}</span>
                 {% endif %}
-                {% if mekan.telefon %}<span>{{ mekan.telefon }}</span>{% endif %}
-                {% if mekan.website %}<a href="{{ mekan.website }}" target="_blank">Web Sitesi</a>{% endif %}
+                {% if mekan.telefon %}<span>📞 {{ mekan.telefon }}</span>{% endif %}
+                {% if mekan.website %}<a href="{{ mekan.website }}" target="_blank">🌐 Web Sitesi</a>{% endif %}
             </div>
 
             {% if mekan.doluluk_orani > 0 %}
@@ -117,7 +246,108 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
     </div>
 
     {% if mekan.anlik_duyuru %}
-    <div class="duyuru-bar">Duyuru &mdash; {{ mekan.anlik_duyuru }}</div>
+    <div class="duyuru-bar">📢 {{ mekan.anlik_duyuru }}</div>
+    {% endif %}
+
+    {% with aktif_kampanyalar=mekan.kampanyalar.all %}
+    {% if aktif_kampanyalar %}
+    <div style="margin-bottom:28px;">
+        <h2 class="section-title">🎁 Aktif Kampanyalar</h2>
+        {% for k in aktif_kampanyalar %}
+        {% if k.aktif_mi %}
+        <div class="kampanya-card">
+            <h4>{{ k.baslik }}</h4>
+            <p>{{ k.aciklama }}</p>
+            <small>{{ k.baslangic|date:"d M Y H:i" }} – {{ k.bitis|date:"d M Y H:i" }}</small>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    {% with gunler=mekan.calisma_gunleri.all %}
+    {% if gunler %}
+    <div class="calisma-kart">
+        <h2 class="section-title" style="margin-bottom:16px;">🕐 Çalışma Saatleri</h2>
+        <table class="calisma-tbl">
+            <tbody>
+            {% for g in gunler %}
+            <tr {% if g.gun == bugun_no %}class="bugun-satir"{% endif %}>
+                <td style="width:40%;">
+                    <div class="calisma-gun-adi">
+                        {{ g.get_gun_display }}
+                        {% if g.gun == bugun_no %}<span class="bugun-etiket">Bugün</span>{% endif %}
+                    </div>
+                </td>
+                <td style="width:25%;">
+                    {% if g.acik %}
+                        <span class="durum-pil durum-acik"><span class="durum-dot"></span>Açık</span>
+                    {% else %}
+                        <span class="durum-pil durum-kapali"><span class="durum-dot"></span>Kapalı</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if g.acik %}
+                        {% if g.acilis and g.kapanis %}
+                            {% if g.acilis|time:"H:i" == "00:00" and g.kapanis|time:"H:i" == "23:59" %}
+                                <span class="saat-text" style="color:#7c3aed;font-weight:800;">24 saat açık</span>
+                            {% else %}
+                                <span class="saat-text">{{ g.acilis|time:"H:i" }} – {{ g.kapanis|time:"H:i" }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="saat-text kapali">Saat belirtilmemiş</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="saat-text kapali">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    {% if mekan.menu_foto or mekan.menu_pdf %}
+    <div class="menu-section" style="margin-bottom:28px;">
+        <h2 class="section-title" style="margin-bottom:10px;">📋 Menü</h2>
+        {% if mekan.menu_foto %}
+        <img src="{{ mekan.menu_foto.url }}" alt="Menü" style="max-width:100%;border-radius:8px;border:1px solid var(--border);">
+        {% endif %}
+        {% if mekan.menu_pdf %}
+        <a href="{{ mekan.menu_pdf.url }}" target="_blank" style="display:inline-block;margin-top:10px;background:var(--primary);color:white;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:700;">📄 Menüyü PDF olarak görüntüle</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if mekan.rezervasyon_aktif and user.is_authenticated %}
+    <div class="rezervasyon-card">
+        <h3>📅 Rezervasyon Yap</h3>
+        <form method="POST" action="{% url 'rezervasyon_olustur' mekan.id %}">
+            {% csrf_token %}
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                <div>
+                    <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;">TARİH</label>
+                    <input type="date" name="tarih" required style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;background:var(--bg);color:var(--text);">
+                </div>
+                <div>
+                    <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;">SAAT</label>
+                    <input type="time" name="saat" required style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;background:var(--bg);color:var(--text);">
+                </div>
+            </div>
+            <div style="margin-bottom:12px;">
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;">KİŞİ SAYISI</label>
+                <input type="number" name="kisi_sayisi" value="1" min="1" max="50" required style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;background:var(--bg);color:var(--text);">
+            </div>
+            <div style="margin-bottom:14px;">
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;">NOT (İSTEĞE BAĞLI)</label>
+                <textarea name="not_mesaj" rows="2" placeholder="Özel isteğiniz varsa belirtin..." style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;background:var(--bg);color:var(--text);resize:vertical;"></textarea>
+            </div>
+            <button type="submit" class="btn-comment">Rezervasyon Talebi Gönder</button>
+        </form>
+    </div>
     {% endif %}
 
     {% if etkinlikler %}
@@ -126,11 +356,11 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
         {% for e in etkinlikler %}
         <div class="event-card">
             <div class="event-img-wrap">
-                {% if e.foto %}<img src="{{ e.foto.url }}" alt="">{% else %}<span>Afiş Yok</span>{% endif %}
+                {% if e.foto %}<img src="{{ e.foto.url }}" alt="">{% else %}<span>Afiş</span>{% endif %}
             </div>
             <div class="event-info">
                 <strong>{{ e.baslik }}</strong>
-                <div class="event-time">{{ e.baslangic|date:"d M Y, H:i" }} &ndash; {{ e.bitis|date:"d M Y, H:i" }}</div>
+                <div class="event-time">{{ e.baslangic|date:"d M Y, H:i" }} &ndash; {{ e.bitis|date:"H:i" }}</div>
                 {% if e.aciklama %}<div class="event-desc">{{ e.aciklama }}</div>{% endif %}
             </div>
         </div>
@@ -138,22 +368,58 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
     </div>
     {% endif %}
 
-    <h2 class="section-title">Yorumlar</h2>
+    {% if user.is_authenticated %}
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+        <h2 class="section-title" style="margin-bottom:0;">Yorumlar ({{ yorumlar.count }})</h2>
+        {% with listeler=request.user.mekan_listeleri.all %}
+        {% if listeler %}
+        <div class="liste-dropdown">
+            <button onclick="this.nextElementSibling.classList.toggle('open')" style="background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text);">+ Listeye Ekle</button>
+            <div class="liste-dropdown-menu" id="liste-menu-{{ mekan.id }}">
+                {% for liste in listeler %}
+                <button class="liste-dropdown-item" onclick="listeEkle({{ liste.id }}, {{ mekan.id }}, this)">{{ liste.ad }}</button>
+                {% endfor %}
+                <a href="{% url 'listelerim' %}" class="liste-dropdown-item" style="color:var(--primary);font-weight:700;">+ Yeni Liste Oluştur</a>
+            </div>
+        </div>
+        {% else %}
+        <a href="{% url 'listelerim' %}" style="font-size:13px;font-weight:600;color:var(--primary);">+ Listeye Ekle</a>
+        {% endif %}
+        {% endwith %}
+    </div>
+    {% else %}
+    <h2 class="section-title">Yorumlar ({{ yorumlar.count }})</h2>
+    {% endif %}
 
     {% if user.is_authenticated %}
     <div class="comment-form-card">
         <h3>Deneyimini Paylaş</h3>
         <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
+            {{ form.puan }}
+
+            <div class="f-group">
+                <label class="f-label">Puanın</label>
+                <div class="star-picker" id="star-picker">
+                    <input type="radio" name="star_ui" id="s5" value="5"><label for="s5" title="5 yıldız">★</label>
+                    <input type="radio" name="star_ui" id="s4" value="4"><label for="s4" title="4 yıldız">★</label>
+                    <input type="radio" name="star_ui" id="s3" value="3"><label for="s3" title="3 yıldız">★</label>
+                    <input type="radio" name="star_ui" id="s2" value="2"><label for="s2" title="2 yıldız">★</label>
+                    <input type="radio" name="star_ui" id="s1" value="1"><label for="s1" title="1 yıldız">★</label>
+                </div>
+                <div class="star-hint" id="star-hint">Bir puan seçin (isteğe bağlı)</div>
+            </div>
+
             <div class="f-group">
                 <label class="f-label">Yorumun</label>
                 {{ form.icerik }}
             </div>
             <div class="f-group">
-                <label class="f-label">Fotoğraf (isteğe bağlı)</label>
-                {{ form.fotoğraf }}
+                <label class="f-label">Fotoğraflar (isteğe bağlı — birden fazla seçebilirsin)</label>
+                <input type="file" name="yorum_fotolar" accept="image/*" multiple
+                       style="font-size:13px;width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);">
             </div>
-            <button type="submit" class="btn-comment">Yorum Yap</button>
+            <button type="submit" class="btn-comment">Yorumu Gönder</button>
         </form>
     </div>
     {% else %}
@@ -165,14 +431,156 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
     {% for yorum in yorumlar %}
     <div class="comment-card">
         <div class="comment-header">
-            <span class="comment-author">{{ yorum.yazar.username }}</span>
-            <span class="comment-date">{{ yorum.tarih|date:"d F Y" }}</span>
+            <div class="comment-author-wrap">
+                <span class="comment-author">{{ yorum.yazar.username }}</span>
+                {% if yorum.puan %}
+                <span class="comment-puan">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= yorum.puan %}★{% else %}<span class="empty">★</span>{% endif %}
+                    {% endfor %}
+                </span>
+                {% endif %}
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span class="comment-date">{{ yorum.tarih|date:"d F Y" }}</span>
+                {% if user == yorum.yazar %}
+                <a href="{% url 'yorum_duzenle' yorum.id %}" class="comment-action-btn edit-btn" title="Düzenle">✏️</a>
+                <form method="POST" action="{% url 'yorum_sil' yorum.id %}" style="display:inline;" onsubmit="return confirm('Yorumu silmek istediğinden emin misin?');">
+                    {% csrf_token %}
+                    <button type="submit" class="comment-action-btn del-btn" title="Sil">🗑️</button>
+                </form>
+                {% endif %}
+            </div>
         </div>
         <p class="comment-text">{{ yorum.icerik }}</p>
-        {% if yorum.fotoğraf %}<img src="{{ yorum.fotoğraf.url }}" class="comment-img" alt="">{% endif %}
+        {% with fotolar=yorum.fotolar.all %}
+        {% if fotolar %}
+        <div class="comment-imgs">
+            {% for f in fotolar %}
+            <img src="{{ f.foto.url }}" class="comment-img" alt="" onclick="this.classList.toggle('expanded')">
+            {% endfor %}
+        </div>
+        {% elif yorum.fotoğraf %}
+        <img src="{{ yorum.fotoğraf.url }}" class="comment-img" alt="">
+        {% endif %}
+        {% endwith %}
+
+        {% if yorum.yanit %}
+        <div class="yanit-box">
+            <strong>↩️ Mekan sahibinden yanıt — {{ yorum.yanit.tarih|date:"d M Y" }}</strong>
+            {{ yorum.yanit.icerik }}
+        </div>
+        {% endif %}
+
+        <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;">
+            {% if user.is_authenticated %}
+            <button class="begen-btn {% if yorum.id in kullanici_begenileri %}begendim{% endif %}"
+                    id="begen-btn-{{ yorum.id }}"
+                    onclick="yorumBegen({{ yorum.id }}, this)">
+                ❤️ <span id="begen-sayi-{{ yorum.id }}">{{ yorum.begeniler.count }}</span>
+            </button>
+            {% if mekan.sahibi == user %}
+            <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'"
+                    style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:4px 10px;font-size:13px;cursor:pointer;font-family:inherit;color:var(--muted);">
+                ↩️ Yanıtla
+            </button>
+            <div style="display:none;margin-top:8px;width:100%;">
+                <form method="POST" action="{% url 'yorum_yanit' yorum.id %}">
+                    {% csrf_token %}
+                    <textarea name="icerik" rows="2" placeholder="Yoruma yanıtınız..." style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--text);resize:vertical;margin-bottom:6px;">{% if yorum.yanit %}{{ yorum.yanit.icerik }}{% endif %}</textarea>
+                    <button type="submit" style="background:var(--primary);color:white;border:none;padding:7px 14px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Yanıtı Kaydet</button>
+                </form>
+            </div>
+            {% endif %}
+            {% else %}
+            <span style="font-size:13px;color:var(--muted);">❤️ {{ yorum.begeniler.count }}</span>
+            {% endif %}
+        </div>
     </div>
     {% empty %}
     <div class="empty-comments">Henüz yorum yok. İlk yorumu sen yap.</div>
     {% endfor %}
 </div>
+
+<script>
+const CSRF_TOKEN = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+
+function yorumBegen(yorumId, btn) {
+    fetch(`/yorum/${yorumId}/begen/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': CSRF_TOKEN, 'Content-Type': 'application/x-www-form-urlencoded' },
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.classList.toggle('begendim', data.begendi);
+        const sayiEl = document.getElementById('begen-sayi-' + yorumId);
+        if (sayiEl) sayiEl.textContent = data.sayi;
+    });
+}
+
+function listeEkle(listeId, mekanId, btn) {
+    fetch(`/liste/${listeId}/ekle/${mekanId}/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': CSRF_TOKEN },
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            btn.textContent = '✓ ' + btn.textContent.replace('✓ ', '');
+            btn.style.color = '#059669';
+        }
+    });
+    // Dropdown'ı kapat
+    document.querySelectorAll('.liste-dropdown-menu').forEach(m => m.classList.remove('open'));
+}
+
+// Dropdown dışına tıklanınca kapat
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.liste-dropdown')) {
+        document.querySelectorAll('.liste-dropdown-menu').forEach(m => m.classList.remove('open'));
+    }
+});
+
+// Yıldız seçici
+const hints = ['', 'Berbat 😞', 'Kötü 😕', 'Orta 😐', 'İyi 😊', 'Harika! 🤩'];
+document.querySelectorAll('#star-picker input').forEach(input => {
+    input.addEventListener('change', () => {
+        document.getElementById('puan-input').value = input.value;
+        const hint = document.getElementById('star-hint');
+        if (hint) hint.textContent = hints[input.value] || '';
+    });
+});
+
+// Galeri
+(function() {
+    const imgs = document.querySelectorAll('.gallery-img');
+    const dots = document.querySelectorAll('.gallery-dot');
+    if (!imgs.length) return;
+    let cur = 0;
+
+    // Ok butonlarını oluştur
+    const strip = document.getElementById('gallery');
+    if (strip && imgs.length > 1) {
+        const prev = document.createElement('button');
+        prev.className = 'gallery-nav gallery-nav-prev';
+        prev.innerHTML = '‹';
+        prev.onclick = () => galeriAc(cur - 1);
+        const next = document.createElement('button');
+        next.className = 'gallery-nav gallery-nav-next';
+        next.innerHTML = '›';
+        next.onclick = () => galeriAc(cur + 1);
+        strip.appendChild(prev);
+        strip.appendChild(next);
+    }
+
+    window.galeriAc = function(idx) {
+        idx = ((idx % imgs.length) + imgs.length) % imgs.length;
+        imgs[cur].classList.remove('active');
+        if (dots[cur]) dots[cur].classList.remove('active');
+        cur = idx;
+        imgs[cur].classList.add('active');
+        if (dots[cur]) dots[cur].classList.add('active');
+    };
+})();
+</script>
 {% endblock %}

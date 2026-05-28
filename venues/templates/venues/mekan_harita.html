@@ -1,0 +1,533 @@
+{% extends 'venues/base.html' %}
+{% block title %}Harita — Anlık Mekan{% endblock %}
+{% block nav_harita %}active{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+{% endblock %}
+
+{% block extra_css %}
+
+/* ── Sayfa düzeni ──────────────────────────────────────────────── */
+.footer { display: none !important; }
+
+/* body zaten flex column + min-height:100vh — height'i sabitle */
+body { height: 100vh !important; overflow: hidden !important; }
+
+main {
+    flex: 1;
+    min-height: 0;          /* flex shrink fix */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ── Filtre bar ────────────────────────────────────────────────── */
+.harita-filtre-wrap { flex-shrink: 0; }
+.harita-filtre {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.harita-filtre::-webkit-scrollbar { display: none; }
+.harita-filtre-2 { border-top: 1px solid var(--border); background: var(--bg); }
+
+.filtre-label {
+    font-size: 12px; font-weight: 700; color: var(--muted);
+    white-space: nowrap; flex-shrink: 0;
+}
+.filtre-sep { width: 1px; height: 18px; background: var(--border); flex-shrink: 0; }
+.filtre-btn {
+    padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    border: 1.5px solid var(--border); color: var(--muted); background: var(--surface);
+    cursor: pointer; transition: all .15s; white-space: nowrap; font-family: inherit;
+    flex-shrink: 0;
+}
+.filtre-btn:hover { border-color: var(--primary); color: var(--primary); background: #eff6ff; }
+.filtre-btn.aktif { background: var(--primary); color: white !important; border-color: var(--primary); }
+.filtre-btn.aktif-yesil { background: #059669; color: white !important; border-color: #059669; }
+.sehir-select {
+    padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    border: 1.5px solid var(--border); color: var(--text); background: var(--surface);
+    cursor: pointer; font-family: inherit; outline: none; flex-shrink: 0;
+}
+.sehir-select:focus { border-color: var(--primary); }
+
+/* ── Ana split layout ──────────────────────────────────────────── */
+.harita-layout {
+    flex: 1;
+    display: flex;
+    min-height: 0;   /* flex height fix */
+    overflow: hidden;
+}
+
+/* ── Sol liste ─────────────────────────────────────────────────── */
+.harita-sol {
+    width: 380px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    border-right: 1px solid var(--border);
+    background: var(--bg);
+}
+.liste-header {
+    flex-shrink: 0;
+    padding: 12px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+}
+.liste-header h2 { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 1px; }
+.liste-header p  { font-size: 12px; color: var(--muted); }
+.liste-scroll { flex: 1; overflow-y: auto; min-height: 0; }
+.liste-scroll::-webkit-scrollbar { width: 4px; }
+.liste-scroll::-webkit-scrollbar-track { background: transparent; }
+.liste-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+
+.venue-row {
+    display: flex; gap: 12px; padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface); cursor: pointer;
+    transition: background .15s; text-decoration: none; color: inherit;
+}
+.venue-row:hover { background: #f1f5f9; }
+.venue-row.hl { background: #eff6ff; border-left: 3px solid var(--primary); padding-left: 11px; }
+
+.row-thumb {
+    width: 60px; height: 60px; border-radius: 10px; object-fit: cover;
+    flex-shrink: 0; background: #e2e8f0;
+}
+.row-ph {
+    width: 60px; height: 60px; border-radius: 10px; flex-shrink: 0;
+    background: #e2e8f0; display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+}
+.row-info { flex: 1; min-width: 0; }
+.row-name {
+    font-size: 13px; font-weight: 700; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+.row-cat { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .3px; margin-bottom: 4px; }
+.row-bottom { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.row-stars { color: #f59e0b; font-size: 11px; }
+.row-stars .e { color: #e5e7eb; }
+.row-rval { font-size: 11px; font-weight: 700; color: var(--text); }
+.row-rcnt { font-size: 11px; color: var(--muted); }
+.dot-open  { width: 6px; height: 6px; border-radius: 50%; background: #059669; flex-shrink: 0; display: inline-block; }
+.dot-close { width: 6px; height: 6px; border-radius: 50%; background: #cbd5e1; flex-shrink: 0; display: inline-block; }
+
+/* ── Sağ harita ────────────────────────────────────────────────── */
+.harita-sag {
+    flex: 1;
+    position: relative;
+    min-height: 0;
+    min-width: 0;
+}
+#map {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+}
+
+/* ── Leaflet override'ları ─────────────────────────────────────── */
+/* Zoom butonları — base CSS'in a { color: inherit } override'ını düzelt */
+.leaflet-control-zoom a {
+    color: #333 !important;
+    text-decoration: none !important;
+    line-height: 26px !important;
+    display: block !important;
+    font-size: 18px !important;
+    font-weight: bold !important;
+}
+.leaflet-control-zoom a:hover { color: #111 !important; background: #f4f4f4 !important; }
+.leaflet-control-zoom-in, .leaflet-control-zoom-out {
+    background: white !important; border-bottom: 1px solid #ccc !important;
+    border-radius: 0 !important;
+}
+.leaflet-control-zoom { border: 2px solid rgba(0,0,0,.2) !important; border-radius: 4px !important; }
+
+/* Popup */
+.leaflet-popup-content-wrapper {
+    border-radius: 14px !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,.18) !important;
+    padding: 0 !important;
+    overflow: hidden;
+}
+.leaflet-popup-content { margin: 0 !important; width: 260px !important; }
+.leaflet-popup-tip-container { display: none !important; }
+.leaflet-popup-close-button {
+    position: absolute !important;
+    top: 8px !important; right: 8px !important;
+    z-index: 10 !important;
+    width: 24px !important; height: 24px !important;
+    background: rgba(0,0,0,.35) !important;
+    color: white !important;
+    border-radius: 50% !important;
+    font-size: 16px !important;
+    line-height: 24px !important;
+    text-align: center !important;
+    text-decoration: none !important;
+}
+.leaflet-popup-close-button:hover { background: rgba(0,0,0,.55) !important; color: white !important; }
+
+/* Pin wrapper — Leaflet'in kendi class'larını sıfırla */
+.lf-pin { background: none !important; border: none !important; }
+
+/* ── Popup içeriği ─────────────────────────────────────────────── */
+.pop-img { width: 100%; height: 110px; object-fit: cover; display: block; }
+.pop-img-ph {
+    width: 100%; height: 80px; background: #e8edf3;
+    display: flex; align-items: center; justify-content: center; font-size: 32px;
+}
+.pop-body { padding: 14px 14px 16px; }
+.pop-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 3px; }
+.pop-name { font-size: 14px; font-weight: 800; color: #0f172a; letter-spacing: -.2px; line-height: 1.3; flex: 1; }
+.pop-badge {
+    font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px;
+    white-space: nowrap; flex-shrink: 0; margin-top: 2px;
+}
+.pop-badge.open  { background: #dcfce7; color: #15803d; }
+.pop-badge.close { background: #f1f5f9; color: #64748b; }
+.pop-cat { font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 8px; }
+.pop-stars { color: #f59e0b; font-size: 13px; margin-bottom: 2px; }
+.pop-stars .e { color: #e5e7eb; }
+.pop-rval { font-size: 12px; font-weight: 700; color: #0f172a; margin-left: 4px; }
+.pop-rcnt { font-size: 11px; color: #64748b; }
+.pop-addr { font-size: 12px; color: #64748b; margin-bottom: 8px; line-height: 1.4; }
+.pop-dol-wrap { margin-bottom: 10px; }
+.pop-dol-row  { display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 3px; }
+.pop-dol-track { height: 4px; background: #e5e7eb; border-radius: 2px; }
+.pop-dol-fill  { height: 100%; border-radius: 2px; }
+.pop-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px; }
+.pop-tag { padding: 2px 7px; border-radius: 3px; font-size: 10px; font-weight: 700; }
+.pop-btn {
+    display: block; width: 100%; padding: 9px 12px;
+    background: #2563eb; color: white !important; border-radius: 8px;
+    text-align: center; font-size: 13px; font-weight: 700;
+    text-decoration: none !important; transition: background .15s; box-sizing: border-box;
+}
+.pop-btn:hover { background: #1d4ed8 !important; }
+
+/* ── Harita bilgi badge ─────────────────────────────────────────── */
+.map-badge {
+    position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+    z-index: 500; background: white; border: 1px solid var(--border);
+    border-radius: 20px; padding: 6px 16px; font-size: 12px; font-weight: 600;
+    color: var(--muted); box-shadow: var(--shadow); white-space: nowrap;
+    pointer-events: none;
+}
+.map-badge strong { color: var(--text); }
+
+@media (max-width: 800px) {
+    .harita-sol { display: none; }
+}
+{% endblock %}
+
+{% block content %}
+
+<!-- Filtre Bar -->
+<div class="harita-filtre-wrap">
+    <!-- Satır 1: Şehir + Kategori (server-side, URL ile) -->
+    <div class="harita-filtre">
+        <span class="filtre-label">Şehir:</span>
+        <select class="sehir-select" onchange="sehirFiltre(this.value)">
+            <option value="" {% if not aktif_sehir %}selected{% endif %}>Tüm Şehirler</option>
+            {% for kod, ad in sehir_secenekleri %}
+            <option value="{{ kod }}" {% if aktif_sehir == kod %}selected{% endif %}>{{ ad }}</option>
+            {% endfor %}
+        </select>
+        <div class="filtre-sep"></div>
+        <span class="filtre-label">Kategori:</span>
+        <button class="filtre-btn {% if not aktif_kategori %}aktif{% endif %}" onclick="katFiltre('')">Tümü</button>
+        <button class="filtre-btn {% if aktif_kategori == 'KAFE' %}aktif{% endif %}" onclick="katFiltre('KAFE')">☕ Kafe</button>
+        <button class="filtre-btn {% if aktif_kategori == 'RESTORAN' %}aktif{% endif %}" onclick="katFiltre('RESTORAN')">🍽️ Restoran</button>
+        <button class="filtre-btn {% if aktif_kategori == 'ECZANE' %}aktif{% endif %}" onclick="katFiltre('ECZANE')">💊 Eczane</button>
+        <button class="filtre-btn {% if aktif_kategori == 'KUTUPHANE' %}aktif{% endif %}" onclick="katFiltre('KUTUPHANE')">📚 Kütüphane</button>
+        <button class="filtre-btn {% if aktif_kategori == 'PUB' %}aktif{% endif %}" onclick="katFiltre('PUB')">🍺 Pub</button>
+    </div>
+
+    <!-- Satır 2: Özellikler (server-side, URL ile) -->
+    <div class="harita-filtre harita-filtre-2">
+        <span class="filtre-label">Özellikler:</span>
+        <button class="filtre-btn {% if aktif_acik %}aktif-yesil{% endif %}" onclick="ozellikFiltre('acik')">🟢 Açık</button>
+        <button class="filtre-btn {% if aktif_wifi %}aktif{% endif %}" onclick="ozellikFiltre('wifi')">📶 Wi-Fi</button>
+        <button class="filtre-btn {% if aktif_priz %}aktif{% endif %}" onclick="ozellikFiltre('priz')">🔌 Priz</button>
+        <button class="filtre-btn {% if aktif_bahce %}aktif{% endif %}" onclick="ozellikFiltre('bahce')">🌿 Bahçe</button>
+        <button class="filtre-btn {% if aktif_pet %}aktif{% endif %}" onclick="ozellikFiltre('pet')">🐾 Pet Dostu</button>
+        <button class="filtre-btn {% if aktif_engelli %}aktif{% endif %}" onclick="ozellikFiltre('engelli')">♿ Engelli</button>
+        <button class="filtre-btn {% if aktif_muzik %}aktif{% endif %}" onclick="ozellikFiltre('muzik')">🎵 Canlı Müzik</button>
+        <button class="filtre-btn {% if aktif_sigara %}aktif{% endif %}" onclick="ozellikFiltre('sigara')">🚬 Sigara</button>
+        {% if aktif_acik or aktif_wifi or aktif_priz or aktif_bahce or aktif_pet or aktif_engelli or aktif_muzik or aktif_sigara %}
+        <a href="?" onclick="temizleOzellikler(event)" class="filtre-btn" style="color:var(--danger);border-color:#fca5a5;">✕ Temizle</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Split Layout -->
+<div class="harita-layout">
+
+    <!-- Sol Liste -->
+    <div class="harita-sol">
+        <div class="liste-header">
+            <h2>{{ toplam_mekan }} Mekan</h2>
+            <p>{{ haritada_mekan }} tanesi haritada</p>
+        </div>
+        <div class="liste-scroll">
+            {% for mekan in mekanlar %}
+            <a href="{% url 'mekan_detay' mekan.id %}" class="venue-row" id="row-{{ mekan.id }}"
+               onmouseenter="pinVurgula({{ mekan.id }})" onmouseleave="pinVurgulaSil({{ mekan.id }})">
+                {% if mekan.img %}
+                    <img src="{{ mekan.img.url }}" class="row-thumb" alt="">
+                {% else %}
+                    <div class="row-ph">
+                        {% if mekan.kategori == 'KAFE' %}☕
+                        {% elif mekan.kategori == 'RESTORAN' %}🍽️
+                        {% elif mekan.kategori == 'ECZANE' %}💊
+                        {% elif mekan.kategori == 'KUTUPHANE' %}📚
+                        {% elif mekan.kategori == 'PUB' %}🍺
+                        {% else %}📍{% endif %}
+                    </div>
+                {% endif %}
+                <div class="row-info">
+                    <div class="row-name">{{ mekan.ad }}</div>
+                    <div class="row-cat">{{ mekan.get_kategori_display }}</div>
+                    <div class="row-bottom">
+                        {% if mekan.ort_puan %}
+                        <span>
+                            <span class="row-stars">
+                                {% with p=mekan.ort_puan %}
+                                {% if p >= 1 %}★{% else %}<span class="e">★</span>{% endif %}
+                                {% if p >= 2 %}★{% else %}<span class="e">★</span>{% endif %}
+                                {% if p >= 3 %}★{% else %}<span class="e">★</span>{% endif %}
+                                {% if p >= 4 %}★{% else %}<span class="e">★</span>{% endif %}
+                                {% if p >= 5 %}★{% else %}<span class="e">★</span>{% endif %}
+                                {% endwith %}
+                            </span>
+                            <span class="row-rval">{{ mekan.ort_puan|floatformat:1 }}</span>
+                            <span class="row-rcnt">({{ mekan.yorum_sayisi }})</span>
+                        </span>
+                        {% else %}
+                        <span class="row-rcnt">Henüz puan yok</span>
+                        {% endif %}
+                        <span>{% if mekan.acik_mi %}<span class="dot-open"></span>{% else %}<span class="dot-close"></span>{% endif %}</span>
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <div style="padding:48px 20px;text-align:center;color:var(--muted);font-size:13px;">
+                Bu filtreyle eşleşen mekan bulunamadı.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Sağ Harita -->
+    <div class="harita-sag">
+        <div id="map"></div>
+        <div class="map-badge">
+            <strong>{{ haritada_mekan }}</strong> mekan haritada gösteriliyor
+        </div>
+    </div>
+
+</div>
+
+<script>
+// ── Veri ─────────────────────────────────────────────────────────────────────
+const MEKANLAR = {{ harita_verisi_json|safe }};
+
+// ── Renk & emoji paleti ───────────────────────────────────────────────────────
+const KAT = {
+    KAFE:       { renk: '#2563eb', emoji: '☕' },
+    RESTORAN:   { renk: '#dc2626', emoji: '🍽️' },
+    ECZANE:     { renk: '#059669', emoji: '💊' },
+    KUTUPHANE:  { renk: '#7c3aed', emoji: '📚' },
+    PUB:        { renk: '#ea580c', emoji: '🍺' },
+};
+const DEFAULT_KAT = { renk: '#475569', emoji: '📍' };
+
+// ── Haritayı başlat ───────────────────────────────────────────────────────────
+const map = L.map('map', { zoomControl: true });
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a> © <a href="https://carto.com">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19,
+}).addTo(map);
+
+// ── Pin ikonu oluştur ─────────────────────────────────────────────────────────
+function pinIkon(kategori, secili) {
+    const k = KAT[kategori] || DEFAULT_KAT;
+    const s = secili ? 42 : 34;
+    const renk = secili ? k.renk : k.renk;
+    const shadow = secili ? '0 4px 14px rgba(0,0,0,.35)' : '0 2px 6px rgba(0,0,0,.25)';
+    const border = secili ? '3px solid white' : '2.5px solid white';
+
+    return L.divIcon({
+        className: 'lf-pin',
+        html: `<div style="
+            width:${s}px; height:${s}px;
+            background:${renk};
+            border-radius:50% 50% 50% 0;
+            transform:rotate(-45deg);
+            border:${border};
+            box-shadow:${shadow};
+            display:flex; align-items:center; justify-content:center;
+            transition: all .2s;
+        "><span style="transform:rotate(45deg); font-size:${Math.round(s * 0.44)}px; line-height:1;">${k.emoji}</span></div>`,
+        iconSize:    [s, s],
+        iconAnchor:  [s / 2, s],
+        popupAnchor: [0, -s - 2],
+    });
+}
+
+// ── Popup HTML ────────────────────────────────────────────────────────────────
+function popupHTML(m) {
+    const k = KAT[m.kategori] || DEFAULT_KAT;
+
+    const yildizlar = (p) => {
+        if (!p) return '';
+        let html = '<span class="pop-stars">';
+        for (let i = 1; i <= 5; i++)
+            html += i <= Math.round(p) ? '★' : '<span class="e">★</span>';
+        html += `</span><span class="pop-rval">${p}</span>`;
+        if (m.yorum_sayisi) html += `<span class="pop-rcnt"> (${m.yorum_sayisi})</span>`;
+        return `<div style="margin-bottom:6px;">${html}</div>`;
+    };
+
+    const gorsel = m.img_url
+        ? `<img src="${m.img_url}" class="pop-img" alt="${m.ad}">`
+        : `<div class="pop-img-ph">${k.emoji}</div>`;
+
+    const doluluk = m.doluluk_orani > 0 ? (() => {
+        const c = m.doluluk_orani > 80 ? '#dc2626' : m.doluluk_orani > 50 ? '#d97706' : '#059669';
+        return `<div class="pop-dol-wrap">
+            <div class="pop-dol-row"><span>Doluluk</span><span>%${m.doluluk_orani}</span></div>
+            <div class="pop-dol-track"><div class="pop-dol-fill" style="width:${m.doluluk_orani}%;background:${c};"></div></div>
+        </div>`;
+    })() : '';
+
+    const tags = [
+        m.wifi_var && `<span class="pop-tag" style="background:#eff6ff;color:#1d4ed8;">Wi-Fi</span>`,
+        m.priz_var && `<span class="pop-tag" style="background:#f0fdf4;color:#15803d;">Priz</span>`,
+        m.bahce_var && `<span class="pop-tag" style="background:#f0fdf4;color:#15803d;">Bahçe</span>`,
+        m.evcil_hayvan_izinli && `<span class="pop-tag" style="background:#fdf4ff;color:#7e22ce;">Pet</span>`,
+    ].filter(Boolean).join('');
+
+    return `${gorsel}
+    <div class="pop-body">
+        <div class="pop-header">
+            <span class="pop-name">${m.ad}</span>
+            <span class="pop-badge ${m.su_an_acik ? 'open' : 'close'}">${m.su_an_acik ? 'Açık' : 'Kapalı'}</span>
+        </div>
+        <div class="pop-cat">${m.kategori_display}</div>
+        ${yildizlar(m.ort_puan)}
+        <div class="pop-addr">📍 ${m.adres.length > 50 ? m.adres.slice(0, 50) + '…' : m.adres}</div>
+        ${doluluk}
+        ${tags ? `<div class="pop-tags">${tags}</div>` : ''}
+        <a href="${m.detay_url}" class="pop-btn">Mekan Detayı →</a>
+    </div>`;
+}
+
+// ── Marker'ları ekle ──────────────────────────────────────────────────────────
+const markerMap = {};   // id → marker
+const bounds    = [];
+
+MEKANLAR.forEach((m, i) => {
+    const marker = L.marker([m.lat, m.lng], { icon: pinIkon(m.kategori, false) })
+        .addTo(map)
+        .bindPopup(popupHTML(m), { maxWidth: 260, minWidth: 260 });
+
+    marker.on('click', () => rowVurgula(m.id));
+    marker.on('popupclose', () => {
+        marker.setIcon(pinIkon(m.kategori, false));
+        rowVurgulaSil(m.id);
+    });
+
+    markerMap[m.id] = { marker, data: m };
+    bounds.push([m.lat, m.lng]);
+
+    // Drop animasyonu
+    setTimeout(() => {
+        const el = marker.getElement();
+        if (!el) return;
+        el.style.opacity = '0';
+        el.style.transform += ' translateY(-16px)';
+        el.style.transition = 'opacity .3s ease, transform .3s ease';
+        requestAnimationFrame(() => {
+            el.style.opacity = '1';
+            el.style.transform = el.style.transform.replace(' translateY(-16px)', '');
+        });
+    }, i * 25);
+});
+
+// ── Haritayı konumlandır ──────────────────────────────────────────────────────
+if (bounds.length > 0) {
+    map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+} else {
+    map.setView([39.0, 35.0], 6);
+}
+
+// Yeniden boyutlandır (flex layout bazen gerektiriyor)
+setTimeout(() => map.invalidateSize(), 150);
+
+// ── Liste ↔ Harita senkronu ───────────────────────────────────────────────────
+function rowVurgula(id) {
+    document.querySelectorAll('.venue-row').forEach(el => el.classList.remove('hl'));
+    const el = document.getElementById('row-' + id);
+    if (el) {
+        el.classList.add('hl');
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+function rowVurgulaSil(id) {
+    const el = document.getElementById('row-' + id);
+    if (el) el.classList.remove('hl');
+}
+
+function pinVurgula(id) {
+    const entry = markerMap[id];
+    if (!entry) return;
+    entry.marker.setIcon(pinIkon(entry.data.kategori, true));
+    entry.marker.setZIndexOffset(1000);
+}
+function pinVurgulaSil(id) {
+    const entry = markerMap[id];
+    if (!entry || entry.marker.isPopupOpen()) return;
+    entry.marker.setIcon(pinIkon(entry.data.kategori, false));
+    entry.marker.setZIndexOffset(0);
+}
+
+// ── Filtre URL yönlendirmeleri ────────────────────────────────────────────────
+function sehirFiltre(sehir) {
+    const p = new URLSearchParams(window.location.search);
+    sehir ? p.set('sehir', sehir) : p.delete('sehir');
+    window.location.search = p.toString();
+}
+function katFiltre(kat) {
+    const p = new URLSearchParams(window.location.search);
+    kat ? p.set('kategori', kat) : p.delete('kategori');
+    window.location.search = p.toString();
+}
+function ozellikFiltre(ozellik) {
+    const p = new URLSearchParams(window.location.search);
+    if (p.get(ozellik)) {
+        p.delete(ozellik);
+    } else {
+        p.set(ozellik, '1');
+    }
+    window.location.search = p.toString();
+}
+function temizleOzellikler(e) {
+    e.preventDefault();
+    const p = new URLSearchParams(window.location.search);
+    ['acik','wifi','priz','bahce','pet','engelli','muzik','sigara'].forEach(k => p.delete(k));
+    window.location.search = p.toString();
+}
+</script>
+{% endblock %}

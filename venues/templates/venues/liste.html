@@ -8,18 +8,12 @@
 .back-link:hover { color: var(--text); }
 .page-header h1 { font-size: 22px; font-weight: 800; letter-spacing: -.3px; }
 
-{% if q %}
-.search-info { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
-.search-info strong { color: var(--text); }
-{% endif %}
-
 .venue-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
 .venue-card { background: var(--surface); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border); display: flex; flex-direction: column; transition: box-shadow .2s, transform .2s; }
 .venue-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
 .venue-img-wrap { position: relative; }
 .venue-img-wrap img { width: 100%; height: 190px; object-fit: cover; display: block; }
-.venue-img-placeholder { width: 100%; height: 190px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; }
-.venue-img-placeholder span { font-size: 13px; font-weight: 600; color: #94a3b8; letter-spacing: .5px; }
+.venue-img-placeholder { width: 100%; height: 190px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 36px; }
 .status-pill { position: absolute; top: 10px; left: 10px; padding: 3px 9px; border-radius: 4px; font-size: 11px; font-weight: 700; letter-spacing: .3px; }
 .s-open { background: rgba(5,150,105,.9); color: white; }
 .s-close { background: rgba(100,116,139,.85); color: white; }
@@ -29,6 +23,11 @@
 .venue-cat { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; }
 .venue-name { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 4px; letter-spacing: -.2px; text-decoration: none; transition: color .15s; display: block; }
 .venue-name:hover { color: var(--primary); }
+.venue-rating { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+.stars { color: #f59e0b; font-size: 12px; letter-spacing: 1px; }
+.stars-empty { color: #e5e7eb; }
+.rating-val { font-size: 12px; font-weight: 700; color: var(--text); }
+.rating-count { font-size: 11px; color: var(--muted); }
 .venue-address { font-size: 12px; color: var(--muted); margin-bottom: 12px; line-height: 1.4; }
 .doluluk-wrap { margin-bottom: 12px; }
 .doluluk-row { display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
@@ -43,14 +42,26 @@
 .btn-detail:hover { background: #e2e8f0; }
 .empty-state { grid-column: 1/-1; text-align: center; padding: 80px 20px; color: var(--muted); }
 .empty-state h3 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+
+.pagination-wrap { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 48px; flex-wrap: wrap; }
+.page-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 38px; height: 38px; padding: 0 10px; border-radius: 8px; font-size: 14px; font-weight: 600; border: 1.5px solid var(--border); background: var(--surface); color: var(--text); transition: .15s; text-decoration: none; }
+.page-btn:hover { border-color: var(--primary); color: var(--primary); background: #eff6ff; }
+.page-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+.page-btn.disabled { opacity: .4; pointer-events: none; }
+.page-info { font-size: 13px; color: var(--muted); padding: 0 8px; }
+
 @media (max-width: 600px) { .venue-grid { grid-template-columns: 1fr; } }
 {% endblock %}
 
 {% block content %}
 <div class="page-wrap">
     <div class="page-header">
-        <a href="{% url 'dashboard' %}" class="back-link">&#8592; Geri</a>
-        <h1>{{ baslik }}</h1>
+        <a href="{% url 'dashboard' %}" id="liste-geri" class="back-link">&#8592; Geri</a>
+        <script>(function(){var b=document.getElementById('liste-geri');if(document.referrer&&window.history.length>1)b.addEventListener('click',function(e){e.preventDefault();history.back();});})();</script>
+        <div>
+            <h1>{{ baslik }}</h1>
+            {% if page_obj %}<span style="font-size:13px;color:var(--muted);">{{ page_obj.paginator.count }} mekan</span>{% endif %}
+        </div>
     </div>
 
     <div class="venue-grid">
@@ -58,18 +69,20 @@
         <article class="venue-card">
             <div class="venue-img-wrap">
                 {% if mekan.img %}
-                    <img src="{{ mekan.img.url }}" alt="{{ mekan.ad }}">
+                    <img src="{{ mekan.img.url }}" alt="{{ mekan.ad }}" loading="lazy">
                 {% else %}
-                    <div class="venue-img-placeholder"><span>Fotoğraf Yok</span></div>
+                    <div class="venue-img-placeholder">
+                        {% if mekan.kategori == 'KAFE' %}☕{% elif mekan.kategori == 'RESTORAN' %}🍽️{% elif mekan.kategori == 'ECZANE' %}💊{% elif mekan.kategori == 'KUTUPHANE' %}📚{% elif mekan.kategori == 'PUB' %}🍺{% else %}🏠{% endif %}
+                    </div>
                 {% endif %}
-                {% if mekan.su_an_acik %}
+                {% if mekan.acik_mi %}
                     <span class="status-pill s-open">Açık</span>
                 {% else %}
                     <span class="status-pill s-close">Kapalı</span>
                 {% endif %}
                 {% if user.is_authenticated %}
-                <a href="{% url 'favori_islem' mekan.id %}" class="fav-btn">
-                    {% if request.user in mekan.favorileyenler.all %}&#9829;{% else %}&#9825;{% endif %}
+                <a href="{% url 'favori_islem' mekan.id %}" class="fav-btn" title="Favori">
+                    {% if request.user in mekan.favorileyenler.all %}❤️{% else %}🤍{% endif %}
                 </a>
                 {% endif %}
             </div>
@@ -77,10 +90,27 @@
                 <div class="venue-cat">
                     {{ mekan.get_kategori_display }}
                     {% if mekan.acilis_saati and mekan.kapanis_saati %}
-                    &nbsp;&middot;&nbsp; {{ mekan.acilis_saati|time:"H:i" }}&ndash;{{ mekan.kapanis_saati|time:"H:i" }}
+                    &nbsp;·&nbsp; {{ mekan.acilis_saati|time:"H:i" }}–{{ mekan.kapanis_saati|time:"H:i" }}
                     {% endif %}
                 </div>
                 <a href="{% url 'mekan_detay' mekan.id %}" class="venue-name">{{ mekan.ad }}</a>
+
+                {% if mekan.ort_puan %}
+                <div class="venue-rating">
+                    <span class="stars">
+                        {% with p=mekan.ort_puan %}
+                        {% if p >= 1 %}★{% else %}<span class="stars-empty">★</span>{% endif %}
+                        {% if p >= 2 %}★{% else %}<span class="stars-empty">★</span>{% endif %}
+                        {% if p >= 3 %}★{% else %}<span class="stars-empty">★</span>{% endif %}
+                        {% if p >= 4 %}★{% else %}<span class="stars-empty">★</span>{% endif %}
+                        {% if p >= 5 %}★{% else %}<span class="stars-empty">★</span>{% endif %}
+                        {% endwith %}
+                    </span>
+                    <span class="rating-val">{{ mekan.ort_puan|floatformat:1 }}</span>
+                    <span class="rating-count">({{ mekan.yorum_sayisi }})</span>
+                </div>
+                {% endif %}
+
                 <div class="venue-address">{{ mekan.adres|truncatechars:55 }}</div>
                 {% if mekan.doluluk_orani > 0 %}
                 <div class="doluluk-wrap">
@@ -102,8 +132,8 @@
                 </div>
                 <div class="venue-footer">
                     <a href="https://www.google.com/maps/search/?api=1&query={{ mekan.ad|urlencode }}+{{ mekan.adres|urlencode }}"
-                       target="_blank" class="btn-map">Yol Tarifi</a>
-                    <a href="{% url 'mekan_detay' mekan.id %}" class="btn-detail">Detay</a>
+                       target="_blank" class="btn-map">📍 Yol Tarifi</a>
+                    <a href="{% url 'mekan_detay' mekan.id %}" class="btn-detail">Detay →</a>
                 </div>
             </div>
         </article>
@@ -114,5 +144,29 @@
         </div>
         {% endfor %}
     </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-wrap">
+        {% if page_obj.has_previous %}
+            <a href="?{% if q %}q={{ q }}&{% endif %}page={{ page_obj.previous_page_number }}" class="page-btn">&#8592;</a>
+        {% else %}
+            <span class="page-btn disabled">&#8592;</span>
+        {% endif %}
+        {% for num in sayfa_araligi %}
+            {% if num == page_obj.paginator.ELLIPSIS %}
+                <span class="page-info">…</span>
+            {% elif num == page_obj.number %}
+                <span class="page-btn active">{{ num }}</span>
+            {% else %}
+                <a href="?{% if q %}q={{ q }}&{% endif %}page={{ num }}" class="page-btn">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+            <a href="?{% if q %}q={{ q }}&{% endif %}page={{ page_obj.next_page_number }}" class="page-btn">&#8594;</a>
+        {% else %}
+            <span class="page-btn disabled">&#8594;</span>
+        {% endif %}
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

@@ -5,15 +5,31 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.conf import settings
 from django.core.mail import send_mail
+from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.urls import reverse
 from django.views.decorators.http import require_POST
-from django.db.models import Q
+from django.db.models import Q, Avg, F
+import json
+import random
+import string
 import qrcode
 import io
 import base64
-from .models import Mekan, Yorum, Profile, Etkinlik
-from .forms import YorumForm, MekanForm, EtkinlikForm, KayitFormu
+from .models import (Mekan, Yorum, Profile, Etkinlik, MekanFoto, YorumFoto,
+                     SifreSifirlamaKodu, YorumBegeni, Bildirim, Takip,
+                     MekanListesi, YorumYanit, Rezervasyon, Kampanya, CalismaGunu)
+from .forms import (YorumForm, MekanForm, EtkinlikForm, KayitFormu,
+                    RezervasyonForm, KampanyaForm, MekanListesiForm,
+                    YorumYanitForm, CalismaGunuForm, MenuForm)
+
+SAYFA_BOYUTU = 12
+
+
+def bildirim_olustur(alici, tip, mesaj, link='', gonderen=None):
+    """Kullanıcıya bildirim oluştur."""
+    if alici != gonderen:
+        Bildirim.objects.create(alici=alici, gonderen=gonderen, tip=tip, mesaj=mesaj, link=link)
 
 
 # ── Yardımcı decorator ──────────────────────────────────────────────────────
@@ -171,46 +187,137 @@ def user_logout(request):
 
 @login_required(login_url='login')
 def dashboard(request):
-    sehir = request.GET.get('sehir', '')
-    mekanlar = Mekan.objects.filter(is_approved=True)
-    if sehir:
-        mekanlar = mekanlar.filter(sehir=sehir)
-    sehir_secenekleri = Mekan.SEHIR_SECIMLERI
+    mekanlar = Mekan.objects.filter(is_approved=True).annotate(
+        ort_puan=Avg('yorumlar__puan')
+    )
+
+    # Parametreleri al
+    f = {
+        'sehir':    request.GET.get('sehir', ''),
+        'kategori': request.GET.get('kategori', ''),
+        'acik':     request.GET.get('acik', ''),
+        'wifi':     request.GET.get('wifi', ''),
+        'priz':     request.GET.get('priz', ''),
+        'bahce':    request.GET.get('bahce', ''),
+        'pet':      request.GET.get('pet', ''),
+        'engelli':  request.GET.get('engelli', ''),
+        'muzik':    request.GET.get('muzik', ''),
+        'cocuk':    request.GET.get('cocuk', ''),
+        'siralama': request.GET.get('siralama', ''),
+    }
+
+    if f['sehir']:    mekanlar = mekanlar.filter(sehir=f['sehir'])
+    if f['kategori']: mekanlar = mekanlar.filter(kategori=f['kategori'])
+    if f['wifi']:     mekanlar = mekanlar.filter(wifi_var=True)
+    if f['priz']:     mekanlar = mekanlar.filter(priz_var=True)
+    if f['bahce']:    mekanlar = mekanlar.filter(bahce_var=True)
+    if f['pet']:      mekanlar = mekanlar.filter(evcil_hayvan_izinli=True)
+    if f['engelli']:  mekanlar = mekanlar.filter(engelli_erisimi_var=True)
+    if f['muzik']:    mekanlar = mekanlar.filter(canli_muzik_var=True)
+    if f['cocuk']:    mekanlar = mekanlar.filter(cocuk_oyun_alani_var=True)
+
+    if f['siralama'] == 'puan':
+        mekanlar = mekanlar.order_by(F('ort_puan').desc(nulls_last=True))
+    elif f['siralama'] == 'doluluk_az':
+        mekanlar = mekanlar.order_by('doluluk_orani')
+    elif f['siralama'] == 'doluluk_cok':
+        mekanlar = mekanlar.order_by('-doluluk_orani')
+    elif f['siralama'] == 'isim_az':
+        mekanlar = mekanlar.order_by('ad')
+    elif f['siralama'] == 'isim_za':
+        mekanlar = mekanlar.order_by('-ad')
+
+    # acik_mi property DB'de hesaplanamaz (gece yarısı geçen saatler dahil) → Python filtresi
+    if f['acik']:
+        mekanlar = [m for m in mekanlar if m.acik_mi]
+
+    aktif_filtre_sayisi = sum(1 for v in f.values() if v)
+
+    # İnsan okunabilir görünen adlar (chip'lerde ve başlıkta kullanılır)
+    sehir_adlari    = dict(Mekan.SEHIR_SECIMLERI)
+    kategori_adlari = dict(Mekan.KATEGORI_SECIMLERI)
+    f['sehir_adi']    = sehir_adlari.get(f['sehir'], f['sehir'])
+    f['kategori_adi'] = kategori_adlari.get(f['kategori'], f['kategori'])
+
+    paginator = Paginator(mekanlar, SAYFA_BOYUTU)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    sayfa_araligi = paginator.get_elided_page_range(page_obj.number, on_each_side=2, on_ends=1)
+
     return render(request, 'venues/index.html', {
-        'mekanlar': mekanlar,
-        'aktif_sehir': sehir,
-        'sehir_secenekleri': sehir_secenekleri,
+        'mekanlar': page_obj,
+        'page_obj': page_obj,
+        'sayfa_araligi': sayfa_araligi,
+        'sehir_secenekleri': Mekan.SEHIR_SECIMLERI,
+        'kategori_secenekleri': Mekan.KATEGORI_SECIMLERI,
+        'f': f,
+        'aktif_filtre_sayisi': aktif_filtre_sayisi,
+        'toplam_sonuc': paginator.count,
     })
 
 
 @login_required(login_url='login')
 def arama(request):
     q = request.GET.get('q', '').strip()
+    mekanlar = Mekan.objects.filter(is_approved=True).annotate(ort_puan=Avg('yorumlar__puan'))
     if q:
-        mekanlar = Mekan.objects.filter(
-            Q(ad__icontains=q) | Q(adres__icontains=q) | Q(kategori__icontains=q),
-            is_approved=True
+        mekanlar = mekanlar.filter(
+            Q(ad__icontains=q) | Q(adres__icontains=q) | Q(kategori__icontains=q)
         )
         baslik = f'"{q}" için {mekanlar.count()} sonuç'
     else:
-        mekanlar = Mekan.objects.filter(is_approved=True)
         baslik = 'Tüm Mekanlar'
-    return render(request, 'venues/liste.html', {'mekanlar': mekanlar, 'baslik': baslik, 'q': q})
+
+    paginator = Paginator(mekanlar, SAYFA_BOYUTU)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'venues/liste.html', {
+        'mekanlar': page_obj,
+        'page_obj': page_obj,
+        'sayfa_araligi': paginator.get_elided_page_range(page_obj.number, on_each_side=2, on_ends=1),
+        'baslik': baslik,
+        'q': q,
+    })
 
 
+@login_required(login_url='login')
 def su_an_acik_olanlar(request):
-    mekanlar = Mekan.objects.filter(su_an_acik=True, is_approved=True)
-    return render(request, 'venues/liste.html', {'mekanlar': mekanlar, 'baslik': 'Şu An Açık Olan Mekanlar'})
+    # acik_mi property'sini kullan: saati olan mekanlarda saate göre, olmayanlar su_an_acik ile
+    mekanlar_qs = Mekan.objects.filter(is_approved=True).annotate(ort_puan=Avg('yorumlar__puan'))
+    mekanlar = [m for m in mekanlar_qs if m.acik_mi]
+    paginator = Paginator(mekanlar, SAYFA_BOYUTU)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'venues/liste.html', {
+        'mekanlar': page_obj, 'page_obj': page_obj,
+        'sayfa_araligi': paginator.get_elided_page_range(page_obj.number, on_each_side=2, on_ends=1),
+        'baslik': f'Şu An Açık Olan Mekanlar ({len(mekanlar)})',
+    })
 
 
+@login_required(login_url='login')
 def calisma_alanlari(request):
-    mekanlar = Mekan.objects.filter(priz_var=True, kategori__in=['KUTUPHANE'], is_approved=True)
-    return render(request, 'venues/liste.html', {'mekanlar': mekanlar, 'baslik': 'Çalışma Alanları'})
+    mekanlar = Mekan.objects.filter(
+        is_approved=True
+    ).filter(
+        Q(kategori='KUTUPHANE') | Q(wifi_var=True) | Q(priz_var=True)
+    ).annotate(ort_puan=Avg('yorumlar__puan'))
+    paginator = Paginator(mekanlar, SAYFA_BOYUTU)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'venues/liste.html', {
+        'mekanlar': page_obj, 'page_obj': page_obj,
+        'sayfa_araligi': paginator.get_elided_page_range(page_obj.number, on_each_side=2, on_ends=1),
+        'baslik': 'Çalışma Alanları (WiFi & Priz)',
+    })
 
 
+@login_required(login_url='login')
 def acil_ihtiyaclar(request):
-    mekanlar = Mekan.objects.filter(kategori='ECZANE', is_approved=True)
-    return render(request, 'venues/liste.html', {'mekanlar': mekanlar, 'baslik': 'Nöbetçi/Açık Eczaneler'})
+    mekanlar = Mekan.objects.filter(kategori='ECZANE', is_approved=True).annotate(ort_puan=Avg('yorumlar__puan'))
+    paginator = Paginator(mekanlar, SAYFA_BOYUTU)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'venues/liste.html', {
+        'mekanlar': page_obj, 'page_obj': page_obj,
+        'sayfa_araligi': paginator.get_elided_page_range(page_obj.number, on_each_side=2, on_ends=1),
+        'baslik': 'Nöbetçi/Açık Eczaneler',
+    })
 
 
 @login_required
@@ -225,14 +332,25 @@ def favori_islem(request, mekan_id):
 
 @login_required
 def favorilerim(request):
-    mekanlar = request.user.favori_mekanlar.all()
-    return render(request, 'venues/liste.html', {'mekanlar': mekanlar, 'baslik': 'Favori Mekanlarım'})
+    mekanlar = request.user.favori_mekanlar.all().annotate(ort_puan=Avg('yorumlar__puan'))
+    paginator = Paginator(mekanlar, SAYFA_BOYUTU)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'venues/liste.html', {
+        'mekanlar': page_obj, 'page_obj': page_obj,
+        'sayfa_araligi': paginator.get_elided_page_range(page_obj.number, on_each_side=2, on_ends=1),
+        'baslik': 'Favori Mekanlarım',
+    })
 
 
 def mekan_detay(request, mekan_id):
     mekan = get_object_or_404(Mekan, id=mekan_id)
     yorumlar = mekan.yorumlar.all().order_by('-tarih')
     etkinlikler = mekan.aktif_etkinlikler()
+    fotolar = mekan.fotolar.all()
+
+    # Görüntülenme sayısını artır (giriş yapmış kullanıcılar için)
+    if request.user.is_authenticated:
+        Mekan.objects.filter(pk=mekan_id).update(goruntuleme_sayisi=F('goruntuleme_sayisi') + 1)
 
     if request.method == 'POST':
         if not request.user.is_authenticated:
@@ -243,15 +361,33 @@ def mekan_detay(request, mekan_id):
             yeni_yorum.mekan = mekan
             yeni_yorum.yazar = request.user
             yeni_yorum.save()
+            # Çoklu fotoğraf kaydet
+            for f in request.FILES.getlist('yorum_fotolar'):
+                if f.content_type.startswith('image/'):
+                    YorumFoto.objects.create(yorum=yeni_yorum, foto=f)
             return redirect('mekan_detay', mekan_id=mekan.id)
     else:
         form = YorumForm()
 
+    # Kullanıcının hangi yorumları beğendiğini set olarak hazırla (template'de |map yok)
+    kullanici_begenileri = set()
+    if request.user.is_authenticated:
+        kullanici_begenileri = set(
+            YorumBegeni.objects.filter(
+                kullanici=request.user,
+                yorum__mekan=mekan
+            ).values_list('yorum_id', flat=True)
+        )
+
+    from django.utils import timezone as tz
     return render(request, 'venues/mekan_detay.html', {
         'mekan': mekan,
         'yorumlar': yorumlar,
         'etkinlikler': etkinlikler,
+        'fotolar': fotolar,
         'form': form,
+        'bugun_no': tz.localtime().weekday(),
+        'kullanici_begenileri': kullanici_begenileri,
     })
 
 
@@ -259,8 +395,18 @@ def mekan_detay(request, mekan_id):
 
 @owner_required
 def mekan_sahibi_paneli(request):
-    mekanlarim = request.user.mekanlari.prefetch_related('etkinlikler').all()
-    return render(request, 'venues/owner_dashboard.html', {'mekanlar': mekanlarim})
+    mekanlarim = request.user.mekanlari.prefetch_related('etkinlikler', 'rezervasyonlar', 'kampanyalar', 'calisma_gunleri').all()
+    # Yorum puan dağılımı: {mekan_id: [p1, p2, p3, p4, p5]}
+    puan_dagilim = {}
+    for m in mekanlarim:
+        ys = m.yorumlar.all()
+        puan_dagilim[m.id] = [
+            ys.filter(puan=i).count() for i in range(1, 6)
+        ]
+    return render(request, 'venues/owner_dashboard.html', {
+        'mekanlar': mekanlarim,
+        'puan_dagilim_json': json.dumps(puan_dagilim),
+    })
 
 
 
@@ -418,6 +564,81 @@ def etkinlik_sil(request, etkinlik_id):
     return redirect('owner_dashboard')
 
 
+# ── Yorum Düzenle / Sil ───────────────────────────────────────────────────────
+
+@login_required
+@require_POST
+def yorum_sil(request, yorum_id):
+    yorum = get_object_or_404(Yorum, id=yorum_id, yazar=request.user)
+    mekan_id = yorum.mekan_id
+    yorum.delete()
+    messages.success(request, 'Yorum silindi.')
+    return redirect('mekan_detay', mekan_id=mekan_id)
+
+
+@login_required
+def yorum_duzenle(request, yorum_id):
+    yorum = get_object_or_404(Yorum, id=yorum_id, yazar=request.user)
+    mekan = yorum.mekan
+    if request.method == 'POST':
+        form = YorumForm(request.POST, request.FILES, instance=yorum)
+        if form.is_valid():
+            form.save()
+            # Yeni eklenen fotoğrafları kaydet
+            for f in request.FILES.getlist('yorum_fotolar'):
+                if f.content_type.startswith('image/'):
+                    YorumFoto.objects.create(yorum=yorum, foto=f)
+            messages.success(request, 'Yorum güncellendi.')
+            return redirect('mekan_detay', mekan_id=mekan.id)
+    else:
+        form = YorumForm(instance=yorum)
+    return render(request, 'venues/yorum_duzenle.html', {
+        'form': form,
+        'yorum': yorum,
+        'mekan': mekan,
+        'mevcut_fotolar': yorum.fotolar.all(),
+    })
+
+
+# ── Yorum Fotoğrafı Sil ───────────────────────────────────────────────────────
+
+@login_required
+@require_POST
+def yorum_foto_sil(request, foto_id):
+    foto = get_object_or_404(YorumFoto, id=foto_id, yorum__yazar=request.user)
+    mekan_id = foto.yorum.mekan_id
+    foto.foto.delete(save=False)
+    foto.delete()
+    return redirect('mekan_detay', mekan_id=mekan_id)
+
+
+# ── Mekan Galerisi (Çoklu Fotoğraf) ──────────────────────────────────────────
+
+@owner_required
+@require_POST
+def mekan_foto_yukle(request, mekan_id):
+    mekan = get_object_or_404(Mekan, id=mekan_id, sahibi=request.user)
+    fotolar = request.FILES.getlist('fotolar')
+    yuklenen = 0
+    for f in fotolar:
+        if f.content_type.startswith('image/'):
+            MekanFoto.objects.create(mekan=mekan, foto=f)
+            yuklenen += 1
+    if yuklenen:
+        messages.success(request, f'{yuklenen} fotoğraf yüklendi.')
+    return redirect('owner_dashboard')
+
+
+@owner_required
+@require_POST
+def mekan_foto_sil(request, foto_id):
+    foto = get_object_or_404(MekanFoto, id=foto_id, mekan__sahibi=request.user)
+    foto.foto.delete(save=False)
+    foto.delete()
+    messages.success(request, 'Fotoğraf silindi.')
+    return redirect('owner_dashboard')
+
+
 # ── Eski duyuru_guncelle (geriye dönük uyumluluk) ─────────────────────────────
 
 @login_required
@@ -505,3 +726,636 @@ def qr_kod_dogrula(request):
     else:
         messages.error(request, "✗ Doğrulama kodu yanlış. Lütfen tekrar deneyin.")
         return redirect('qr_kod_olustur')
+
+
+@login_required(login_url='login')
+def profil(request):
+    kullanici = request.user
+    yorumlar = Yorum.objects.filter(yazar=kullanici).select_related('mekan').order_by('-tarih')
+    favori_mekanlar = kullanici.favori_mekanlar.filter(is_approved=True).annotate(
+        ort_puan=Avg('yorumlar__puan')
+    )
+
+    # Profil güncelleme
+    if request.method == 'POST':
+        islem = request.POST.get('islem', 'email')
+
+        if islem == 'foto':
+            # Profil fotoğrafı yükle/kaldır
+            profil_obj = kullanici.profile
+            if 'foto_sil' in request.POST:
+                if profil_obj.foto:
+                    profil_obj.foto.delete(save=False)
+                    profil_obj.foto = None
+                    profil_obj.save(update_fields=['foto'])
+                    messages.success(request, 'Profil fotoğrafı kaldırıldı.')
+            elif 'foto' in request.FILES:
+                profil_obj.foto = request.FILES['foto']
+                profil_obj.save(update_fields=['foto'])
+                messages.success(request, 'Profil fotoğrafı güncellendi.')
+        else:
+            # E-posta güncelle
+            yeni_email = request.POST.get('email', '').strip()
+            if yeni_email and yeni_email != kullanici.email:
+                kullanici.email = yeni_email
+                kullanici.save(update_fields=['email'])
+                messages.success(request, 'E-posta adresiniz güncellendi.')
+
+        return redirect('profil')
+
+    return render(request, 'venues/profil.html', {
+        'profil_kullanici': kullanici,
+        'yorumlar': yorumlar,
+        'favori_mekanlar': favori_mekanlar,
+        'yorum_sayisi': yorumlar.count(),
+        'favori_sayisi': favori_mekanlar.count(),
+    })
+
+
+# ── OTP Şifre Sıfırlama ──────────────────────────────────────────────────────
+
+def sifre_sifirla_talep(request):
+    """
+    1. Kullanıcı e-posta adresini girer.
+    2. Eşleşen hesap varsa 6 haneli kod üretilir, mail gönderilir.
+    3. Kullanıcı kod giriş sayfasına yönlendirilir.
+    Mail içinde sadece kod vardır — URL yok, spam filtrelerinden geçer.
+    """
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+        from django.contrib.auth.models import User
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            user = None
+
+        if user:
+            # Eski kullanılmamış kodları iptal et
+            SifreSifirlamaKodu.objects.filter(user=user, kullanildi=False).update(kullanildi=True)
+            # Yeni 6 haneli kod oluştur
+            kod = ''.join(random.choices(string.digits, k=6))
+            SifreSifirlamaKodu.objects.create(user=user, kod=kod)
+            # Sadece kodu içeren mail gönder (URL yok!)
+            send_mail(
+                subject='Anlık Mekan — Şifre Sıfırlama Kodu',
+                message=(
+                    f'Merhaba {user.username},\n\n'
+                    f'Şifrenizi sıfırlamak için doğrulama kodunuz:\n\n'
+                    f'  {kod}\n\n'
+                    f'Bu kod 15 dakika geçerlidir.\n'
+                    f'Eğer bu isteği siz yapmadıysanız bu mesajı yok sayın.'
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+                fail_silently=False,
+            )
+            # Kullanıcı adını session'a sakla (kod doğrulama sayfasında kullanmak için)
+            request.session['sifre_sifirla_user_id'] = user.id
+            messages.success(request, f'Doğrulama kodu {email} adresine gönderildi. Kodu girerek şifrenizi sıfırlayın.')
+            return redirect('sifre_sifirla_kod')
+        else:
+            # Güvenlik: kullanıcıya hesap olmadığını söyleme, aynı mesajı göster
+            messages.info(request, 'Girilen e-posta adresi kayıtlıysa kod gönderildi.')
+
+    return render(request, 'venues/sifre_sifirla_talep.html')
+
+
+def sifre_sifirla_kod(request):
+    """
+    Kullanıcı 6 haneli kodu ve yeni şifresini girer.
+    Kod geçerliyse şifre güncellenir.
+    """
+    user_id = request.session.get('sifre_sifirla_user_id')
+    if not user_id:
+        messages.error(request, 'Geçersiz oturum. Lütfen şifre sıfırlama işlemini baştan başlatın.')
+        return redirect('sifre_sifirla_talep')
+
+    if request.method == 'POST':
+        from django.contrib.auth.models import User
+        kod = request.POST.get('kod', '').strip()
+        sifre1 = request.POST.get('sifre1', '')
+        sifre2 = request.POST.get('sifre2', '')
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            messages.error(request, 'Kullanıcı bulunamadı.')
+            return redirect('sifre_sifirla_talep')
+
+        if sifre1 != sifre2:
+            messages.error(request, 'Şifreler eşleşmiyor.')
+            return render(request, 'venues/sifre_sifirla_kod.html')
+
+        if len(sifre1) < 8:
+            messages.error(request, 'Şifre en az 8 karakter olmalıdır.')
+            return render(request, 'venues/sifre_sifirla_kod.html')
+
+        # En son geçerli kodu bul
+        try:
+            kayit = SifreSifirlamaKodu.objects.filter(
+                user=user, kullanildi=False
+            ).latest('olusturuldu')
+        except SifreSifirlamaKodu.DoesNotExist:
+            messages.error(request, 'Geçerli bir kod bulunamadı. Lütfen yeni kod isteyin.')
+            return redirect('sifre_sifirla_talep')
+
+        if not kayit.gecerli_mi():
+            messages.error(request, 'Kodun süresi dolmuş. Lütfen yeni kod isteyin.')
+            return redirect('sifre_sifirla_talep')
+
+        if kayit.kod != kod:
+            messages.error(request, 'Doğrulama kodu hatalı. Lütfen tekrar deneyin.')
+            return render(request, 'venues/sifre_sifirla_kod.html')
+
+        # Şifreyi güncelle
+        user.set_password(sifre1)
+        user.save()
+        kayit.kullanildi = True
+        kayit.save(update_fields=['kullanildi'])
+        # Session'ı temizle
+        del request.session['sifre_sifirla_user_id']
+        messages.success(request, 'Şifreniz başarıyla sıfırlandı. Yeni şifrenizle giriş yapabilirsiniz.')
+        return redirect('login')
+
+    return render(request, 'venues/sifre_sifirla_kod.html')
+
+
+# ── Harita Görünümü ───────────────────────────────────────────────────────────
+
+@login_required(login_url='login')
+def mekan_harita(request):
+    """Split-screen harita sayfası — Leaflet.js ile tüm mekanları gösterir."""
+    sehir    = request.GET.get('sehir', '')
+    kategori = request.GET.get('kategori', '')
+    acik     = request.GET.get('acik', '')
+    wifi     = request.GET.get('wifi', '')
+    priz     = request.GET.get('priz', '')
+    bahce    = request.GET.get('bahce', '')
+    pet      = request.GET.get('pet', '')
+    engelli  = request.GET.get('engelli', '')
+    muzik    = request.GET.get('muzik', '')
+    sigara   = request.GET.get('sigara', '')
+
+    mekanlar_qs = Mekan.objects.filter(is_approved=True).annotate(ort_puan=Avg('yorumlar__puan'))
+    if sehir:    mekanlar_qs = mekanlar_qs.filter(sehir=sehir)
+    if kategori: mekanlar_qs = mekanlar_qs.filter(kategori=kategori)
+    if wifi:     mekanlar_qs = mekanlar_qs.filter(wifi_var=True)
+    if priz:     mekanlar_qs = mekanlar_qs.filter(priz_var=True)
+    if bahce:    mekanlar_qs = mekanlar_qs.filter(bahce_var=True)
+    if pet:      mekanlar_qs = mekanlar_qs.filter(evcil_hayvan_izinli=True)
+    if engelli:  mekanlar_qs = mekanlar_qs.filter(engelli_erisimi_var=True)
+    if muzik:    mekanlar_qs = mekanlar_qs.filter(canli_muzik_var=True)
+    if sigara:   mekanlar_qs = mekanlar_qs.filter(sigara_icin_uygun=True)
+
+    # Sol liste için (tüm liste, haritayla senkron)
+    mekanlar_liste = list(mekanlar_qs)
+
+    # acik filtresi Python seviyesinde (acik_mi property DB'de hesaplanamaz)
+    if acik:
+        mekanlar_liste = [m for m in mekanlar_liste if m.acik_mi]
+
+    # Harita için koordinatı olan mekanları JSON'a çevir
+    harita_verisi = []
+    for m in mekanlar_liste:
+        if m.latitude and m.longitude:
+            harita_verisi.append({
+                'id': m.id,
+                'ad': m.ad,
+                'kategori': m.kategori,
+                'kategori_display': m.get_kategori_display(),
+                'adres': m.adres,
+                'lat': float(m.latitude),
+                'lng': float(m.longitude),
+                'su_an_acik': m.acik_mi,
+                'doluluk_orani': m.doluluk_orani,
+                'ort_puan': float(m.ort_puan) if m.ort_puan else None,
+                'yorum_sayisi': m.yorum_sayisi,
+                'detay_url': reverse('mekan_detay', args=[m.id]),
+                'img_url': m.img.url if m.img else None,
+                'wifi_var': m.wifi_var,
+                'priz_var': m.priz_var,
+                'bahce_var': m.bahce_var,
+                'evcil_hayvan_izinli': m.evcil_hayvan_izinli,
+                'engelli_erisimi_var': m.engelli_erisimi_var,
+                'canli_muzik_var': m.canli_muzik_var,
+                'sigara_icin_uygun': m.sigara_icin_uygun,
+            })
+
+    return render(request, 'venues/mekan_harita.html', {
+        'mekanlar': mekanlar_liste,
+        'harita_verisi_json': json.dumps(harita_verisi, ensure_ascii=False),
+        'aktif_sehir': sehir,
+        'aktif_kategori': kategori,
+        'aktif_acik': acik,
+        'aktif_wifi': wifi,
+        'aktif_priz': priz,
+        'aktif_bahce': bahce,
+        'aktif_pet': pet,
+        'aktif_engelli': engelli,
+        'aktif_muzik': muzik,
+        'aktif_sigara': sigara,
+        'sehir_secenekleri': Mekan.SEHIR_SECIMLERI,
+        'kategori_secenekleri': Mekan.KATEGORI_SECIMLERI,
+        'toplam_mekan': len(mekanlar_liste),
+        'haritada_mekan': len(harita_verisi),
+    })
+
+
+# ── Bildirimler ───────────────────────────────────────────────────────────────
+
+@login_required
+def bildirimler(request):
+    bildirimleri = request.user.bildirimler.all()
+    request.user.bildirimler.filter(okundu=False).update(okundu=True)
+    return render(request, 'venues/bildirimler.html', {'bildirimler': bildirimleri})
+
+
+@login_required
+def bildirim_okundu_isle(request):
+    """AJAX: bildirim sayısı badge için."""
+    sayi = request.user.bildirimler.filter(okundu=False).count()
+    return JsonResponse({'sayi': sayi})
+
+
+# ── Yorum Beğeni ──────────────────────────────────────────────────────────────
+
+@login_required
+@require_POST
+def yorum_begen(request, yorum_id):
+    yorum = get_object_or_404(Yorum, id=yorum_id)
+    obj, created = YorumBegeni.objects.get_or_create(yorum=yorum, kullanici=request.user)
+    if not created:
+        obj.delete()
+        begendi = False
+    else:
+        begendi = True
+        if yorum.yazar != request.user:
+            bildirim_olustur(
+                alici=yorum.yazar,
+                tip='BEGENI',
+                mesaj=f'{request.user.username} yorumunuzu beğendi.',
+                link=f'/mekan/{yorum.mekan_id}/',
+                gonderen=request.user,
+            )
+    sayi = yorum.begeniler.count()
+    return JsonResponse({'begendi': begendi, 'sayi': sayi})
+
+
+# ── Takip Sistemi ─────────────────────────────────────────────────────────────
+
+@login_required
+@require_POST
+def kullanici_takip(request, kullanici_id):
+    from django.contrib.auth.models import User as DjangoUser
+    hedef = get_object_or_404(DjangoUser, id=kullanici_id)
+    if hedef == request.user:
+        return JsonResponse({'hata': 'Kendinizi takip edemezsiniz'}, status=400)
+    obj, created = Takip.objects.get_or_create(takipci=request.user, takip_edilen=hedef)
+    if not created:
+        obj.delete()
+        takip_ediyor = False
+    else:
+        takip_ediyor = True
+        bildirim_olustur(
+            alici=hedef,
+            tip='TAKIP',
+            mesaj=f'{request.user.username} sizi takip etmeye başladı.',
+            link=f'/kullanici/{request.user.id}/',
+            gonderen=request.user,
+        )
+    takipci_sayisi = hedef.takipcileri.count()
+    return JsonResponse({'takip_ediyor': takip_ediyor, 'takipci_sayisi': takipci_sayisi})
+
+
+@login_required
+def kullanici_profil(request, kullanici_id):
+    from django.contrib.auth.models import User as DjangoUser
+    hedef = get_object_or_404(DjangoUser, id=kullanici_id)
+    yorumlar = Yorum.objects.filter(yazar=hedef).select_related('mekan').order_by('-tarih')
+    listeler = MekanListesi.objects.filter(olusturan=hedef, herkese_acik=True)
+    takip_ediyor = False
+    if request.user.is_authenticated:
+        takip_ediyor = Takip.objects.filter(takipci=request.user, takip_edilen=hedef).exists()
+    takipci_sayisi = hedef.takipcileri.count()
+    takip_sayisi = hedef.takip_ettikleri.count()
+    return render(request, 'venues/kullanici_profil.html', {
+        'hedef': hedef,
+        'yorumlar': yorumlar,
+        'listeler': listeler,
+        'takip_ediyor': takip_ediyor,
+        'takipci_sayisi': takipci_sayisi,
+        'takip_sayisi': takip_sayisi,
+    })
+
+
+# ── Mekan Listeleri ───────────────────────────────────────────────────────────
+
+@login_required
+def listelerim(request):
+    listeler = MekanListesi.objects.filter(olusturan=request.user).prefetch_related('mekanlar')
+    form = MekanListesiForm()
+    if request.method == 'POST':
+        form = MekanListesiForm(request.POST)
+        if form.is_valid():
+            liste = form.save(commit=False)
+            liste.olusturan = request.user
+            liste.save()
+            messages.success(request, f'"{liste.ad}" listesi oluşturuldu.')
+            return redirect('listelerim')
+    return render(request, 'venues/listelerim.html', {'listeler': listeler, 'form': form})
+
+
+@login_required
+def liste_detay(request, liste_id):
+    liste = get_object_or_404(MekanListesi, id=liste_id)
+    if not liste.herkese_acik and liste.olusturan != request.user:
+        messages.error(request, 'Bu liste gizli.')
+        return redirect('dashboard')
+    return render(request, 'venues/liste_detay.html', {'liste': liste})
+
+
+@login_required
+@require_POST
+def liste_mekan_ekle(request, liste_id, mekan_id):
+    liste = get_object_or_404(MekanListesi, id=liste_id, olusturan=request.user)
+    mekan = get_object_or_404(Mekan, id=mekan_id)
+    liste.mekanlar.add(mekan)
+    return JsonResponse({'ok': True, 'mesaj': f'"{mekan.ad}" listeye eklendi.'})
+
+
+@login_required
+@require_POST
+def liste_mekan_cikar(request, liste_id, mekan_id):
+    liste = get_object_or_404(MekanListesi, id=liste_id, olusturan=request.user)
+    mekan = get_object_or_404(Mekan, id=mekan_id)
+    liste.mekanlar.remove(mekan)
+    return JsonResponse({'ok': True})
+
+
+@login_required
+@require_POST
+def liste_sil(request, liste_id):
+    liste = get_object_or_404(MekanListesi, id=liste_id, olusturan=request.user)
+    ad = liste.ad
+    liste.delete()
+    messages.success(request, f'"{ad}" listesi silindi.')
+    return redirect('listelerim')
+
+
+# ── Yorum Yanıtı (Sahip) ─────────────────────────────────────────────────────
+
+@login_required
+def yorum_yanit(request, yorum_id):
+    yorum = get_object_or_404(Yorum, id=yorum_id)
+    if yorum.mekan.sahibi != request.user:
+        messages.error(request, 'Sadece mekan sahibi yanıt verebilir.')
+        return redirect('mekan_detay', mekan_id=yorum.mekan_id)
+    if request.method == 'POST':
+        form = YorumYanitForm(request.POST)
+        if hasattr(yorum, 'yanit'):
+            form = YorumYanitForm(request.POST, instance=yorum.yanit)
+        if form.is_valid():
+            yanit = form.save(commit=False)
+            yanit.yorum = yorum
+            yanit.yazan = request.user
+            yanit.save()
+            bildirim_olustur(
+                alici=yorum.yazar,
+                tip='YANIT',
+                mesaj=f'{request.user.username} yorumunuza yanıt verdi.',
+                link=f'/mekan/{yorum.mekan_id}/',
+                gonderen=request.user,
+            )
+            messages.success(request, 'Yanıtınız kaydedildi.')
+    return redirect('mekan_detay', mekan_id=yorum.mekan_id)
+
+
+# ── Rezervasyon ───────────────────────────────────────────────────────────────
+
+@login_required
+@require_POST
+def rezervasyon_olustur(request, mekan_id):
+    mekan = get_object_or_404(Mekan, id=mekan_id, is_approved=True)
+    if not mekan.rezervasyon_aktif:
+        messages.error(request, 'Bu mekan şu an rezervasyon kabul etmiyor.')
+        return redirect('mekan_detay', mekan_id=mekan_id)
+    form = RezervasyonForm(request.POST)
+    if form.is_valid():
+        rez = form.save(commit=False)
+        rez.mekan = mekan
+        rez.kullanici = request.user
+        rez.save()
+        if mekan.sahibi:
+            bildirim_olustur(
+                alici=mekan.sahibi,
+                tip='REZERVASYON',
+                mesaj=f'{request.user.username} rezervasyon talebi gönderdi — {rez.tarih} {rez.saat}',
+                link=f'/owner-dashboard/',
+                gonderen=request.user,
+            )
+        messages.success(request, 'Rezervasyon talebiniz gönderildi! Mekan sahibi onaylayacaktır.')
+    else:
+        for err in form.errors.values():
+            messages.error(request, err[0])
+    return redirect('mekan_detay', mekan_id=mekan_id)
+
+
+@login_required
+def rezervasyonlarim(request):
+    rezervasyonlar = request.user.rezervasyonlarim.select_related('mekan').all()
+    return render(request, 'venues/rezervasyonlarim.html', {'rezervasyonlar': rezervasyonlar})
+
+
+@owner_required
+@require_POST
+def rezervasyon_guncelle(request, rezervasyon_id):
+    rez = get_object_or_404(Rezervasyon, id=rezervasyon_id, mekan__sahibi=request.user)
+    durum = request.POST.get('durum')
+    if durum in ['ONAYLANDI', 'REDDEDILDI']:
+        rez.durum = durum
+        rez.save(update_fields=['durum'])
+        mesaj = 'onaylandı' if durum == 'ONAYLANDI' else 'reddedildi'
+        bildirim_olustur(
+            alici=rez.kullanici,
+            tip='REZERVASYON',
+            mesaj=f'{rez.mekan.ad} rezervasyonunuz {mesaj}.',
+            link=f'/rezervasyonlarim/',
+        )
+        messages.success(request, f'Rezervasyon {mesaj}.')
+    return redirect('owner_dashboard')
+
+
+# ── Kampanyalar ───────────────────────────────────────────────────────────────
+
+@owner_required
+def kampanya_olustur(request, mekan_id):
+    mekan = get_object_or_404(Mekan, id=mekan_id, sahibi=request.user)
+    if request.method == 'POST':
+        form = KampanyaForm(request.POST, request.FILES)
+        if form.is_valid():
+            kampanya = form.save(commit=False)
+            kampanya.mekan = mekan
+            kampanya.save()
+            for takipci in mekan.sahibi.takipcileri.select_related('takipci').all():
+                bildirim_olustur(
+                    alici=takipci.takipci,
+                    tip='KAMPANYA',
+                    mesaj=f'{mekan.ad} yeni kampanya başlattı: {kampanya.baslik}',
+                    link=f'/mekan/{mekan.id}/',
+                )
+            messages.success(request, 'Kampanya oluşturuldu.')
+            return redirect('owner_dashboard')
+    else:
+        form = KampanyaForm()
+    return render(request, 'venues/kampanya_form.html', {'form': form, 'mekan': mekan})
+
+
+@owner_required
+@require_POST
+def kampanya_sil(request, kampanya_id):
+    kampanya = get_object_or_404(Kampanya, id=kampanya_id, mekan__sahibi=request.user)
+    kampanya.delete()
+    messages.success(request, 'Kampanya silindi.')
+    return redirect('owner_dashboard')
+
+
+# ── Menü Yönetimi ─────────────────────────────────────────────────────────────
+
+@owner_required
+def menu_yukle(request, mekan_id):
+    mekan = get_object_or_404(Mekan, id=mekan_id, sahibi=request.user)
+    if request.method == 'POST':
+        form = MenuForm(request.POST, request.FILES, instance=mekan)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Menü güncellendi.')
+        return redirect('owner_dashboard')
+    return redirect('owner_dashboard')
+
+
+# ── Çalışma Saatleri (Günlük) ─────────────────────────────────────────────────
+
+@owner_required
+def calisma_saatleri_duzenle(request, mekan_id):
+    mekan = get_object_or_404(Mekan, id=mekan_id, sahibi=request.user)
+    gun_adlari   = dict(CalismaGunu.GUN_SECENEKLERI)
+    gun_kisaltma = {0:'Pzt', 1:'Sal', 2:'Çar', 3:'Per', 4:'Cum', 5:'Cmt', 6:'Paz'}
+    gun_emoji    = {0:'📅', 1:'📅', 2:'📅', 3:'📅', 4:'🎯', 5:'🎉', 6:'😴'}
+
+    if request.method == 'POST':
+        for gun_no in range(7):
+            acik    = request.POST.get(f'gun_{gun_no}_acik') == 'on'
+            acilis  = request.POST.get(f'gun_{gun_no}_acilis') or None
+            kapanis = request.POST.get(f'gun_{gun_no}_kapanis') or None
+            # "00:00–23:59" → 24 saat açık olarak sakla
+            CalismaGunu.objects.update_or_create(
+                mekan=mekan, gun=gun_no,
+                defaults={'acik': acik, 'acilis': acilis, 'kapanis': kapanis}
+            )
+        messages.success(request, 'Çalışma saatleri güncellendi.')
+        return redirect('owner_dashboard')
+
+    gunler = {g.gun: g for g in mekan.calisma_gunleri.all()}
+    gun_listesi = []
+    for i in range(7):
+        gun_listesi.append({
+            'no':     i,
+            'ad':     gun_adlari[i],
+            'kisalt': gun_kisaltma[i],
+            'emoji':  gun_emoji[i],
+            'obj':    gunler.get(i),
+        })
+    return render(request, 'venues/calisma_saatleri.html', {
+        'mekan': mekan,
+        'gun_listesi': gun_listesi,
+    })
+
+
+# ── Anlık Duyuru (Takipçilere) ────────────────────────────────────────────────
+
+@owner_required
+@require_POST
+def duyuru_yayinla(request, mekan_id):
+    mekan = get_object_or_404(Mekan, id=mekan_id, sahibi=request.user)
+    duyuru = request.POST.get('duyuru', '').strip()
+    if duyuru:
+        mekan.anlik_duyuru = duyuru
+        mekan.save(update_fields=['anlik_duyuru'])
+        for t in mekan.sahibi.takipcileri.select_related('takipci').all():
+            bildirim_olustur(
+                alici=t.takipci,
+                tip='DUYURU',
+                mesaj=f'{mekan.ad}: {duyuru[:80]}',
+                link=f'/mekan/{mekan.id}/',
+            )
+        messages.success(request, f'Duyuru yayınlandı ve {mekan.sahibi.takipcileri.count()} takipçiye bildirildi.')
+    return redirect('owner_dashboard')
+
+
+# ── Popüler Mekanlar (Algoritma) ──────────────────────────────────────────────
+
+@login_required
+def populer_mekanlar(request):
+    from django.db.models import Count as DCount
+    mekanlar = Mekan.objects.filter(is_approved=True).annotate(
+        ort_puan=Avg('yorumlar__puan'),
+        yorum_c=DCount('yorumlar'),
+        favori_c=DCount('favorileyenler'),
+    )
+
+    def skor(m):
+        return (
+            (m.goruntuleme_sayisi or 0) * 0.1 +
+            (m.yorum_c or 0) * 30 +
+            (float(m.ort_puan) if m.ort_puan else 0) * 20 +
+            (m.favori_c or 0) * 40 +
+            (m.doluluk_orani or 0) * 0.1
+        )
+
+    sirali = sorted(mekanlar, key=skor, reverse=True)[:20]
+    return render(request, 'venues/liste.html', {
+        'mekanlar': sirali,
+        'baslik': 'Şu An Popüler',
+        'page_obj': None,
+        'sayfa_araligi': [],
+    })
+
+
+# ── Etkinlik Takvimi ──────────────────────────────────────────────────────────
+
+@login_required
+def etkinlik_takvimi(request):
+    import json as _json
+    from django.utils import timezone as tz
+
+    filtre = request.GET.get('filtre', 'tumu')  # tumu | takip | favori
+
+    etkinlikler = Etkinlik.objects.filter(bitis__gte=tz.now()).select_related('mekan').order_by('baslangic')
+
+    if filtre == 'takip':
+        # Takip edilen kullanıcıların sahip olduğu mekanlardaki etkinlikler
+        takip_edilen_ids = request.user.takip_ettikleri.values_list('takip_edilen_id', flat=True)
+        etkinlikler = etkinlikler.filter(mekan__sahibi_id__in=takip_edilen_ids)
+    elif filtre == 'favori':
+        # Kullanıcının favori mekanlarındaki etkinlikler
+        favori_mekan_ids = request.user.favori_mekanlar.values_list('id', flat=True)
+        etkinlikler = etkinlikler.filter(mekan_id__in=favori_mekan_ids)
+
+    renk_map = {'tumu': '#2563eb', 'takip': '#7c3aed', 'favori': '#dc2626'}
+    renk = renk_map.get(filtre, '#2563eb')
+
+    events = []
+    for e in etkinlikler:
+        events.append({
+            'id': e.id,
+            'title': f"{e.baslik} @ {e.mekan.ad}",
+            'start': e.baslangic.isoformat(),
+            'end': e.bitis.isoformat(),
+            'url': f'/mekan/{e.mekan_id}/',
+            'color': renk,
+        })
+    return render(request, 'venues/etkinlik_takvimi.html', {
+        'events_json': _json.dumps(events, ensure_ascii=False),
+        'etkinlikler': etkinlikler,
+        'aktif_filtre': filtre,
+    })

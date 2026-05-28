@@ -1,13 +1,21 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Yorum, Mekan, Etkinlik
+from .models import Yorum, Mekan, Etkinlik, Rezervasyon, Kampanya, MekanListesi, YorumYanit, CalismaGunu
 
 
 class YorumForm(forms.ModelForm):
+    puan = forms.IntegerField(
+        required=False,
+        min_value=1,
+        max_value=5,
+        widget=forms.HiddenInput(attrs={'id': 'puan-input'}),
+        label='Puan'
+    )
+
     class Meta:
         model = Yorum
-        fields = ['icerik', 'fotoğraf']
+        fields = ['puan', 'icerik', 'fotoğraf']
         widgets = {
             'icerik': forms.Textarea(attrs={
                 'class': 'form-control',
@@ -94,3 +102,63 @@ class EtkinlikForm(forms.ModelForm):
             'baslangic': forms.DateTimeInput(attrs={'style': INPUT_STYLE, 'type': 'datetime-local'}),
             'bitis': forms.DateTimeInput(attrs={'style': INPUT_STYLE, 'type': 'datetime-local'}),
         }
+
+
+class RezervasyonForm(forms.ModelForm):
+    class Meta:
+        model = Rezervasyon
+        fields = ['tarih', 'saat', 'kisi_sayisi', 'not_mesaj']
+        widgets = {
+            'tarih': forms.DateInput(attrs={'style': INPUT_STYLE, 'type': 'date'}),
+            'saat': forms.TimeInput(attrs={'style': INPUT_STYLE, 'type': 'time'}),
+            'kisi_sayisi': forms.NumberInput(attrs={'style': INPUT_STYLE, 'min': 1, 'max': 50}),
+            'not_mesaj': forms.Textarea(attrs={'style': INPUT_STYLE, 'rows': 2, 'placeholder': 'Özel isteğiniz varsa belirtin...'}),
+        }
+
+
+class KampanyaForm(forms.ModelForm):
+    class Meta:
+        model = Kampanya
+        fields = ['baslik', 'aciklama', 'baslangic', 'bitis', 'foto']
+        widgets = {
+            'baslik': forms.TextInput(attrs={'style': INPUT_STYLE, 'placeholder': 'Kampanya başlığı'}),
+            'aciklama': forms.Textarea(attrs={'style': INPUT_STYLE, 'rows': 3}),
+            'baslangic': forms.DateTimeInput(attrs={'style': INPUT_STYLE, 'type': 'datetime-local'}),
+            'bitis': forms.DateTimeInput(attrs={'style': INPUT_STYLE, 'type': 'datetime-local'}),
+        }
+
+
+class MekanListesiForm(forms.ModelForm):
+    class Meta:
+        model = MekanListesi
+        fields = ['ad', 'aciklama', 'herkese_acik']
+        widgets = {
+            'ad': forms.TextInput(attrs={'style': INPUT_STYLE, 'placeholder': 'Liste adı'}),
+            'aciklama': forms.Textarea(attrs={'style': INPUT_STYLE, 'rows': 2, 'placeholder': 'Açıklama (opsiyonel)'}),
+            'herkese_acik': forms.CheckboxInput(attrs={'style': CHECKBOX_STYLE}),
+        }
+
+
+class YorumYanitForm(forms.ModelForm):
+    class Meta:
+        model = YorumYanit
+        fields = ['icerik']
+        widgets = {
+            'icerik': forms.Textarea(attrs={'style': INPUT_STYLE, 'rows': 3, 'placeholder': 'Yoruma yanıtınız...'}),
+        }
+
+
+class CalismaGunuForm(forms.ModelForm):
+    class Meta:
+        model = CalismaGunu
+        fields = ['acik', 'acilis', 'kapanis']
+        widgets = {
+            'acilis': forms.TimeInput(attrs={'style': INPUT_STYLE, 'type': 'time'}),
+            'kapanis': forms.TimeInput(attrs={'style': INPUT_STYLE, 'type': 'time'}),
+        }
+
+
+class MenuForm(forms.ModelForm):
+    class Meta:
+        model = Mekan
+        fields = ['menu_pdf', 'menu_foto']

@@ -1,0 +1,82 @@
+{% extends 'venues/base.html' %}
+{% block title %}Yorum Düzenle — {{ mekan.ad }}{% endblock %}
+
+{% block extra_css %}
+.edit-wrap { max-width: 620px; margin: 0 auto; padding: 36px 24px 80px; }
+.edit-wrap h1 { font-size: 22px; font-weight: 800; margin: 12px 0 28px; letter-spacing: -.3px; }
+.back-link { font-size: 13px; font-weight: 600; color: var(--muted); }
+.back-link:hover { color: var(--text); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; box-shadow: var(--shadow); }
+.f-group { margin-bottom: 20px; }
+.f-label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 8px; }
+textarea { width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 100px; background: var(--bg); color: var(--text); transition: .15s; }
+textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); background: var(--surface); }
+.star-picker { display: flex; flex-direction: row-reverse; gap: 4px; justify-content: flex-end; }
+.star-picker input { display: none; }
+.star-picker label { font-size: 28px; color: #e5e7eb; cursor: pointer; transition: color .15s; }
+.star-picker label:hover, .star-picker label:hover ~ label, .star-picker input:checked ~ label { color: #f59e0b; }
+.actions { display: flex; gap: 10px; }
+.btn-save { background: var(--primary); color: white; padding: 12px 24px; border: none; border-radius: 9px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: .15s; }
+.btn-save:hover { background: var(--primary-dark); }
+.btn-cancel { color: var(--muted); padding: 12px 20px; border: 1.5px solid var(--border); border-radius: 9px; font-size: 14px; font-weight: 600; background: transparent; text-decoration: none; transition: .15s; }
+.btn-cancel:hover { background: var(--bg); }
+{% endblock %}
+
+{% block content %}
+<div class="edit-wrap">
+    <a href="{% url 'mekan_detay' mekan.id %}" class="back-link">← {{ mekan.ad }}</a>
+    <h1>Yorumu Düzenle</h1>
+    <div class="card">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.puan }}
+            <div class="f-group">
+                <label class="f-label">Puanın</label>
+                <div class="star-picker" id="star-picker">
+                    <input type="radio" name="star_ui" id="s5" value="5" {% if yorum.puan == 5 %}checked{% endif %}><label for="s5">★</label>
+                    <input type="radio" name="star_ui" id="s4" value="4" {% if yorum.puan == 4 %}checked{% endif %}><label for="s4">★</label>
+                    <input type="radio" name="star_ui" id="s3" value="3" {% if yorum.puan == 3 %}checked{% endif %}><label for="s3">★</label>
+                    <input type="radio" name="star_ui" id="s2" value="2" {% if yorum.puan == 2 %}checked{% endif %}><label for="s2">★</label>
+                    <input type="radio" name="star_ui" id="s1" value="1" {% if yorum.puan == 1 %}checked{% endif %}><label for="s1">★</label>
+                </div>
+            </div>
+            <div class="f-group">
+                <label class="f-label">Yorumun</label>
+                {{ form.icerik }}
+            </div>
+            {% if mevcut_fotolar %}
+            <div class="f-group">
+                <label class="f-label">Mevcut Fotoğraflar</label>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+                    {% for f in mevcut_fotolar %}
+                    <div style="position:relative;">
+                        <img src="{{ f.foto.url }}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">
+                        <form method="POST" action="{% url 'yorum_foto_sil' f.id %}" style="display:inline;" onsubmit="return confirm('Fotoğraf silinsin mi?');">
+                            {% csrf_token %}
+                            <button type="submit" style="position:absolute;top:3px;right:3px;background:rgba(220,38,38,.85);color:white;border:none;border-radius:4px;width:20px;height:20px;font-size:11px;cursor:pointer;line-height:1;">✕</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            <div class="f-group">
+                <label class="f-label">Yeni Fotoğraf Ekle (birden fazla seçebilirsin)</label>
+                <input type="file" name="yorum_fotolar" accept="image/*" multiple
+                       style="font-size:13px;width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);">
+            </div>
+            <div class="actions">
+                <button type="submit" class="btn-save">Kaydet</button>
+                <a href="{% url 'mekan_detay' mekan.id %}" class="btn-cancel">İptal</a>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+document.querySelectorAll('#star-picker input').forEach(input => {
+    input.addEventListener('change', () => {
+        document.getElementById('puan-input').value = input.value;
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'venues/base.html' %}
+{% block title %}Bildirimler — Anlık Mekan{% endblock %}
+
+{% block extra_css %}
+.bildirim-wrap { max-width: 680px; margin: 0 auto; padding: 36px 24px 80px; }
+.bildirim-baslik { font-size: 22px; font-weight: 800; margin-bottom: 24px; letter-spacing: -.3px; }
+.bildirim-kart { display: flex; align-items: flex-start; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 10px; box-shadow: var(--shadow); transition: .15s; }
+.bildirim-kart.okunmadi { border-left: 3px solid var(--primary); background: #eff6ff; }
+[data-theme="dark"] .bildirim-kart.okunmadi { background: #1e3a5f; }
+.bildirim-ikon { width: 38px; height: 38px; border-radius: 10px; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.bildirim-icerik { flex: 1; min-width: 0; }
+.bildirim-mesaj { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; line-height: 1.5; }
+.bildirim-meta { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.bildirim-link { font-size: 12px; color: var(--primary); font-weight: 600; }
+.bildirim-bos { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
+.bildirim-bos span { font-size: 48px; display: block; margin-bottom: 14px; }
+{% endblock %}
+
+{% block content %}
+<div class="bildirim-wrap">
+    <h1 class="bildirim-baslik">🔔 Bildirimler</h1>
+
+    {% if bildirimler %}
+    {% for b in bildirimler %}
+    <div class="bildirim-kart {% if not b.okundu %}okunmadi{% endif %}">
+        <div class="bildirim-ikon">
+            {% if b.tip == 'YORUM' %}💬
+            {% elif b.tip == 'BEGENI' %}❤️
+            {% elif b.tip == 'TAKIP' %}👥
+            {% elif b.tip == 'ONAY' %}✅
+            {% elif b.tip == 'YANIT' %}↩️
+            {% elif b.tip == 'KAMPANYA' %}🎁
+            {% elif b.tip == 'REZERVASYON' %}📅
+            {% elif b.tip == 'DUYURU' %}📢
+            {% else %}🔔{% endif %}
+        </div>
+        <div class="bildirim-icerik">
+            {% if b.link %}
+            <a href="{{ b.link }}" class="bildirim-mesaj" style="text-decoration:none;display:block;">{{ b.mesaj }}</a>
+            {% else %}
+            <div class="bildirim-mesaj">{{ b.mesaj }}</div>
+            {% endif %}
+            <div class="bildirim-meta">
+                <span>{{ b.olusturuldu|date:"d M Y H:i" }}</span>
+                {% if b.gonderen %}<span>Gönderen: <strong>{{ b.gonderen.username }}</strong></span>{% endif %}
+                <span style="background:{% if b.tip == 'YORUM' %}#eff6ff{% elif b.tip == 'BEGENI' %}#fef2f2{% elif b.tip == 'TAKIP' %}#f0fdf4{% elif b.tip == 'REZERVASYON' %}#fdf4ff{% elif b.tip == 'KAMPANYA' %}#fffbeb{% else %}#f8fafc{% endif %};
+                    color:{% if b.tip == 'YORUM' %}#1d4ed8{% elif b.tip == 'BEGENI' %}#dc2626{% elif b.tip == 'TAKIP' %}#15803d{% elif b.tip == 'REZERVASYON' %}#7e22ce{% elif b.tip == 'KAMPANYA' %}#a16207{% else %}#475569{% endif %};
+                    padding:1px 8px;border-radius:4px;font-size:10px;font-weight:700;">{{ b.get_tip_display }}</span>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="bildirim-bos">
+        <span>🔕</span>
+        Henüz bildirim yok. Mekanları keşfettikçe bildirimler burada görünecek.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
