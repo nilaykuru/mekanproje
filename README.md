@@ -209,14 +209,6 @@ DEFAULT_FROM_EMAIL  = EMAIL_HOST_USER
 
 ---
 
-## 🤝 Katkı Sağlayanlar
-
-| Geliştirici | Katkı |
-|-------------|-------|
-| [Nilay](https://github.com/nilaykr) | Proje mimarisi, UI/UX, tüm özellikler |
-| [Elif Güven](https://github.com/ElifGuvenn) | Admin paneli, ruhsat sistemi, QR kod |
-
----
 
 ## 📄 Lisans
 
