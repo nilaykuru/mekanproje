@@ -99,30 +99,28 @@
     {% if kampanyalar %}
     <h2 class="yaklasan-baslik" style="margin-top:32px;"><span class="ic"><i data-lucide="tag"></i></span> Kampanyalar ({{ kampanyalar.count }})</h2>
     {% for k in kampanyalar %}
-    {% if now < k.baslangic %}
-        {% with renk="#22c55e" badge_bg="#dcfce7" badge_text="#15803d" badge_label="Yakında" %}
-    {% elif k.baslangic <= now and now <= k.bitis %}
-        {% with renk="#f59e0b" badge_bg="#fef9c3" badge_text="#a16207" badge_label="Aktif" %}
-    {% else %}
-        {% with renk="#94a3b8" badge_bg="#f1f5f9" badge_text="#64748b" badge_label="Sona Erdi" %}
-    {% endif %}
     <a href="{% url 'mekan_detay' k.mekan.id %}" style="text-decoration:none;display:block;">
-        <div class="etkinlik-kart" style="border-left:3px solid {{ renk }};">
-            <div class="etkinlik-tarih-blok" style="background:{{ renk }};">
+        <div class="etkinlik-kart" style="border-left:3px solid {% if now < k.baslangic %}#22c55e{% elif k.bitis < now %}#94a3b8{% else %}#f59e0b{% endif %};">
+            <div class="etkinlik-tarih-blok" style="background:{% if now < k.baslangic %}#22c55e{% elif k.bitis < now %}#94a3b8{% else %}#f59e0b{% endif %};">
                 <div class="gun">{{ k.baslangic|date:"d" }}</div>
                 <div class="ay">{{ k.baslangic|date:"M" }}</div>
             </div>
             <div class="etkinlik-bilgi">
                 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                     <div class="etkinlik-baslik">{{ k.baslik }}</div>
-                    <span style="background:{{ badge_bg }};color:{{ badge_text }};font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;">{{ badge_label }}</span>
+                    {% if now < k.baslangic %}
+                    <span style="background:#dcfce7;color:#15803d;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;">Yakında</span>
+                    {% elif k.bitis < now %}
+                    <span style="background:#f1f5f9;color:#64748b;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;">Sona Erdi</span>
+                    {% else %}
+                    <span style="background:#fef9c3;color:#a16207;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;">Aktif</span>
+                    {% endif %}
                 </div>
                 <div class="etkinlik-mekan"><span class="ic"><i data-lucide="map-pin"></i></span> {{ k.mekan.ad }}</div>
                 <div class="etkinlik-saat">{{ k.baslangic|date:"d M Y H:i" }} – {{ k.bitis|date:"d M Y H:i" }}</div>
             </div>
         </div>
     </a>
-    {% endwith %}
     {% endfor %}
     {% endif %}
 </div>
