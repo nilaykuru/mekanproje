@@ -1,6 +1,7 @@
 ﻿venv/
 *.pyc
 db.sqlite3
+staticfiles/
 db_backup_yeni.sqlite3
 db_eski.sqlite3
 media/
