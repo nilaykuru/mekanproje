@@ -193,12 +193,15 @@
             <span style="margin-left:12px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;">Sırala</span>
             <select name="siralama" class="sort-select" onchange="this.form.submit()">
                 <option value="" {% if not f.siralama %}selected{% endif %}>Varsayılan</option>
+                <option value="mesafe" {% if f.siralama == 'mesafe' %}selected{% endif %}>📍 Yakınımdakiler</option>
                 <option value="puan" {% if f.siralama == 'puan' %}selected{% endif %}>En Yüksek Puan</option>
                 <option value="doluluk_az" {% if f.siralama == 'doluluk_az' %}selected{% endif %}>En Az Dolu</option>
                 <option value="doluluk_cok" {% if f.siralama == 'doluluk_cok' %}selected{% endif %}>En Çok Dolu</option>
                 <option value="isim_az" {% if f.siralama == 'isim_az' %}selected{% endif %}>İsim A - Z</option>
                 <option value="isim_za" {% if f.siralama == 'isim_za' %}selected{% endif %}>İsim Z - A</option>
             </select>
+            <input type="hidden" name="lat" id="filtre-lat" value="{{ f.lat }}">
+            <input type="hidden" name="lng" id="filtre-lng" value="{{ f.lng }}">
         </div>
 
         <!-- Özellikler -->
@@ -277,6 +280,7 @@
                 &nbsp;·&nbsp; {{ mekan.acilis_saati|time:"H:i" }}–{{ mekan.kapanis_saati|time:"H:i" }}
                 {% endif %}
             </div>
+            {% if mekan.mesafe_yazi %}<div class="mesafe-badge">📍 {{ mekan.mesafe_yazi }}</div>{% endif %}
             <a href="{% url 'mekan_detay' mekan.id %}" class="venue-name">{{ mekan.ad }}</a>
             {% if mekan.ort_puan %}
             <div class="venue-rating">
@@ -333,7 +337,7 @@
 {% if page_obj.has_other_pages %}
 <div class="pagination-wrap">
     {% if page_obj.has_previous %}
-        <a href="{% url 'dashboard' %}?sehir={{ f.sehir }}&kategori={{ f.kategori }}&acik={{ f.acik }}&wifi={{ f.wifi }}&priz={{ f.priz }}&bahce={{ f.bahce }}&pet={{ f.pet }}&engelli={{ f.engelli }}&muzik={{ f.muzik }}&cocuk={{ f.cocuk }}&siralama={{ f.siralama }}&page={{ page_obj.previous_page_number }}" class="page-btn"><span class="ic"><i data-lucide="arrow-left"></i></span></a>
+        <a href="{% url 'dashboard' %}?sehir={{ f.sehir }}&kategori={{ f.kategori }}&acik={{ f.acik }}&wifi={{ f.wifi }}&priz={{ f.priz }}&bahce={{ f.bahce }}&pet={{ f.pet }}&engelli={{ f.engelli }}&muzik={{ f.muzik }}&cocuk={{ f.cocuk }}&siralama={{ f.siralama }}&lat={{ f.lat }}&lng={{ f.lng }}&page={{ page_obj.previous_page_number }}" class="page-btn"><span class="ic"><i data-lucide="arrow-left"></i></span></a>
     {% else %}
         <span class="page-btn disabled"><span class="ic"><i data-lucide="arrow-left"></i></span></span>
     {% endif %}
@@ -344,12 +348,12 @@
         {% elif num == page_obj.number %}
             <span class="page-btn active">{{ num }}</span>
         {% else %}
-            <a href="{% url 'dashboard' %}?sehir={{ f.sehir }}&kategori={{ f.kategori }}&acik={{ f.acik }}&wifi={{ f.wifi }}&priz={{ f.priz }}&bahce={{ f.bahce }}&pet={{ f.pet }}&engelli={{ f.engelli }}&muzik={{ f.muzik }}&cocuk={{ f.cocuk }}&siralama={{ f.siralama }}&page={{ num }}" class="page-btn">{{ num }}</a>
+            <a href="{% url 'dashboard' %}?sehir={{ f.sehir }}&kategori={{ f.kategori }}&acik={{ f.acik }}&wifi={{ f.wifi }}&priz={{ f.priz }}&bahce={{ f.bahce }}&pet={{ f.pet }}&engelli={{ f.engelli }}&muzik={{ f.muzik }}&cocuk={{ f.cocuk }}&siralama={{ f.siralama }}&lat={{ f.lat }}&lng={{ f.lng }}&page={{ num }}" class="page-btn">{{ num }}</a>
         {% endif %}
     {% endfor %}
 
     {% if page_obj.has_next %}
-        <a href="{% url 'dashboard' %}?sehir={{ f.sehir }}&kategori={{ f.kategori }}&acik={{ f.acik }}&wifi={{ f.wifi }}&priz={{ f.priz }}&bahce={{ f.bahce }}&pet={{ f.pet }}&engelli={{ f.engelli }}&muzik={{ f.muzik }}&cocuk={{ f.cocuk }}&siralama={{ f.siralama }}&page={{ page_obj.next_page_number }}" class="page-btn"><span class="ic"><i data-lucide="arrow-right"></i></span></a>
+        <a href="{% url 'dashboard' %}?sehir={{ f.sehir }}&kategori={{ f.kategori }}&acik={{ f.acik }}&wifi={{ f.wifi }}&priz={{ f.priz }}&bahce={{ f.bahce }}&pet={{ f.pet }}&engelli={{ f.engelli }}&muzik={{ f.muzik }}&cocuk={{ f.cocuk }}&siralama={{ f.siralama }}&lat={{ f.lat }}&lng={{ f.lng }}&page={{ page_obj.next_page_number }}" class="page-btn"><span class="ic"><i data-lucide="arrow-right"></i></span></a>
     {% else %}
         <span class="page-btn disabled"><span class="ic"><i data-lucide="arrow-right"></i></span></span>
     {% endif %}
@@ -367,7 +371,35 @@ function clearCheck(isim) {
 function clearSelect(isim) {
     const sel = document.querySelector('select[name="' + isim + '"]');
     if (sel) sel.value = '';
+    if (isim === 'siralama') {
+        document.getElementById('filtre-lat').value = '';
+        document.getElementById('filtre-lng').value = '';
+    }
     document.getElementById('filtre-form').submit();
 }
+
+// Sıralama select değişince — "mesafe" seçilince konum iste
+document.querySelector('select[name="siralama"]').addEventListener('change', function () {
+    if (this.value !== 'mesafe') { this.form.submit(); return; }
+    const konum = JSON.parse(sessionStorage.getItem('user_konum') || 'null');
+    if (konum) {
+        document.getElementById('filtre-lat').value = konum.lat;
+        document.getElementById('filtre-lng').value = konum.lng;
+        this.form.submit();
+        return;
+    }
+    if (!navigator.geolocation) { this.value = ''; alert('Tarayıcınız konum desteklemiyor.'); return; }
+    const sel = this;
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            const k = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            sessionStorage.setItem('user_konum', JSON.stringify(k));
+            document.getElementById('filtre-lat').value = k.lat;
+            document.getElementById('filtre-lng').value = k.lng;
+            sel.form.submit();
+        },
+        () => { sel.value = ''; alert('Konum alınamadı. Lütfen tarayıcı izinlerini kontrol edin.'); }
+    );
+});
 </script>
 {% endblock %}

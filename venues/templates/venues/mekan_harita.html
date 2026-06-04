@@ -277,6 +277,8 @@ main {
         <button class="filtre-btn {% if aktif_engelli %}aktif{% endif %}" onclick="ozellikFiltre('engelli')"><span class="ic"><i data-lucide="accessibility"></i></span> Engelli</button>
         <button class="filtre-btn {% if aktif_muzik %}aktif{% endif %}" onclick="ozellikFiltre('muzik')"><span class="ic"><i data-lucide="music"></i></span> Canlı Müzik</button>
         <button class="filtre-btn {% if aktif_sigara %}aktif{% endif %}" onclick="ozellikFiltre('sigara')"><span class="ic"><i data-lucide="cigarette"></i></span> Sigara</button>
+        <div class="filtre-sep"></div>
+        <button class="filtre-btn {% if aktif_konum %}aktif-yesil{% endif %}" id="konum-harita-btn" onclick="konumHaritaFiltre()"><span class="ic"><i data-lucide="navigation"></i></span> Yakınımdakiler</button>
         {% if aktif_acik or aktif_wifi or aktif_priz or aktif_bahce or aktif_pet or aktif_engelli or aktif_muzik or aktif_sigara %}
         <a href="?" onclick="temizleOzellikler(event)" class="filtre-btn" style="color:var(--danger);border-color:#fca5a5;"><span class="ic"><i data-lucide="x-circle"></i></span> Temizle</a>
         {% endif %}
@@ -309,7 +311,7 @@ main {
                     </div>
                 {% endif %}
                 <div class="row-info">
-                    <div class="row-name">{{ mekan.ad }}</div>
+                    <div class="row-name">{{ mekan.ad }}{% if mekan.mesafe_yazi %} <span style="font-size:10px;font-weight:700;color:#2563eb;background:#eff6ff;padding:1px 5px;border-radius:4px;margin-left:4px;">📍 {{ mekan.mesafe_yazi }}</span>{% endif %}</div>
                     <div class="row-cat">{{ mekan.get_kategori_display }}</div>
                     <div class="row-bottom">
                         {% if mekan.ort_puan %}
@@ -552,6 +554,22 @@ function ozellikFiltre(ozellik) {
         p.set(ozellik, '1');
     }
     window.location.search = p.toString();
+}
+function konumHaritaFiltre() {
+    const p = new URLSearchParams(window.location.search);
+    if (p.get('lat')) { p.delete('lat'); p.delete('lng'); window.location.search = p.toString(); return; }
+    const konum = JSON.parse(sessionStorage.getItem('user_konum') || 'null');
+    if (konum) { p.set('lat', konum.lat); p.set('lng', konum.lng); window.location.search = p.toString(); return; }
+    if (!navigator.geolocation) { alert('Tarayıcınız konum desteklemiyor.'); return; }
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            const k = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            sessionStorage.setItem('user_konum', JSON.stringify(k));
+            p.set('lat', k.lat); p.set('lng', k.lng);
+            window.location.search = p.toString();
+        },
+        () => alert('Konum alınamadı. Lütfen tarayıcı izinlerini kontrol edin.')
+    );
 }
 function temizleOzellikler(e) {
     e.preventDefault();

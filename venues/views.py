@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.db.models import Q, Avg, F
 import json
+import math
 import random
 import string
 import qrcode
@@ -24,6 +25,16 @@ from .forms import (YorumForm, MekanForm, EtkinlikForm, KayitFormu,
                     YorumYanitForm, CalismaGunuForm, MenuForm)
 
 SAYFA_BOYUTU = 12
+
+def haversine_py(lat1, lng1, lat2, lng2):
+    R = 6371
+    lat1, lng1, lat2, lng2 = map(math.radians, [float(lat1), float(lng1), float(lat2), float(lng2)])
+    dlat, dlng = lat2 - lat1, lng2 - lng1
+    a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlng/2)**2
+    return R * 2 * math.asin(math.sqrt(a))
+
+def mesafe_yazi(km):
+    return f"{int(km * 1000)} m" if km < 1 else f"{km:.1f} km"
 
 TUM_SEHIRLER = [
     ('adana','Adana'),('adiyaman','Adıyaman'),('afyonkarahisar','Afyonkarahisar'),
@@ -232,6 +243,8 @@ def dashboard(request):
         'muzik':    request.GET.get('muzik', ''),
         'cocuk':    request.GET.get('cocuk', ''),
         'siralama': request.GET.get('siralama', ''),
+        'lat':      request.GET.get('lat', ''),
+        'lng':      request.GET.get('lng', ''),
     }
 
     if f['sehir']:    mekanlar = mekanlar.filter(sehir=f['sehir'])
@@ -258,6 +271,24 @@ def dashboard(request):
     # acik_mi property DB'de hesaplanamaz (gece yarısı geçen saatler dahil) → Python filtresi
     if f['acik']:
         mekanlar = [m for m in mekanlar if m.acik_mi]
+
+    # Konuma göre sıralama
+    if f['siralama'] == 'mesafe' and f['lat'] and f['lng']:
+        try:
+            ulat, ulng = float(f['lat']), float(f['lng'])
+            if not isinstance(mekanlar, list):
+                mekanlar = list(mekanlar)
+            for m in mekanlar:
+                if m.latitude and m.longitude:
+                    d = haversine_py(ulat, ulng, m.latitude, m.longitude)
+                    m.mesafe = d
+                    m.mesafe_yazi = mesafe_yazi(d)
+                else:
+                    m.mesafe = 99999
+                    m.mesafe_yazi = None
+            mekanlar.sort(key=lambda m: m.mesafe)
+        except (ValueError, TypeError):
+            pass
 
     aktif_filtre_sayisi = sum(1 for v in f.values() if v)
 
@@ -988,6 +1019,8 @@ def mekan_harita(request):
     engelli  = request.GET.get('engelli', '')
     muzik    = request.GET.get('muzik', '')
     sigara   = request.GET.get('sigara', '')
+    user_lat = request.GET.get('lat', '')
+    user_lng = request.GET.get('lng', '')
 
     mekanlar_qs = Mekan.objects.filter(is_approved=True).annotate(ort_puan=Avg('yorumlar__puan'))
     if sehir:    mekanlar_qs = mekanlar_qs.filter(sehir=sehir)
@@ -1006,6 +1039,22 @@ def mekan_harita(request):
     # acik filtresi Python seviyesinde (acik_mi property DB'de hesaplanamaz)
     if acik:
         mekanlar_liste = [m for m in mekanlar_liste if m.acik_mi]
+
+    # Konuma göre sıralama
+    if user_lat and user_lng:
+        try:
+            ulat, ulng = float(user_lat), float(user_lng)
+            for m in mekanlar_liste:
+                if m.latitude and m.longitude:
+                    d = haversine_py(ulat, ulng, m.latitude, m.longitude)
+                    m.mesafe = d
+                    m.mesafe_yazi = mesafe_yazi(d)
+                else:
+                    m.mesafe = 99999
+                    m.mesafe_yazi = None
+            mekanlar_liste.sort(key=lambda m: m.mesafe)
+        except (ValueError, TypeError):
+            pass
 
     # Harita için koordinatı olan mekanları JSON'a çevir
     harita_verisi = []
@@ -1051,6 +1100,9 @@ def mekan_harita(request):
         'kategori_secenekleri': Mekan.KATEGORI_SECIMLERI,
         'toplam_mekan': len(mekanlar_liste),
         'haritada_mekan': len(harita_verisi),
+        'aktif_konum': bool(user_lat and user_lng),
+        'user_lat': user_lat,
+        'user_lng': user_lng,
     })
 
 
