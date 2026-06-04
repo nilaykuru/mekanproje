@@ -326,11 +326,17 @@
                 <p style="font-size:13px;color:var(--muted);">Henüz rezervasyon talebi yok.</p>
                 {% endif %}
                 {% endwith %}
-                <div style="margin-top:14px;display:flex;align-items:center;gap:10px;">
+                <div style="margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                     <span style="font-size:12px;font-weight:600;color:var(--muted);">Rezervasyon alma:</span>
-                    <form method="POST" action="{% url 'mekan_duzenle' mekan.id %}" id="rez-aktif-form-{{ mekan.id }}" style="display:inline;">
+                    <form method="POST" action="{% url 'rezervasyon_toggle' mekan.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-xs {% if mekan.rezervasyon_aktif %}btn-xs-del{% else %}btn-xs-edit{% endif %}">
+                            {% if mekan.rezervasyon_aktif %}Kapat{% else %}Aç{% endif %}
+                        </button>
                     </form>
-                    <a href="{% url 'mekan_duzenle' mekan.id %}" class="btn-xs btn-xs-edit">Mekan ayarlarından düzenle</a>
+                    <span style="font-size:12px;color:var(--muted);">
+                        Şu an: <strong>{% if mekan.rezervasyon_aktif %}Açık{% else %}Kapalı{% endif %}</strong>
+                    </span>
                 </div>
             </div>
 

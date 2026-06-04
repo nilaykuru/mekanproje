@@ -95,6 +95,7 @@ urlpatterns = [
     # Rezervasyon
     path('mekan/<int:mekan_id>/rezervasyon/', views.rezervasyon_olustur, name='rezervasyon_olustur'),
     path('rezervasyonlarim/', views.rezervasyonlarim, name='rezervasyonlarim'),
+    path('mekan/<int:mekan_id>/rezervasyon-toggle/', views.rezervasyon_toggle, name='rezervasyon_toggle'),
     path('rezervasyon/<int:rezervasyon_id>/guncelle/', views.rezervasyon_guncelle, name='rezervasyon_guncelle'),
     path('rezervasyon/<int:rezervasyon_id>/iptal/', views.rezervasyon_iptal, name='rezervasyon_iptal'),
 

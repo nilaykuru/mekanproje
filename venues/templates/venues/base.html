@@ -330,8 +330,10 @@
 
     {% if user.is_authenticated and user.profile.rol != 'OWNER' %}
     <form action="{% url 'arama' %}" method="GET" class="navbar-search" autocomplete="off" id="search-form">
-        <input type="text" name="q" id="search-input" placeholder="Mekan, adres veya kategori ara..."
+        <input type="text" name="q" id="search-input"
+               placeholder="{% if arama_filtre %}{{ baslik|default:'Bu sayfada' }} ara...{% else %}Mekan, adres veya kategori ara...{% endif %}"
                value="{% if request.GET.q %}{{ request.GET.q }}{% endif %}">
+        {% if arama_filtre %}<input type="hidden" name="filtre" id="search-filtre" value="{{ arama_filtre }}">{% else %}<input type="hidden" name="filtre" id="search-filtre" value="">{% endif %}
         <div id="search-dropdown"></div>
     </form>
     {% endif %}
@@ -479,7 +481,9 @@ function kartaTikla(e, url) {
         const q = this.value.trim();
         if (!q) { close(); return; }
         timer = setTimeout(() => {
-            fetch(`/arama/api/?q=${encodeURIComponent(q)}`)
+            const filtre = document.getElementById('search-filtre')?.value || '';
+            const url = `/arama/api/?q=${encodeURIComponent(q)}${filtre ? '&filtre=' + filtre : ''}`;
+            fetch(url)
                 .then(r => r.json())
                 .then(d => render(d.sonuclar))
                 .catch(() => close());

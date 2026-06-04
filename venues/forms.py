@@ -63,6 +63,7 @@ class MekanForm(forms.ModelForm):
             'wifi_var', 'priz_var', 'calisma_alani_var', 'otopark_var', 'sigara_icin_uygun',
             'bahce_var', 'engelli_erisimi_var', 'canli_muzik_var',
             'evcil_hayvan_izinli', 'cocuk_oyun_alani_var',
+            'rezervasyon_aktif',
         ]
         widgets = {
             'ad': forms.TextInput(attrs={'style': INPUT_STYLE, 'placeholder': 'Mekan adı'}),
@@ -88,6 +89,7 @@ class MekanForm(forms.ModelForm):
             'evcil_hayvan_izinli': forms.CheckboxInput(attrs={'style': CHECKBOX_STYLE}),
             'cocuk_oyun_alani_var': forms.CheckboxInput(attrs={'style': CHECKBOX_STYLE}),
             'su_an_acik': forms.CheckboxInput(attrs={'style': CHECKBOX_STYLE}),
+            'rezervasyon_aktif': forms.CheckboxInput(attrs={'style': CHECKBOX_STYLE}),
         }
         # Ruhsat belgesi dosya alanı
         ruhsat_belgesi = forms.ImageField(required=False, widget=forms.ClearableFileInput(attrs={'style': 'width:100%;'}))

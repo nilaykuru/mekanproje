@@ -29,16 +29,30 @@
 [data-theme="dark"] .fc-daygrid-day { background: var(--surface); }
 [data-theme="dark"] .fc-col-header-cell { background: var(--bg); color: var(--muted); }
 [data-theme="dark"] .fc-scrollgrid { border-color: var(--border); }
+
+/* Takvim event hover */
+.fc-event { transition: transform .15s, box-shadow .15s, filter .15s; cursor: pointer; }
+.fc-event:hover { transform: scale(1.06); box-shadow: 0 4px 14px rgba(0,0,0,.22); filter: brightness(1.08); z-index: 99 !important; }
+
+/* Renk açıklaması */
+.renk-aciklama { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
+.renk-dot { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--text); }
+.renk-dot span { width:13px; height:13px; border-radius:4px; flex-shrink:0; }
+
+/* Liste kartları */
+.etkinlik-kart { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 18px; margin-bottom:8px; box-shadow:var(--shadow); display:flex; gap:14px; align-items:center; transition:.15s; }
+.etkinlik-kart:hover { box-shadow:var(--shadow-md); transform:translateY(-1px); }
 {% endblock %}
 
 {% block content %}
 <div class="takvim-wrap">
     <h1 class="takvim-baslik"><span class="ic"><i data-lucide="calendar"></i></span> Etkinlik & Kampanya Takvimi</h1>
     <p class="takvim-alt">Etkinlikler ve kampanyalar — takip ettiklerinden veya favorilerinden filtrele.</p>
-    <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px;font-size:12px;font-weight:600;">
-        <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:3px;background:#2563eb;display:inline-block;"></span> Etkinlik</span>
-        <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:3px;background:#f59e0b;display:inline-block;"></span> Aktif Kampanya</span>
-        <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:3px;background:#94a3b8;display:inline-block;"></span> Sona Eren Kampanya</span>
+    <div class="renk-aciklama">
+        <span class="renk-dot"><span style="background:#2563eb;"></span> Etkinlik</span>
+        <span class="renk-dot"><span style="background:#22c55e;"></span> Yaklaşan Kampanya</span>
+        <span class="renk-dot"><span style="background:#f59e0b;"></span> Aktif Kampanya</span>
+        <span class="renk-dot"><span style="background:#94a3b8;"></span> Sona Eren Kampanya</span>
     </div>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
@@ -85,26 +99,30 @@
     {% if kampanyalar %}
     <h2 class="yaklasan-baslik" style="margin-top:32px;"><span class="ic"><i data-lucide="tag"></i></span> Kampanyalar ({{ kampanyalar.count }})</h2>
     {% for k in kampanyalar %}
+    {% if now < k.baslangic %}
+        {% with renk="#22c55e" badge_bg="#dcfce7" badge_text="#15803d" badge_label="Yakında" %}
+    {% elif k.baslangic <= now and now <= k.bitis %}
+        {% with renk="#f59e0b" badge_bg="#fef9c3" badge_text="#a16207" badge_label="Aktif" %}
+    {% else %}
+        {% with renk="#94a3b8" badge_bg="#f1f5f9" badge_text="#64748b" badge_label="Sona Erdi" %}
+    {% endif %}
     <a href="{% url 'mekan_detay' k.mekan.id %}" style="text-decoration:none;display:block;">
-        <div class="etkinlik-kart" style="border-left:3px solid {% if k.baslangic <= now and now <= k.bitis %}#f59e0b{% else %}#e2e8f0{% endif %};">
-            <div class="etkinlik-tarih-blok" style="background:{% if k.baslangic <= now and now <= k.bitis %}#f59e0b{% else %}#94a3b8{% endif %};">
+        <div class="etkinlik-kart" style="border-left:3px solid {{ renk }};">
+            <div class="etkinlik-tarih-blok" style="background:{{ renk }};">
                 <div class="gun">{{ k.baslangic|date:"d" }}</div>
                 <div class="ay">{{ k.baslangic|date:"M" }}</div>
             </div>
             <div class="etkinlik-bilgi">
-                <div style="display:flex;align-items:center;gap:6px;">
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                     <div class="etkinlik-baslik">{{ k.baslik }}</div>
-                    {% if k.baslangic <= now and now <= k.bitis %}
-                    <span style="background:#fef9c3;color:#a16207;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;">Aktif</span>
-                    {% else %}
-                    <span style="background:#f1f5f9;color:#64748b;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;">Sona Erdi</span>
-                    {% endif %}
+                    <span style="background:{{ badge_bg }};color:{{ badge_text }};font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;">{{ badge_label }}</span>
                 </div>
                 <div class="etkinlik-mekan"><span class="ic"><i data-lucide="map-pin"></i></span> {{ k.mekan.ad }}</div>
                 <div class="etkinlik-saat">{{ k.baslangic|date:"d M Y H:i" }} – {{ k.bitis|date:"d M Y H:i" }}</div>
             </div>
         </div>
     </a>
+    {% endwith %}
     {% endfor %}
     {% endif %}
 </div>
@@ -130,6 +148,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 info.jsEvent.preventDefault();
                 window.location.href = info.event.url;
             }
+        },
+        eventDidMount: function(info) {
+            // Tooltip
+            var tip = info.event.extendedProps.tip === 'kampanya'
+                ? '🏷 Kampanya: ' + info.event.title.replace('🏷 ', '')
+                : '🎭 Etkinlik: ' + info.event.title.replace('🎭 ', '');
+            info.el.setAttribute('title', tip);
         },
         height: 'auto',
         buttonText: {

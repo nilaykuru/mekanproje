@@ -283,30 +283,69 @@ def dashboard(request):
     })
 
 
+FILTRE_ETIKET = {
+    'calisma': 'Çalışma Alanları',
+    'acik': 'Şu An Açık',
+    'eczane': 'Eczaneler',
+    'favori': 'Favorilerim',
+}
+
+def _filtre_uygula(qs, filtre, user=None):
+    if filtre == 'calisma':
+        return qs.filter(Q(kategori='KUTUPHANE') | Q(calisma_alani_var=True))
+    if filtre == 'eczane':
+        return qs.filter(kategori='ECZANE')
+    if filtre == 'favori' and user and user.is_authenticated:
+        return qs.filter(id__in=user.favori_mekanlar.values_list('id', flat=True))
+    if filtre == 'acik':
+        return [m for m in qs if m.acik_mi]
+    return qs
+
+
 @login_required(login_url='login')
 def arama_api(request):
     q = request.GET.get('q', '').strip()
     if not q:
         return JsonResponse({'sonuclar': []})
-    mekanlar = Mekan.objects.filter(is_approved=True).filter(
+    filtre = request.GET.get('filtre', '')
+    qs = Mekan.objects.filter(is_approved=True).filter(
         Q(ad__icontains=q) | Q(adres__icontains=q) | Q(kategori__icontains=q)
-    ).values('id', 'ad', 'kategori', 'sehir')[:8]
-    return JsonResponse({'sonuclar': list(mekanlar)})
+    )
+    qs = _filtre_uygula(qs, filtre, request.user)
+    if isinstance(qs, list):
+        sonuclar = [{'id': m.id, 'ad': m.ad, 'kategori': m.kategori, 'sehir': m.sehir} for m in qs[:8]]
+    else:
+        sonuclar = list(qs.values('id', 'ad', 'kategori', 'sehir')[:8])
+    return JsonResponse({'sonuclar': sonuclar})
 
 
 @login_required(login_url='login')
 def arama(request):
     q = request.GET.get('q', '').strip()
+    filtre = request.GET.get('filtre', '')
     mekanlar = Mekan.objects.filter(is_approved=True).annotate(ort_puan=Avg('yorumlar__puan'))
+
     if q:
         mekanlar = mekanlar.filter(
             Q(ad__icontains=q) | Q(adres__icontains=q) | Q(kategori__icontains=q)
         )
-        baslik = f'"{q}" için {mekanlar.count()} sonuç'
+
+    mekanlar = _filtre_uygula(mekanlar, filtre, request.user)
+
+    filtre_adi = FILTRE_ETIKET.get(filtre, '')
+    if q and filtre_adi:
+        baslik = f'"{q}" — {filtre_adi} içinde'
+    elif q:
+        baslik = f'"{q}" için sonuçlar'
+    elif filtre_adi:
+        baslik = filtre_adi
     else:
         baslik = 'Tüm Mekanlar'
 
-    paginator = Paginator(mekanlar, SAYFA_BOYUTU)
+    if isinstance(mekanlar, list):
+        paginator = Paginator(mekanlar, SAYFA_BOYUTU)
+    else:
+        paginator = Paginator(mekanlar, SAYFA_BOYUTU)
     page_obj = paginator.get_page(request.GET.get('page'))
     return render(request, 'venues/liste.html', {
         'mekanlar': page_obj,
@@ -314,12 +353,12 @@ def arama(request):
         'sayfa_araligi': paginator.get_elided_page_range(page_obj.number, on_each_side=2, on_ends=1),
         'baslik': baslik,
         'q': q,
+        'arama_filtre': filtre,
     })
 
 
 @login_required(login_url='login')
 def su_an_acik_olanlar(request):
-    # acik_mi property'sini kullan: saati olan mekanlarda saate göre, olmayanlar su_an_acik ile
     mekanlar_qs = Mekan.objects.filter(is_approved=True).annotate(ort_puan=Avg('yorumlar__puan'))
     mekanlar = [m for m in mekanlar_qs if m.acik_mi]
     paginator = Paginator(mekanlar, SAYFA_BOYUTU)
@@ -328,6 +367,7 @@ def su_an_acik_olanlar(request):
         'mekanlar': page_obj, 'page_obj': page_obj,
         'sayfa_araligi': paginator.get_elided_page_range(page_obj.number, on_each_side=2, on_ends=1),
         'baslik': f'Şu An Açık Olan Mekanlar ({len(mekanlar)})',
+        'arama_filtre': 'acik',
     })
 
 
@@ -344,6 +384,7 @@ def calisma_alanlari(request):
         'mekanlar': page_obj, 'page_obj': page_obj,
         'sayfa_araligi': paginator.get_elided_page_range(page_obj.number, on_each_side=2, on_ends=1),
         'baslik': 'Çalışma Alanları',
+        'arama_filtre': 'calisma',
     })
 
 
@@ -356,6 +397,7 @@ def acil_ihtiyaclar(request):
         'mekanlar': page_obj, 'page_obj': page_obj,
         'sayfa_araligi': paginator.get_elided_page_range(page_obj.number, on_each_side=2, on_ends=1),
         'baslik': 'Nöbetçi/Açık Eczaneler',
+        'arama_filtre': 'eczane',
     })
 
 
@@ -378,6 +420,7 @@ def favorilerim(request):
         'mekanlar': page_obj, 'page_obj': page_obj,
         'sayfa_araligi': paginator.get_elided_page_range(page_obj.number, on_each_side=2, on_ends=1),
         'baslik': 'Favori Mekanlarım',
+        'arama_filtre': 'favori',
     })
 
 
@@ -1207,6 +1250,17 @@ def yorum_yanit(request, yorum_id):
 
 # ── Rezervasyon ───────────────────────────────────────────────────────────────
 
+@owner_required
+@require_POST
+def rezervasyon_toggle(request, mekan_id):
+    mekan = get_object_or_404(Mekan, id=mekan_id, sahibi=request.user)
+    mekan.rezervasyon_aktif = not mekan.rezervasyon_aktif
+    mekan.save(update_fields=['rezervasyon_aktif'])
+    durum = 'açıldı' if mekan.rezervasyon_aktif else 'kapatıldı'
+    messages.success(request, f'Rezervasyon alma {durum}.')
+    return redirect('owner_dashboard')
+
+
 @login_required
 @require_POST
 def rezervasyon_olustur(request, mekan_id):
@@ -1449,6 +1503,7 @@ def etkinlik_takvimi(request):
         etkinlikler = etkinlikler.filter(mekan_id__in=favori_mekan_ids)
         kampanyalar = kampanyalar.filter(mekan_id__in=favori_mekan_ids)
 
+    from datetime import timedelta, date as _date
     renk_map = {'tumu': '#2563eb', 'takip': '#7c3aed', 'favori': '#dc2626'}
     etkinlik_renk = renk_map.get(filtre, '#2563eb')
 
@@ -1461,16 +1516,29 @@ def etkinlik_takvimi(request):
             'end': e.bitis.isoformat(),
             'url': f'/mekan/{e.mekan_id}/',
             'color': etkinlik_renk,
+            'extendedProps': {'tip': 'etkinlik'},
         })
     for k in kampanyalar:
-        aktif = k.baslangic <= now <= k.bitis
+        if now < k.baslangic:
+            renk = '#22c55e'   # yeşil: yakında
+            durum = 'Yakında'
+        elif k.baslangic <= now <= k.bitis:
+            renk = '#f59e0b'   # turuncu: aktif
+            durum = 'Aktif'
+        else:
+            renk = '#94a3b8'   # gri: sona erdi
+            durum = 'Sona Erdi'
+        # allDay eventlerde end exclusive — bir gün ekle
+        end_date = (k.bitis.date() + timedelta(days=1)).isoformat()
         events.append({
             'id': f'k_{k.id}',
             'title': f'🏷 {k.baslik} — {k.mekan.ad}',
-            'start': k.baslangic.isoformat(),
-            'end': k.bitis.isoformat(),
+            'start': k.baslangic.date().isoformat(),
+            'end': end_date,
             'url': f'/mekan/{k.mekan_id}/',
-            'color': '#f59e0b' if aktif else '#94a3b8',
+            'color': renk,
+            'allDay': True,
+            'extendedProps': {'tip': 'kampanya', 'durum': durum},
         })
 
     return render(request, 'venues/etkinlik_takvimi.html', {
