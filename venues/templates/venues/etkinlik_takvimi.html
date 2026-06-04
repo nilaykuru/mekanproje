@@ -33,8 +33,13 @@
 
 {% block content %}
 <div class="takvim-wrap">
-    <h1 class="takvim-baslik"><span class="ic"><i data-lucide="calendar"></i></span> Etkinlik Takvimi</h1>
-    <p class="takvim-alt">Yaklaşan etkinlikler — takip ettiklerinden veya favorilerinden filtrele.</p>
+    <h1 class="takvim-baslik"><span class="ic"><i data-lucide="calendar"></i></span> Etkinlik & Kampanya Takvimi</h1>
+    <p class="takvim-alt">Etkinlikler ve kampanyalar — takip ettiklerinden veya favorilerinden filtrele.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px;font-size:12px;font-weight:600;">
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:3px;background:#2563eb;display:inline-block;"></span> Etkinlik</span>
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:3px;background:#f59e0b;display:inline-block;"></span> Aktif Kampanya</span>
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:3px;background:#94a3b8;display:inline-block;"></span> Sona Eren Kampanya</span>
+    </div>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
         <a href="?filtre=tumu"
@@ -76,6 +81,32 @@
     {% empty %}
     <div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;">Yaklaşan etkinlik yok.</div>
     {% endfor %}
+
+    {% if kampanyalar %}
+    <h2 class="yaklasan-baslik" style="margin-top:32px;"><span class="ic"><i data-lucide="tag"></i></span> Kampanyalar ({{ kampanyalar.count }})</h2>
+    {% for k in kampanyalar %}
+    <a href="{% url 'mekan_detay' k.mekan.id %}" style="text-decoration:none;display:block;">
+        <div class="etkinlik-kart" style="border-left:3px solid {% if k.baslangic <= now and now <= k.bitis %}#f59e0b{% else %}#e2e8f0{% endif %};">
+            <div class="etkinlik-tarih-blok" style="background:{% if k.baslangic <= now and now <= k.bitis %}#f59e0b{% else %}#94a3b8{% endif %};">
+                <div class="gun">{{ k.baslangic|date:"d" }}</div>
+                <div class="ay">{{ k.baslangic|date:"M" }}</div>
+            </div>
+            <div class="etkinlik-bilgi">
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <div class="etkinlik-baslik">{{ k.baslik }}</div>
+                    {% if k.baslangic <= now and now <= k.bitis %}
+                    <span style="background:#fef9c3;color:#a16207;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;">Aktif</span>
+                    {% else %}
+                    <span style="background:#f1f5f9;color:#64748b;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;">Sona Erdi</span>
+                    {% endif %}
+                </div>
+                <div class="etkinlik-mekan"><span class="ic"><i data-lucide="map-pin"></i></span> {{ k.mekan.ad }}</div>
+                <div class="etkinlik-saat">{{ k.baslangic|date:"d M Y H:i" }} – {{ k.bitis|date:"d M Y H:i" }}</div>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+    {% endif %}
 </div>
 
 <script>

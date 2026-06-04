@@ -332,9 +332,14 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
     </div>
     {% endif %}
 
-    {% if mekan.rezervasyon_aktif and user.is_authenticated %}
+    {% if user.is_authenticated %}
     <div class="rezervasyon-card">
         <h3><span class="ic"><i data-lucide="calendar"></i></span> Rezervasyon Yap</h3>
+        {% if not mekan.rezervasyon_aktif %}
+        <div style="padding:16px;background:#f8fafc;border-radius:8px;text-align:center;color:var(--muted);font-size:13px;font-weight:600;">
+            <span class="ic"><i data-lucide="clock"></i></span> Bu mekan şu an rezervasyon kabul etmiyor.
+        </div>
+        {% else %}
         <form method="POST" action="{% url 'rezervasyon_olustur' mekan.id %}">
             {% csrf_token %}
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
@@ -357,6 +362,7 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
             </div>
             <button type="submit" class="btn-comment">Rezervasyon Talebi Gönder</button>
         </form>
+        {% endif %}
     </div>
     {% endif %}
 

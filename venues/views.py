@@ -1434,34 +1434,49 @@ def etkinlik_takvimi(request):
     import json as _json
     from django.utils import timezone as tz
 
-    filtre = request.GET.get('filtre', 'tumu')  # tumu | takip | favori
+    filtre = request.GET.get('filtre', 'tumu')
+    now = tz.now()
 
-    etkinlikler = Etkinlik.objects.filter(bitis__gte=tz.now()).select_related('mekan').order_by('baslangic')
+    etkinlikler = Etkinlik.objects.filter(bitis__gte=now).select_related('mekan').order_by('baslangic')
+    kampanyalar = Kampanya.objects.select_related('mekan').order_by('-baslangic')
 
     if filtre == 'takip':
-        # Takip edilen kullanıcıların sahip olduğu mekanlardaki etkinlikler
         takip_edilen_ids = request.user.takip_ettikleri.values_list('takip_edilen_id', flat=True)
         etkinlikler = etkinlikler.filter(mekan__sahibi_id__in=takip_edilen_ids)
+        kampanyalar = kampanyalar.filter(mekan__sahibi_id__in=takip_edilen_ids)
     elif filtre == 'favori':
-        # Kullanıcının favori mekanlarındaki etkinlikler
         favori_mekan_ids = request.user.favori_mekanlar.values_list('id', flat=True)
         etkinlikler = etkinlikler.filter(mekan_id__in=favori_mekan_ids)
+        kampanyalar = kampanyalar.filter(mekan_id__in=favori_mekan_ids)
 
     renk_map = {'tumu': '#2563eb', 'takip': '#7c3aed', 'favori': '#dc2626'}
-    renk = renk_map.get(filtre, '#2563eb')
+    etkinlik_renk = renk_map.get(filtre, '#2563eb')
 
     events = []
     for e in etkinlikler:
         events.append({
-            'id': e.id,
-            'title': f"{e.baslik} @ {e.mekan.ad}",
+            'id': f'e_{e.id}',
+            'title': f'🎭 {e.baslik} — {e.mekan.ad}',
             'start': e.baslangic.isoformat(),
             'end': e.bitis.isoformat(),
             'url': f'/mekan/{e.mekan_id}/',
-            'color': renk,
+            'color': etkinlik_renk,
         })
+    for k in kampanyalar:
+        aktif = k.baslangic <= now <= k.bitis
+        events.append({
+            'id': f'k_{k.id}',
+            'title': f'🏷 {k.baslik} — {k.mekan.ad}',
+            'start': k.baslangic.isoformat(),
+            'end': k.bitis.isoformat(),
+            'url': f'/mekan/{k.mekan_id}/',
+            'color': '#f59e0b' if aktif else '#94a3b8',
+        })
+
     return render(request, 'venues/etkinlik_takvimi.html', {
         'events_json': _json.dumps(events, ensure_ascii=False),
         'etkinlikler': etkinlikler,
+        'kampanyalar': kampanyalar,
         'aktif_filtre': filtre,
+        'now': now,
     })
