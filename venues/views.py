@@ -309,7 +309,7 @@ def arama_api(request):
         return JsonResponse({'sonuclar': []})
     filtre = request.GET.get('filtre', '')
     qs = Mekan.objects.filter(is_approved=True).filter(
-        Q(ad__icontains=q) | Q(adres__icontains=q) | Q(kategori__icontains=q)
+        Q(ad__icontains=q) | Q(adres__icontains=q) | Q(sehir__icontains=q)
     )
     qs = _filtre_uygula(qs, filtre, request.user)
     if isinstance(qs, list):
@@ -327,7 +327,7 @@ def arama(request):
 
     if q:
         mekanlar = mekanlar.filter(
-            Q(ad__icontains=q) | Q(adres__icontains=q) | Q(kategori__icontains=q)
+            Q(ad__icontains=q) | Q(adres__icontains=q) | Q(sehir__icontains=q)
         )
 
     mekanlar = _filtre_uygula(mekanlar, filtre, request.user)
