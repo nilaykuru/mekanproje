@@ -93,6 +93,7 @@ class Mekan(models.Model):
 
     wifi_var = models.BooleanField(default=False)
     priz_var = models.BooleanField(default=False)
+    calisma_alani_var = models.BooleanField(default=False, verbose_name='Çalışma Alanı')
     otopark_var = models.BooleanField(default=False)
     sigara_icin_uygun = models.BooleanField(default=False)
     bahce_var = models.BooleanField(default=False)

@@ -273,8 +273,12 @@
 
             <!-- Rezervasyonlar Sekmesi -->
             <div id="tab-rez-{{ mekan.id }}" class="tab-pane">
-                {% with bekleyenler=mekan.rezervasyonlar.all %}
-                {% if bekleyenler %}
+                {% with tum_rezervasyonlar=mekan.rezervasyonlar.all %}
+                {% if tum_rezervasyonlar %}
+                <div style="margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap;">
+                    <button onclick="rezFiltre(this,'BEKLIYOR','{{ mekan.id }}')" class="btn-xs btn-xs-edit rez-filtre-btn active-filtre" data-mekan="{{ mekan.id }}" style="font-size:11px;">Bekleyenler</button>
+                    <button onclick="rezFiltre(this,'TUMU','{{ mekan.id }}')" class="btn-xs rez-filtre-btn" data-mekan="{{ mekan.id }}" style="font-size:11px;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 8px;cursor:pointer;font-family:inherit;">Tümü</button>
+                </div>
                 <div style="overflow-x:auto;">
                     <table style="width:100%;border-collapse:collapse;font-size:13px;">
                         <thead>
@@ -287,8 +291,8 @@
                             </tr>
                         </thead>
                         <tbody>
-                        {% for rez in bekleyenler %}
-                        <tr style="border-bottom:1px solid var(--border);">
+                        {% for rez in tum_rezervasyonlar %}
+                        <tr style="border-bottom:1px solid var(--border);{% if rez.durum != 'BEKLIYOR' %}display:none;{% endif %}" data-durum="{{ rez.durum }}" class="rez-satir-{{ mekan.id }}">
                             <td style="padding:9px 10px;font-weight:600;">{{ rez.kullanici.username }}</td>
                             <td style="padding:9px 10px;">{{ rez.tarih|date:"d M Y" }} {{ rez.saat|time:"H:i" }}</td>
                             <td style="padding:9px 10px;">{{ rez.kisi_sayisi }}</td>
@@ -532,6 +536,19 @@ function sekmeAc(evt, id) {
     kart.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     evt.target.classList.add('active');
+}
+
+function rezFiltre(btn, durum, mekanId) {
+    const satirlar = document.querySelectorAll('.rez-satir-' + mekanId);
+    satirlar.forEach(tr => {
+        tr.style.display = (durum === 'TUMU' || tr.dataset.durum === durum) ? '' : 'none';
+    });
+    btn.closest('.tab-pane').querySelectorAll('.rez-filtre-btn').forEach(b => {
+        b.style.background = '';
+        b.style.color = '';
+    });
+    btn.style.background = 'var(--primary)';
+    btn.style.color = 'white';
 }
 </script>
 {% endblock %}

@@ -284,6 +284,17 @@ def dashboard(request):
 
 
 @login_required(login_url='login')
+def arama_api(request):
+    q = request.GET.get('q', '').strip()
+    if not q:
+        return JsonResponse({'sonuclar': []})
+    mekanlar = Mekan.objects.filter(is_approved=True).filter(
+        Q(ad__icontains=q) | Q(adres__icontains=q) | Q(kategori__icontains=q)
+    ).values('id', 'ad', 'kategori', 'sehir')[:8]
+    return JsonResponse({'sonuclar': list(mekanlar)})
+
+
+@login_required(login_url='login')
 def arama(request):
     q = request.GET.get('q', '').strip()
     mekanlar = Mekan.objects.filter(is_approved=True).annotate(ort_puan=Avg('yorumlar__puan'))
@@ -325,14 +336,14 @@ def calisma_alanlari(request):
     mekanlar = Mekan.objects.filter(
         is_approved=True
     ).filter(
-        Q(kategori='KUTUPHANE') | Q(wifi_var=True) | Q(priz_var=True)
+        Q(kategori='KUTUPHANE') | Q(calisma_alani_var=True)
     ).annotate(ort_puan=Avg('yorumlar__puan'))
     paginator = Paginator(mekanlar, SAYFA_BOYUTU)
     page_obj = paginator.get_page(request.GET.get('page'))
     return render(request, 'venues/liste.html', {
         'mekanlar': page_obj, 'page_obj': page_obj,
         'sayfa_araligi': paginator.get_elided_page_range(page_obj.number, on_each_side=2, on_ends=1),
-        'baslik': 'Çalışma Alanları (WiFi & Priz)',
+        'baslik': 'Çalışma Alanları',
     })
 
 
@@ -407,7 +418,16 @@ def mekan_detay(request, mekan_id):
             ).values_list('yorum_id', flat=True)
         )
 
+    takip_ediyor = False
+    if request.user.is_authenticated and mekan.sahibi:
+        takip_ediyor = Takip.objects.filter(
+            takipci=request.user, takip_edilen=mekan.sahibi
+        ).exists()
+
     from django.utils import timezone as tz
+    now = tz.now()
+    aktif_kampanyalar = [k for k in mekan.kampanyalar.all() if k.baslangic <= now <= k.bitis]
+
     return render(request, 'venues/mekan_detay.html', {
         'mekan': mekan,
         'yorumlar': yorumlar,
@@ -416,6 +436,8 @@ def mekan_detay(request, mekan_id):
         'form': form,
         'bugun_no': tz.localtime().weekday(),
         'kullanici_begenileri': kullanici_begenileri,
+        'takip_ediyor': takip_ediyor,
+        'aktif_kampanyalar': aktif_kampanyalar,
     })
 
 
@@ -1033,6 +1055,31 @@ def yorum_begen(request, yorum_id):
 
 @login_required
 @require_POST
+def mekan_takip(request, mekan_id):
+    mekan = get_object_or_404(Mekan, id=mekan_id)
+    if not mekan.sahibi:
+        return JsonResponse({'hata': 'Bu mekanın sahibi yok'}, status=400)
+    if mekan.sahibi == request.user:
+        return JsonResponse({'hata': 'Kendi mekanınızı takip edemezsiniz'}, status=400)
+    obj, created = Takip.objects.get_or_create(takipci=request.user, takip_edilen=mekan.sahibi)
+    if not created:
+        obj.delete()
+        takip_ediyor = False
+    else:
+        takip_ediyor = True
+        bildirim_olustur(
+            alici=mekan.sahibi,
+            tip='TAKIP',
+            mesaj=f'{request.user.username} mekanınızı takip etmeye başladı.',
+            link=f'/mekan/{mekan.id}/',
+            gonderen=request.user,
+        )
+    takipci_sayisi = mekan.sahibi.takipcileri.count()
+    return JsonResponse({'takip_ediyor': takip_ediyor, 'takipci_sayisi': takipci_sayisi})
+
+
+@login_required
+@require_POST
 def kullanici_takip(request, kullanici_id):
     from django.contrib.auth.models import User as DjangoUser
     hedef = get_object_or_404(DjangoUser, id=kullanici_id)
@@ -1170,6 +1217,10 @@ def rezervasyon_olustur(request, mekan_id):
     form = RezervasyonForm(request.POST)
     if form.is_valid():
         rez = form.save(commit=False)
+        from django.utils import timezone as tz
+        if rez.tarih < tz.localdate():
+            messages.error(request, 'Geçmiş bir tarihe rezervasyon yapamazsınız.')
+            return redirect('mekan_detay', mekan_id=mekan_id)
         rez.mekan = mekan
         rez.kullanici = request.user
         rez.save()
@@ -1192,6 +1243,26 @@ def rezervasyon_olustur(request, mekan_id):
 def rezervasyonlarim(request):
     rezervasyonlar = request.user.rezervasyonlarim.select_related('mekan').all()
     return render(request, 'venues/rezervasyonlarim.html', {'rezervasyonlar': rezervasyonlar})
+
+
+@login_required
+@require_POST
+def rezervasyon_iptal(request, rezervasyon_id):
+    rez = get_object_or_404(Rezervasyon, id=rezervasyon_id, kullanici=request.user)
+    if rez.durum != 'BEKLIYOR':
+        messages.error(request, 'Sadece bekleyen rezervasyonlar iptal edilebilir.')
+        return redirect('rezervasyonlarim')
+    rez.durum = 'IPTAL'
+    rez.save(update_fields=['durum'])
+    if rez.mekan.sahibi:
+        bildirim_olustur(
+            alici=rez.mekan.sahibi,
+            tip='REZERVASYON',
+            mesaj=f'{request.user.username} rezervasyonunu iptal etti — {rez.tarih} {rez.saat}',
+            link='/owner-dashboard/',
+        )
+    messages.success(request, 'Rezervasyonunuz iptal edildi.')
+    return redirect('rezervasyonlarim')
 
 
 @owner_required

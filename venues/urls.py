@@ -7,6 +7,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('index/', views.dashboard, name='index'),
     path('arama/', views.arama, name='arama'),
+    path('arama/api/', views.arama_api, name='arama_api'),
     path('login/', views.user_login, name='login'),
     path('register/', views.register, name='register'),
     path('logout/', views.user_logout, name='logout'),
@@ -27,6 +28,7 @@ urlpatterns = [
     path('mekan/<int:mekan_id>/duzenle/', views.mekan_duzenle, name='mekan_duzenle'),
     path('mekan/<int:mekan_id>/sil/', views.mekan_sil, name='mekan_sil'),
     path('mekan/<int:mekan_id>/durum/', views.durum_guncelle, name='durum_guncelle'),
+    path('mekan/<int:mekan_id>/takip/', views.mekan_takip, name='mekan_takip'),
 
     # Etkinlik CRUD
     path('mekan/<int:mekan_id>/etkinlik/olustur/', views.etkinlik_olustur, name='etkinlik_olustur'),
@@ -94,6 +96,7 @@ urlpatterns = [
     path('mekan/<int:mekan_id>/rezervasyon/', views.rezervasyon_olustur, name='rezervasyon_olustur'),
     path('rezervasyonlarim/', views.rezervasyonlarim, name='rezervasyonlarim'),
     path('rezervasyon/<int:rezervasyon_id>/guncelle/', views.rezervasyon_guncelle, name='rezervasyon_guncelle'),
+    path('rezervasyon/<int:rezervasyon_id>/iptal/', views.rezervasyon_iptal, name='rezervasyon_iptal'),
 
     # Kampanya
     path('mekan/<int:mekan_id>/kampanya/olustur/', views.kampanya_olustur, name='kampanya_olustur'),

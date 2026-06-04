@@ -287,6 +287,36 @@
         /* ── Lucide icon helpers ─────────────────── */
         .ic { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
         .ic svg { width:1em; height:1em; stroke:currentColor; stroke-width:2; fill:none; stroke-linecap:round; stroke-linejoin:round; vertical-align:middle; }
+
+        /* ── Canlı arama dropdown ────────────────── */
+        .navbar-search { position: relative; }
+        #search-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0; right: 0;
+            background: var(--bg);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            z-index: 9999;
+            display: none;
+        }
+        #search-dropdown.open { display: block; }
+        .sd-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: background .12s;
+            text-decoration: none;
+            color: var(--text);
+        }
+        .sd-item:hover, .sd-item.active { background: var(--surface); }
+        .sd-item-name { font-weight: 600; font-size: 14px; flex: 1; }
+        .sd-item-meta { font-size: 12px; color: var(--muted); white-space: nowrap; }
+        .sd-empty { padding: 12px 14px; font-size: 13px; color: var(--muted); text-align: center; }
     </style>
 </head>
 <body>
@@ -299,9 +329,10 @@
     </a>
 
     {% if user.is_authenticated and user.profile.rol != 'OWNER' %}
-    <form action="{% url 'arama' %}" method="GET" class="navbar-search">
-        <input type="text" name="q" placeholder="Mekan, adres veya kategori ara..."
+    <form action="{% url 'arama' %}" method="GET" class="navbar-search" autocomplete="off" id="search-form">
+        <input type="text" name="q" id="search-input" placeholder="Mekan, adres veya kategori ara..."
                value="{% if request.GET.q %}{{ request.GET.q }}{% endif %}">
+        <div id="search-dropdown"></div>
     </form>
     {% endif %}
 
@@ -404,5 +435,79 @@ setInterval(guncelleBildirimBadge, 60000);
 
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script>document.addEventListener('DOMContentLoaded', () => lucide.createIcons());</script>
+
+<script>
+function kartaTikla(e, url) {
+    if (e.target.closest('a, button, form')) return;
+    window.location.href = url;
+}
+
+(function () {
+    const input = document.getElementById('search-input');
+    const dropdown = document.getElementById('search-dropdown');
+    if (!input) return;
+
+    let timer, activeIdx = -1;
+
+    function kategoriLabel(k) {
+        const m = {KAFE:'Kafe', KUTUPHANE:'Kütüphane', ECZANE:'Eczane', RESTORAN:'Restoran', PUB:'Pub'};
+        return m[k] || k;
+    }
+
+    function render(sonuclar) {
+        activeIdx = -1;
+        if (!sonuclar.length) {
+            dropdown.innerHTML = '<div class="sd-empty">Sonuç bulunamadı</div>';
+        } else {
+            dropdown.innerHTML = sonuclar.map(m =>
+                `<a class="sd-item" href="/mekan/${m.id}/">
+                    <span class="sd-item-name">${m.ad}</span>
+                    <span class="sd-item-meta">${kategoriLabel(m.kategori)}${m.sehir ? ' · ' + m.sehir : ''}</span>
+                </a>`
+            ).join('');
+        }
+        dropdown.classList.add('open');
+    }
+
+    function close() {
+        dropdown.classList.remove('open');
+        activeIdx = -1;
+    }
+
+    input.addEventListener('input', function () {
+        clearTimeout(timer);
+        const q = this.value.trim();
+        if (!q) { close(); return; }
+        timer = setTimeout(() => {
+            fetch(`/arama/api/?q=${encodeURIComponent(q)}`)
+                .then(r => r.json())
+                .then(d => render(d.sonuclar))
+                .catch(() => close());
+        }, 180);
+    });
+
+    input.addEventListener('keydown', function (e) {
+        const items = dropdown.querySelectorAll('.sd-item');
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeIdx = Math.min(activeIdx + 1, items.length - 1);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeIdx = Math.max(activeIdx - 1, -1);
+        } else if (e.key === 'Escape') {
+            close(); return;
+        } else if (e.key === 'Enter' && activeIdx >= 0) {
+            e.preventDefault();
+            items[activeIdx].click(); return;
+        } else { return; }
+        items.forEach((el, i) => el.classList.toggle('active', i === activeIdx));
+        if (activeIdx >= 0) items[activeIdx].scrollIntoView({block: 'nearest'});
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!document.getElementById('search-form').contains(e.target)) close();
+    });
+})();
+</script>
 </body>
 </html>

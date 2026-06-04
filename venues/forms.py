@@ -60,7 +60,7 @@ class MekanForm(forms.ModelForm):
             'img', 'ruhsat_belgesi', 'acilis_saati', 'kapanis_saati',
             'su_an_acik', 'doluluk_orani', 'anlik_duyuru',
             'latitude', 'longitude',
-            'wifi_var', 'priz_var', 'otopark_var', 'sigara_icin_uygun',
+            'wifi_var', 'priz_var', 'calisma_alani_var', 'otopark_var', 'sigara_icin_uygun',
             'bahce_var', 'engelli_erisimi_var', 'canli_muzik_var',
             'evcil_hayvan_izinli', 'cocuk_oyun_alani_var',
         ]
@@ -79,6 +79,7 @@ class MekanForm(forms.ModelForm):
             'longitude': forms.HiddenInput(),
             'wifi_var': forms.CheckboxInput(attrs={'style': CHECKBOX_STYLE}),
             'priz_var': forms.CheckboxInput(attrs={'style': CHECKBOX_STYLE}),
+            'calisma_alani_var': forms.CheckboxInput(attrs={'style': CHECKBOX_STYLE}),
             'otopark_var': forms.CheckboxInput(attrs={'style': CHECKBOX_STYLE}),
             'sigara_icin_uygun': forms.CheckboxInput(attrs={'style': CHECKBOX_STYLE}),
             'bahce_var': forms.CheckboxInput(attrs={'style': CHECKBOX_STYLE}),

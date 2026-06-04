@@ -230,8 +230,22 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
             </div>
             {% endif %}
 
+            {% if user.is_authenticated and mekan.sahibi and mekan.sahibi != user %}
+            <div style="margin-bottom:14px;">
+                <button id="takip-btn"
+                    data-mekan="{{ mekan.id }}"
+                    data-takip="{{ takip_ediyor|yesno:'true,false' }}"
+                    onclick="mekanTakipToggle(this)"
+                    style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s;border:1.5px solid {% if takip_ediyor %}var(--border){% else %}var(--primary){% endif %};background:{% if takip_ediyor %}var(--surface){% else %}var(--primary){% endif %};color:{% if takip_ediyor %}var(--text){% else %}white{% endif %};">
+                    <span class="ic"><i data-lucide="{% if takip_ediyor %}bell-off{% else %}bell{% endif %}" id="takip-icon"></i></span>
+                    <span id="takip-label">{% if takip_ediyor %}Takip Ediliyor{% else %}Takip Et{% endif %}</span>
+                </button>
+            </div>
+            {% endif %}
+
             <div class="tags">
                 <span class="tag" style="background:#eff6ff;color:#1e40af;">{{ mekan.get_kategori_display }}</span>
+                {% if mekan.calisma_alani_var or mekan.kategori == 'KUTUPHANE' %}<span class="tag" style="background:#f5f3ff;color:#6d28d9;">Çalışma Alanı</span>{% endif %}
                 {% if mekan.wifi_var %}<span class="tag" style="background:#eff6ff;color:#1d4ed8;">Wi-Fi</span>{% endif %}
                 {% if mekan.priz_var %}<span class="tag" style="background:#f0fdf4;color:#15803d;">Priz</span>{% endif %}
                 {% if mekan.otopark_var %}<span class="tag" style="background:#fff7ed;color:#c2410c;">Otopark</span>{% endif %}
@@ -249,22 +263,18 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
     <div class="duyuru-bar"><span class="ic"><i data-lucide="megaphone"></i></span> {{ mekan.anlik_duyuru }}</div>
     {% endif %}
 
-    {% with aktif_kampanyalar=mekan.kampanyalar.all %}
     {% if aktif_kampanyalar %}
     <div style="margin-bottom:28px;">
         <h2 class="section-title"><span class="ic"><i data-lucide="tag"></i></span> Aktif Kampanyalar</h2>
         {% for k in aktif_kampanyalar %}
-        {% if k.aktif_mi %}
         <div class="kampanya-card">
             <h4>{{ k.baslik }}</h4>
             <p>{{ k.aciklama }}</p>
             <small>{{ k.baslangic|date:"d M Y H:i" }} – {{ k.bitis|date:"d M Y H:i" }}</small>
         </div>
-        {% endif %}
         {% endfor %}
     </div>
     {% endif %}
-    {% endwith %}
 
     {% with gunler=mekan.calisma_gunleri.all %}
     {% if gunler %}
@@ -330,7 +340,7 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
                 <div>
                     <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;">TARİH</label>
-                    <input type="date" name="tarih" required style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;background:var(--bg);color:var(--text);">
+                    <input type="date" name="tarih" required id="rez-tarih" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;background:var(--bg);color:var(--text);">
                 </div>
                 <div>
                     <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;">SAAT</label>
@@ -582,5 +592,40 @@ document.querySelectorAll('#star-picker input').forEach(input => {
         if (dots[cur]) dots[cur].classList.add('active');
     };
 })();
+</script>
+
+<script>
+// Rezervasyon tarihi min = bugün
+(function() {
+    const rezTarih = document.getElementById('rez-tarih');
+    if (rezTarih) {
+        rezTarih.min = new Date().toISOString().split('T')[0];
+    }
+})();
+
+function mekanTakipToggle(btn) {
+    const mekanId = btn.dataset.mekan;
+    const csrf = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+    btn.disabled = true;
+    fetch(`/mekan/${mekanId}/takip/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrf},
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.hata) { btn.disabled = false; return; }
+        const takip = d.takip_ediyor;
+        btn.dataset.takip = takip;
+        document.getElementById('takip-label').textContent = takip ? 'Takip Ediliyor' : 'Takip Et';
+        btn.style.background = takip ? 'var(--surface)' : 'var(--primary)';
+        btn.style.color = takip ? 'var(--text)' : 'white';
+        btn.style.borderColor = takip ? 'var(--border)' : 'var(--primary)';
+        const iconEl = document.getElementById('takip-icon');
+        iconEl.setAttribute('data-lucide', takip ? 'bell-off' : 'bell');
+        lucide.createIcons();
+        btn.disabled = false;
+    })
+    .catch(() => { btn.disabled = false; });
+}
 </script>
 {% endblock %}

@@ -303,6 +303,7 @@
             </div>
             {% endif %}
             <div class="tags">
+                {% if mekan.calisma_alani_var or mekan.kategori == 'KUTUPHANE' %}<span class="tag" style="background:#f5f3ff;color:#6d28d9;">Çalışma Alanı</span>{% endif %}
                 {% if mekan.wifi_var %}<span class="tag" style="background:#eff6ff;color:#1d4ed8;">Wi-Fi</span>{% endif %}
                 {% if mekan.priz_var %}<span class="tag" style="background:#f0fdf4;color:#15803d;">Priz</span>{% endif %}
                 {% if mekan.otopark_var %}<span class="tag" style="background:#fff7ed;color:#c2410c;">Otopark</span>{% endif %}
@@ -367,11 +368,6 @@ function clearSelect(isim) {
     const sel = document.querySelector('select[name="' + isim + '"]');
     if (sel) sel.value = '';
     document.getElementById('filtre-form').submit();
-}
-// Mekan kartına tıkla — link ve butonlara tıklanırsa iptal et
-function kartaTikla(e, url) {
-    if (e.target.closest('a, button, form')) return;
-    window.location.href = url;
 }
 </script>
 {% endblock %}

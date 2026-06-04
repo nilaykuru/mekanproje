@@ -60,6 +60,12 @@
             {% endif %}
             <div style="font-size:11px;color:var(--muted);margin-top:6px;">Talep: {{ rez.olusturuldu|date:"d M Y H:i" }}</div>
         </div>
+        {% if rez.durum == 'BEKLIYOR' %}
+        <form method="POST" action="{% url 'rezervasyon_iptal' rez.id %}" onsubmit="return confirm('Rezervasyonu iptal etmek istediğinizden emin misiniz?')">
+            {% csrf_token %}
+            <button type="submit" style="background:none;border:1.5px solid #fca5a5;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;color:#dc2626;cursor:pointer;font-family:inherit;white-space:nowrap;">İptal Et</button>
+        </form>
+        {% endif %}
     </div>
     {% endfor %}
     {% else %}
