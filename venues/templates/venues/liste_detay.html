@@ -26,11 +26,11 @@
     <a href="{% url 'listelerim' %}" class="back-link">&#8592; Listelerim</a>
 
     <div class="liste-header">
-        <h1>📂 {{ liste.ad }}</h1>
+        <h1><span class="ic"><i data-lucide="folder"></i></span> {{ liste.ad }}</h1>
         <p>
             {{ liste.mekanlar.count }} mekan
             {% if liste.aciklama %} · {{ liste.aciklama }}{% endif %}
-            {% if not liste.herkese_acik %} · 🔒 Gizli{% else %} · 🌐 Herkese Açık{% endif %}
+            {% if not liste.herkese_acik %} · <span class="ic"><i data-lucide="lock"></i></span> Gizli{% else %} · <span class="ic"><i data-lucide="globe"></i></span> Herkese Açık{% endif %}
             · Oluşturan: <a href="{% url 'kullanici_profil' liste.olusturan.id %}" style="color:var(--primary);font-weight:700;">{{ liste.olusturan.username }}</a>
         </p>
     </div>
@@ -44,12 +44,12 @@
             <img src="{{ mekan.img.url }}" class="mekan-kart-img" alt="{{ mekan.ad }}">
             {% else %}
             <div class="mekan-kart-ph">
-                {% if mekan.kategori == 'KAFE' %}☕
-                {% elif mekan.kategori == 'RESTORAN' %}🍽️
-                {% elif mekan.kategori == 'KUTUPHANE' %}📚
-                {% elif mekan.kategori == 'ECZANE' %}💊
-                {% elif mekan.kategori == 'PUB' %}🍺
-                {% else %}📍{% endif %}
+                {% if mekan.kategori == 'KAFE' %}<span class="ic"><i data-lucide="coffee"></i></span>
+                {% elif mekan.kategori == 'RESTORAN' %}<span class="ic"><i data-lucide="utensils"></i></span>
+                {% elif mekan.kategori == 'KUTUPHANE' %}<span class="ic"><i data-lucide="book-open"></i></span>
+                {% elif mekan.kategori == 'ECZANE' %}<span class="ic"><i data-lucide="pill"></i></span>
+                {% elif mekan.kategori == 'PUB' %}<span class="ic"><i data-lucide="beer"></i></span>
+                {% else %}<span class="ic"><i data-lucide="map-pin"></i></span>{% endif %}
             </div>
             {% endif %}
             <div class="mekan-kart-body">

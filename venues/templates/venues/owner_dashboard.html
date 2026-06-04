@@ -114,7 +114,7 @@
     {% if not request.user.profile.is_verified %}
     <div class="verify-banner">
         <div class="verify-banner-text">
-            🔐 Hesabınız henüz 2FA ile doğrulanmadı — mekan ekleyemezsiniz.
+            <span class="ic"><i data-lucide="lock"></i></span> Hesabınız henüz 2FA ile doğrulanmadı — mekan ekleyemezsiniz.
             <small><a href="{% url 'qr_kod_olustur' %}" style="color: #b45309; font-weight: 700;">Doğrulama sayfasına gidin</a></small>
         </div>
     </div>
@@ -187,12 +187,12 @@
             <div class="vpc-tabs">
                 <button class="tab-btn active" onclick="sekmeAc(event, 'tab-e-{{ mekan.id }}')">Etkinlikler</button>
                 <button class="tab-btn" onclick="sekmeAc(event, 'tab-b-{{ mekan.id }}')">Mekan Bilgisi</button>
-                <button class="tab-btn" onclick="sekmeAc(event, 'tab-g-{{ mekan.id }}')">📷 Galeri</button>
-                <button class="tab-btn" onclick="sekmeAc(event, 'tab-rez-{{ mekan.id }}')">📅 Rezervasyonlar</button>
-                <button class="tab-btn" onclick="sekmeAc(event, 'tab-kamp-{{ mekan.id }}')">🎁 Kampanyalar</button>
-                <button class="tab-btn" onclick="sekmeAc(event, 'tab-menu-{{ mekan.id }}')">📋 Menü</button>
-                <button class="tab-btn" onclick="sekmeAc(event, 'tab-cs-{{ mekan.id }}')">🕐 Çalışma Saatleri</button>
-                <button class="tab-btn" onclick="sekmeAc(event, 'tab-s-{{ mekan.id }}')">📊 İstatistik</button>
+                <button class="tab-btn" onclick="sekmeAc(event, 'tab-g-{{ mekan.id }}')"><span class="ic"><i data-lucide="camera"></i></span> Galeri</button>
+                <button class="tab-btn" onclick="sekmeAc(event, 'tab-rez-{{ mekan.id }}')"><span class="ic"><i data-lucide="calendar"></i></span> Rezervasyonlar</button>
+                <button class="tab-btn" onclick="sekmeAc(event, 'tab-kamp-{{ mekan.id }}')"><span class="ic"><i data-lucide="tag"></i></span> Kampanyalar</button>
+                {% if mekan.kategori != 'ECZANE' and mekan.kategori != 'KUTUPHANE' %}<button class="tab-btn" onclick="sekmeAc(event, 'tab-menu-{{ mekan.id }}')"><span class="ic"><i data-lucide="clipboard"></i></span> Menü</button>{% endif %}
+                <button class="tab-btn" onclick="sekmeAc(event, 'tab-cs-{{ mekan.id }}')"><span class="ic"><i data-lucide="clock"></i></span> Çalışma Saatleri</button>
+                <button class="tab-btn" onclick="sekmeAc(event, 'tab-s-{{ mekan.id }}')"><span class="ic"><i data-lucide="bar-chart-2"></i></span> İstatistik</button>
             </div>
 
             <div id="tab-e-{{ mekan.id }}" class="tab-pane active">
@@ -250,7 +250,7 @@
                 <form method="POST" action="{% url 'mekan_foto_yukle' mekan.id %}" enctype="multipart/form-data" style="margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
                     {% csrf_token %}
                     <input type="file" name="fotolar" accept="image/*" multiple style="font-size:13px;flex:1;min-width:180px;">
-                    <button type="submit" class="btn-add" style="margin:0;">📤 Fotoğraf Yükle</button>
+                    <button type="submit" class="btn-add" style="margin:0;"><span class="ic"><i data-lucide="upload"></i></span> Fotoğraf Yükle</button>
                 </form>
                 {% with fotolar=mekan.fotolar.all %}
                 {% if fotolar %}
@@ -357,6 +357,7 @@
             </div>
 
             <!-- Menü Sekmesi -->
+            {% if mekan.kategori != 'ECZANE' and mekan.kategori != 'KUTUPHANE' %}
             <div id="tab-menu-{{ mekan.id }}" class="tab-pane">
                 <form method="POST" action="{% url 'menu_yukle' mekan.id %}" enctype="multipart/form-data">
                     {% csrf_token %}
@@ -373,6 +374,7 @@
                     <button type="submit" class="btn-add" style="margin:0;">Menüyü Güncelle</button>
                 </form>
             </div>
+            {% endif %}
 
             <!-- Çalışma Saatleri Sekmesi -->
             <div id="tab-cs-{{ mekan.id }}" class="tab-pane">

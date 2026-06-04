@@ -245,26 +245,26 @@ main {
         <div class="filtre-sep"></div>
         <span class="filtre-label">Kategori:</span>
         <button class="filtre-btn {% if not aktif_kategori %}aktif{% endif %}" onclick="katFiltre('')">Tümü</button>
-        <button class="filtre-btn {% if aktif_kategori == 'KAFE' %}aktif{% endif %}" onclick="katFiltre('KAFE')">☕ Kafe</button>
-        <button class="filtre-btn {% if aktif_kategori == 'RESTORAN' %}aktif{% endif %}" onclick="katFiltre('RESTORAN')">🍽️ Restoran</button>
-        <button class="filtre-btn {% if aktif_kategori == 'ECZANE' %}aktif{% endif %}" onclick="katFiltre('ECZANE')">💊 Eczane</button>
-        <button class="filtre-btn {% if aktif_kategori == 'KUTUPHANE' %}aktif{% endif %}" onclick="katFiltre('KUTUPHANE')">📚 Kütüphane</button>
-        <button class="filtre-btn {% if aktif_kategori == 'PUB' %}aktif{% endif %}" onclick="katFiltre('PUB')">🍺 Pub</button>
+        <button class="filtre-btn {% if aktif_kategori == 'KAFE' %}aktif{% endif %}" onclick="katFiltre('KAFE')"><span class="ic"><i data-lucide="coffee"></i></span> Kafe</button>
+        <button class="filtre-btn {% if aktif_kategori == 'RESTORAN' %}aktif{% endif %}" onclick="katFiltre('RESTORAN')"><span class="ic"><i data-lucide="utensils"></i></span> Restoran</button>
+        <button class="filtre-btn {% if aktif_kategori == 'ECZANE' %}aktif{% endif %}" onclick="katFiltre('ECZANE')"><span class="ic"><i data-lucide="pill"></i></span> Eczane</button>
+        <button class="filtre-btn {% if aktif_kategori == 'KUTUPHANE' %}aktif{% endif %}" onclick="katFiltre('KUTUPHANE')"><span class="ic"><i data-lucide="book-open"></i></span> Kütüphane</button>
+        <button class="filtre-btn {% if aktif_kategori == 'PUB' %}aktif{% endif %}" onclick="katFiltre('PUB')"><span class="ic"><i data-lucide="beer"></i></span> Pub</button>
     </div>
 
     <!-- Satır 2: Özellikler (server-side, URL ile) -->
     <div class="harita-filtre harita-filtre-2">
         <span class="filtre-label">Özellikler:</span>
-        <button class="filtre-btn {% if aktif_acik %}aktif-yesil{% endif %}" onclick="ozellikFiltre('acik')">🟢 Açık</button>
-        <button class="filtre-btn {% if aktif_wifi %}aktif{% endif %}" onclick="ozellikFiltre('wifi')">📶 Wi-Fi</button>
-        <button class="filtre-btn {% if aktif_priz %}aktif{% endif %}" onclick="ozellikFiltre('priz')">🔌 Priz</button>
-        <button class="filtre-btn {% if aktif_bahce %}aktif{% endif %}" onclick="ozellikFiltre('bahce')">🌿 Bahçe</button>
-        <button class="filtre-btn {% if aktif_pet %}aktif{% endif %}" onclick="ozellikFiltre('pet')">🐾 Pet Dostu</button>
-        <button class="filtre-btn {% if aktif_engelli %}aktif{% endif %}" onclick="ozellikFiltre('engelli')">♿ Engelli</button>
-        <button class="filtre-btn {% if aktif_muzik %}aktif{% endif %}" onclick="ozellikFiltre('muzik')">🎵 Canlı Müzik</button>
-        <button class="filtre-btn {% if aktif_sigara %}aktif{% endif %}" onclick="ozellikFiltre('sigara')">🚬 Sigara</button>
+        <button class="filtre-btn {% if aktif_acik %}aktif-yesil{% endif %}" onclick="ozellikFiltre('acik')"><span class="ic" style="color:#16a34a"><i data-lucide="circle-dot"></i></span> Açık</button>
+        <button class="filtre-btn {% if aktif_wifi %}aktif{% endif %}" onclick="ozellikFiltre('wifi')"><span class="ic"><i data-lucide="wifi"></i></span> Wi-Fi</button>
+        <button class="filtre-btn {% if aktif_priz %}aktif{% endif %}" onclick="ozellikFiltre('priz')"><span class="ic"><i data-lucide="plug"></i></span> Priz</button>
+        <button class="filtre-btn {% if aktif_bahce %}aktif{% endif %}" onclick="ozellikFiltre('bahce')"><span class="ic"><i data-lucide="leaf"></i></span> Bahçe</button>
+        <button class="filtre-btn {% if aktif_pet %}aktif{% endif %}" onclick="ozellikFiltre('pet')"><span class="ic"><i data-lucide="paw-print"></i></span> Pet Dostu</button>
+        <button class="filtre-btn {% if aktif_engelli %}aktif{% endif %}" onclick="ozellikFiltre('engelli')"><span class="ic"><i data-lucide="accessibility"></i></span> Engelli</button>
+        <button class="filtre-btn {% if aktif_muzik %}aktif{% endif %}" onclick="ozellikFiltre('muzik')"><span class="ic"><i data-lucide="music"></i></span> Canlı Müzik</button>
+        <button class="filtre-btn {% if aktif_sigara %}aktif{% endif %}" onclick="ozellikFiltre('sigara')"><span class="ic"><i data-lucide="cigarette"></i></span> Sigara</button>
         {% if aktif_acik or aktif_wifi or aktif_priz or aktif_bahce or aktif_pet or aktif_engelli or aktif_muzik or aktif_sigara %}
-        <a href="?" onclick="temizleOzellikler(event)" class="filtre-btn" style="color:var(--danger);border-color:#fca5a5;">✕ Temizle</a>
+        <a href="?" onclick="temizleOzellikler(event)" class="filtre-btn" style="color:var(--danger);border-color:#fca5a5;"><span class="ic"><i data-lucide="x-circle"></i></span> Temizle</a>
         {% endif %}
     </div>
 </div>
@@ -286,12 +286,12 @@ main {
                     <img src="{{ mekan.img.url }}" class="row-thumb" alt="">
                 {% else %}
                     <div class="row-ph">
-                        {% if mekan.kategori == 'KAFE' %}☕
-                        {% elif mekan.kategori == 'RESTORAN' %}🍽️
-                        {% elif mekan.kategori == 'ECZANE' %}💊
-                        {% elif mekan.kategori == 'KUTUPHANE' %}📚
-                        {% elif mekan.kategori == 'PUB' %}🍺
-                        {% else %}📍{% endif %}
+                        {% if mekan.kategori == 'KAFE' %}<span class="ic"><i data-lucide="coffee"></i></span>
+                        {% elif mekan.kategori == 'RESTORAN' %}<span class="ic"><i data-lucide="utensils"></i></span>
+                        {% elif mekan.kategori == 'ECZANE' %}<span class="ic"><i data-lucide="pill"></i></span>
+                        {% elif mekan.kategori == 'KUTUPHANE' %}<span class="ic"><i data-lucide="book-open"></i></span>
+                        {% elif mekan.kategori == 'PUB' %}<span class="ic"><i data-lucide="beer"></i></span>
+                        {% else %}<span class="ic"><i data-lucide="map-pin"></i></span>{% endif %}
                     </div>
                 {% endif %}
                 <div class="row-info">

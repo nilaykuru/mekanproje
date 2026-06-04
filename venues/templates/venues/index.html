@@ -25,19 +25,26 @@
     min-width: 70px; flex-shrink: 0;
 }
 
-/* Chip toggle */
-.chip-group { display: flex; flex-wrap: wrap; gap: 6px; }
-.chip {
-    padding: 5px 13px; border-radius: 20px; font-size: 12px; font-weight: 600;
-    border: 1.5px solid var(--border); color: var(--muted); background: var(--surface);
-    cursor: pointer; transition: all .15s; white-space: nowrap;
-    text-decoration: none; display: inline-block;
+/* Select kutuları */
+.filtre-select {
+    padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    border: 1.5px solid var(--border); color: var(--text); background: var(--surface);
+    cursor: pointer; font-family: inherit; outline: none; min-width: 170px; max-width: 220px;
 }
-.chip:hover { border-color: var(--primary); color: var(--primary); background: #eff6ff; }
-.chip.aktif { background: var(--primary); color: white !important; border-color: var(--primary); }
-.chip.aktif-yesil { background: #059669; color: white !important; border-color: #059669; }
+.filtre-select:focus { border-color: var(--primary); }
 
-/* Özellik checkbox chip'leri */
+/* Özellik checkbox'ları */
+.ozellik-grid { display: flex; flex-wrap: wrap; gap: 10px 24px; }
+.ozellik-cb {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 13px; font-weight: 600; color: var(--text);
+    cursor: pointer; user-select: none; white-space: nowrap;
+}
+.ozellik-cb input[type=checkbox] {
+    width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; flex-shrink: 0;
+}
+
+/* Durum chip (Şu An Açık) */
 .ozellik-chip {
     display: inline-flex; align-items: center; gap: 5px;
     padding: 5px 11px; border-radius: 20px; font-size: 12px; font-weight: 600;
@@ -158,29 +165,22 @@
 <form method="GET" action="{% url 'dashboard' %}" class="filtre-panel" id="filtre-form">
     <div class="filtre-form">
 
-        <!-- Şehir -->
+        <!-- Şehir + Kategori -->
         <div class="filtre-satir">
             <span class="filtre-baslik">Şehir</span>
-            <div class="chip-group">
-                <a href="javascript:void(0)" class="chip {% if not f.sehir %}aktif{% endif %}" onclick="setFiltre('sehir','')">Tümü</a>
+            <select name="sehir" class="filtre-select" onchange="this.form.submit()">
+                <option value="">Tüm Şehirler</option>
                 {% for kod, ad in sehir_secenekleri %}
-                <a href="javascript:void(0)" class="chip {% if f.sehir == kod %}aktif{% endif %}" onclick="setFiltre('sehir','{{ kod }}')">{{ ad }}</a>
+                <option value="{{ kod }}" {% if f.sehir == kod %}selected{% endif %}>{{ ad }}</option>
                 {% endfor %}
-            </div>
-        </div>
-
-        <!-- Kategori -->
-        <div class="filtre-satir">
-            <span class="filtre-baslik">Kategori</span>
-            <div class="chip-group">
-                <a href="javascript:void(0)" class="chip {% if not f.kategori %}aktif{% endif %}" onclick="setFiltre('kategori','')">Tümü</a>
+            </select>
+            <span class="filtre-baslik" style="margin-left:8px;">Kategori</span>
+            <select name="kategori" class="filtre-select" onchange="this.form.submit()">
+                <option value="">Tüm Kategoriler</option>
                 {% for kod, ad in kategori_secenekleri %}
-                <a href="javascript:void(0)" class="chip {% if f.kategori == kod %}aktif{% endif %}" onclick="setFiltre('kategori','{{ kod }}')">
-                    {% if kod == 'KAFE' %}☕{% elif kod == 'RESTORAN' %}🍽️{% elif kod == 'ECZANE' %}💊{% elif kod == 'KUTUPHANE' %}📚{% elif kod == 'PUB' %}🍺{% endif %}
-                    {{ ad }}
-                </a>
+                <option value="{{ kod }}" {% if f.kategori == kod %}selected{% endif %}>{{ ad }}</option>
                 {% endfor %}
-            </div>
+            </select>
         </div>
 
         <!-- Durum + Sıralama -->
@@ -188,30 +188,30 @@
             <span class="filtre-baslik">Durum</span>
             <label class="ozellik-chip">
                 <input type="checkbox" name="acik" value="1" {% if f.acik %}checked{% endif %} onchange="this.form.submit()">
-                🟢 Şu An Açık
+                <span class="ic" style="color:#16a34a"><i data-lucide="circle-dot"></i></span> Şu An Açık
             </label>
             <span style="margin-left:12px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;">Sırala</span>
             <select name="siralama" class="sort-select" onchange="this.form.submit()">
                 <option value="" {% if not f.siralama %}selected{% endif %}>Varsayılan</option>
-                <option value="puan" {% if f.siralama == 'puan' %}selected{% endif %}>⭐ En Yüksek Puan</option>
-                <option value="doluluk_az" {% if f.siralama == 'doluluk_az' %}selected{% endif %}>🟢 En Az Dolu</option>
-                <option value="doluluk_cok" {% if f.siralama == 'doluluk_cok' %}selected{% endif %}>🔴 En Çok Dolu</option>
-                <option value="isim_az" {% if f.siralama == 'isim_az' %}selected{% endif %}>🔤 İsim A → Z</option>
-                <option value="isim_za" {% if f.siralama == 'isim_za' %}selected{% endif %}>🔤 İsim Z → A</option>
+                <option value="puan" {% if f.siralama == 'puan' %}selected{% endif %}>En Yüksek Puan</option>
+                <option value="doluluk_az" {% if f.siralama == 'doluluk_az' %}selected{% endif %}>En Az Dolu</option>
+                <option value="doluluk_cok" {% if f.siralama == 'doluluk_cok' %}selected{% endif %}>En Çok Dolu</option>
+                <option value="isim_az" {% if f.siralama == 'isim_az' %}selected{% endif %}>İsim A - Z</option>
+                <option value="isim_za" {% if f.siralama == 'isim_za' %}selected{% endif %}>İsim Z - A</option>
             </select>
         </div>
 
         <!-- Özellikler -->
         <div class="filtre-satir">
             <span class="filtre-baslik">Özellikler</span>
-            <div class="chip-group">
-                <label class="ozellik-chip"><input type="checkbox" name="wifi" value="1" {% if f.wifi %}checked{% endif %} onchange="this.form.submit()">📶 Wi-Fi</label>
-                <label class="ozellik-chip"><input type="checkbox" name="priz" value="1" {% if f.priz %}checked{% endif %} onchange="this.form.submit()">🔌 Priz</label>
-                <label class="ozellik-chip"><input type="checkbox" name="bahce" value="1" {% if f.bahce %}checked{% endif %} onchange="this.form.submit()">🌿 Bahçe</label>
-                <label class="ozellik-chip"><input type="checkbox" name="pet" value="1" {% if f.pet %}checked{% endif %} onchange="this.form.submit()">🐾 Pet Dostu</label>
-                <label class="ozellik-chip"><input type="checkbox" name="engelli" value="1" {% if f.engelli %}checked{% endif %} onchange="this.form.submit()">♿ Engelli Erişimi</label>
-                <label class="ozellik-chip"><input type="checkbox" name="muzik" value="1" {% if f.muzik %}checked{% endif %} onchange="this.form.submit()">🎵 Canlı Müzik</label>
-                <label class="ozellik-chip"><input type="checkbox" name="cocuk" value="1" {% if f.cocuk %}checked{% endif %} onchange="this.form.submit()">🧒 Çocuk Alanı</label>
+            <div class="ozellik-grid">
+                <label class="ozellik-cb"><input type="checkbox" name="wifi" value="1" {% if f.wifi %}checked{% endif %} onchange="this.form.submit()"> <span class="ic"><i data-lucide="wifi"></i></span> Wi-Fi</label>
+                <label class="ozellik-cb"><input type="checkbox" name="priz" value="1" {% if f.priz %}checked{% endif %} onchange="this.form.submit()"> <span class="ic"><i data-lucide="plug"></i></span> Priz</label>
+                <label class="ozellik-cb"><input type="checkbox" name="bahce" value="1" {% if f.bahce %}checked{% endif %} onchange="this.form.submit()"> <span class="ic"><i data-lucide="leaf"></i></span> Bahçe</label>
+                <label class="ozellik-cb"><input type="checkbox" name="pet" value="1" {% if f.pet %}checked{% endif %} onchange="this.form.submit()"> <span class="ic"><i data-lucide="paw-print"></i></span> Pet Dostu</label>
+                <label class="ozellik-cb"><input type="checkbox" name="engelli" value="1" {% if f.engelli %}checked{% endif %} onchange="this.form.submit()"> <span class="ic"><i data-lucide="accessibility"></i></span> Engelli Erişimi</label>
+                <label class="ozellik-cb"><input type="checkbox" name="muzik" value="1" {% if f.muzik %}checked{% endif %} onchange="this.form.submit()"> <span class="ic"><i data-lucide="music"></i></span> Canlı Müzik</label>
+                <label class="ozellik-cb"><input type="checkbox" name="cocuk" value="1" {% if f.cocuk %}checked{% endif %} onchange="this.form.submit()"> <span class="ic"><i data-lucide="baby"></i></span> Çocuk Alanı</label>
             </div>
         </div>
 
@@ -219,8 +219,8 @@
         {% if aktif_filtre_sayisi %}
         <div class="filtre-ozet">
             <span class="filtre-ozet-label">Aktif:</span>
-            {% if f.sehir %}<span class="aktif-chip">{{ f.sehir_adi }} <a href="javascript:setFiltre('sehir','')">×</a></span>{% endif %}
-            {% if f.kategori %}<span class="aktif-chip">{{ f.kategori_adi }} <a href="javascript:setFiltre('kategori','')">×</a></span>{% endif %}
+            {% if f.sehir %}<span class="aktif-chip">{{ f.sehir_adi }} <a href="javascript:clearSelect('sehir')">×</a></span>{% endif %}
+            {% if f.kategori %}<span class="aktif-chip">{{ f.kategori_adi }} <a href="javascript:clearSelect('kategori')">×</a></span>{% endif %}
             {% if f.acik %}<span class="aktif-chip">Açık <a href="javascript:clearCheck('acik')">×</a></span>{% endif %}
             {% if f.wifi %}<span class="aktif-chip">Wi-Fi <a href="javascript:clearCheck('wifi')">×</a></span>{% endif %}
             {% if f.priz %}<span class="aktif-chip">Priz <a href="javascript:clearCheck('priz')">×</a></span>{% endif %}
@@ -235,9 +235,6 @@
         {% endif %}
 
     </div>
-    <!-- Gizli alanlar — mevcut filtre değerlerini koru -->
-    <input type="hidden" name="sehir" id="h-sehir" value="{{ f.sehir }}">
-    <input type="hidden" name="kategori" id="h-kategori" value="{{ f.kategori }}">
 </form>
 
 <!-- ── Sonuç başlığı ─────────────────────────────────────────────────── -->
@@ -259,7 +256,7 @@
                 <img src="{{ mekan.img.url }}" alt="{{ mekan.ad }}" loading="lazy">
             {% else %}
                 <div class="venue-img-ph">
-                    {% if mekan.kategori == 'KAFE' %}☕{% elif mekan.kategori == 'RESTORAN' %}🍽️{% elif mekan.kategori == 'ECZANE' %}💊{% elif mekan.kategori == 'KUTUPHANE' %}📚{% elif mekan.kategori == 'PUB' %}🍺{% else %}🏠{% endif %}
+                    {% if mekan.kategori == 'KAFE' %}<span class="ic"><i data-lucide="coffee"></i></span>{% elif mekan.kategori == 'RESTORAN' %}<span class="ic"><i data-lucide="utensils"></i></span>{% elif mekan.kategori == 'ECZANE' %}<span class="ic"><i data-lucide="pill"></i></span>{% elif mekan.kategori == 'KUTUPHANE' %}<span class="ic"><i data-lucide="book-open"></i></span>{% elif mekan.kategori == 'PUB' %}<span class="ic"><i data-lucide="beer"></i></span>{% else %}<span class="ic"><i data-lucide="home"></i></span>{% endif %}
                 </div>
             {% endif %}
             {% if mekan.acik_mi %}
@@ -269,7 +266,7 @@
             {% endif %}
             {% if user.is_authenticated %}
             <a href="{% url 'favori_islem' mekan.id %}" class="fav-btn" title="Favori">
-                {% if request.user in mekan.favorileyenler.all %}❤️{% else %}🤍{% endif %}
+                {% if request.user in mekan.favorileyenler.all %}<span class="ic" style="color:#ef4444"><i data-lucide="heart"></i></span>{% else %}<span class="ic"><i data-lucide="heart"></i></span>{% endif %}
             </a>
             {% endif %}
         </div>
@@ -318,8 +315,8 @@
             </div>
             <div class="venue-footer">
                 <a href="https://www.google.com/maps/search/?api=1&query={{ mekan.ad|urlencode }}+{{ mekan.adres|urlencode }}"
-                   target="_blank" class="btn-map">📍 Yol Tarifi</a>
-                <a href="{% url 'mekan_detay' mekan.id %}" class="btn-detail">Detay →</a>
+                   target="_blank" class="btn-map"><span class="ic"><i data-lucide="map-pin"></i></span> Yol Tarifi</a>
+                <a href="{% url 'mekan_detay' mekan.id %}" class="btn-detail">Detay <span class="ic"><i data-lucide="arrow-right"></i></span></a>
             </div>
         </div>
     </article>
@@ -335,9 +332,9 @@
 {% if page_obj.has_other_pages %}
 <div class="pagination-wrap">
     {% if page_obj.has_previous %}
-        <a href="{% url 'dashboard' %}?sehir={{ f.sehir }}&kategori={{ f.kategori }}&acik={{ f.acik }}&wifi={{ f.wifi }}&priz={{ f.priz }}&bahce={{ f.bahce }}&pet={{ f.pet }}&engelli={{ f.engelli }}&muzik={{ f.muzik }}&cocuk={{ f.cocuk }}&siralama={{ f.siralama }}&page={{ page_obj.previous_page_number }}" class="page-btn">←</a>
+        <a href="{% url 'dashboard' %}?sehir={{ f.sehir }}&kategori={{ f.kategori }}&acik={{ f.acik }}&wifi={{ f.wifi }}&priz={{ f.priz }}&bahce={{ f.bahce }}&pet={{ f.pet }}&engelli={{ f.engelli }}&muzik={{ f.muzik }}&cocuk={{ f.cocuk }}&siralama={{ f.siralama }}&page={{ page_obj.previous_page_number }}" class="page-btn"><span class="ic"><i data-lucide="arrow-left"></i></span></a>
     {% else %}
-        <span class="page-btn disabled">←</span>
+        <span class="page-btn disabled"><span class="ic"><i data-lucide="arrow-left"></i></span></span>
     {% endif %}
 
     {% for num in sayfa_araligi %}
@@ -351,9 +348,9 @@
     {% endfor %}
 
     {% if page_obj.has_next %}
-        <a href="{% url 'dashboard' %}?sehir={{ f.sehir }}&kategori={{ f.kategori }}&acik={{ f.acik }}&wifi={{ f.wifi }}&priz={{ f.priz }}&bahce={{ f.bahce }}&pet={{ f.pet }}&engelli={{ f.engelli }}&muzik={{ f.muzik }}&cocuk={{ f.cocuk }}&siralama={{ f.siralama }}&page={{ page_obj.next_page_number }}" class="page-btn">→</a>
+        <a href="{% url 'dashboard' %}?sehir={{ f.sehir }}&kategori={{ f.kategori }}&acik={{ f.acik }}&wifi={{ f.wifi }}&priz={{ f.priz }}&bahce={{ f.bahce }}&pet={{ f.pet }}&engelli={{ f.engelli }}&muzik={{ f.muzik }}&cocuk={{ f.cocuk }}&siralama={{ f.siralama }}&page={{ page_obj.next_page_number }}" class="page-btn"><span class="ic"><i data-lucide="arrow-right"></i></span></a>
     {% else %}
-        <span class="page-btn disabled">→</span>
+        <span class="page-btn disabled"><span class="ic"><i data-lucide="arrow-right"></i></span></span>
     {% endif %}
 </div>
 {% endif %}
@@ -361,10 +358,6 @@
 </div>
 
 <script>
-function setFiltre(isim, deger) {
-    document.getElementById('h-' + isim).value = deger;
-    document.getElementById('filtre-form').submit();
-}
 function clearCheck(isim) {
     const cb = document.querySelector('input[name="' + isim + '"]');
     if (cb) cb.checked = false;

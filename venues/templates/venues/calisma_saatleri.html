@@ -150,19 +150,19 @@
 
 {% block content %}
 <div class="cs-wrap">
-    <a href="{% url 'owner_dashboard' %}" class="back-link">← Panele Dön</a>
-    <h1 class="cs-baslik">🕐 Çalışma Saatleri</h1>
+    <a href="{% url 'owner_dashboard' %}" class="back-link"><span class="ic"><i data-lucide="arrow-left"></i></span> Panele Dön</a>
+    <h1 class="cs-baslik"><span class="ic"><i data-lucide="clock"></i></span> Çalışma Saatleri</h1>
     <p class="cs-alt">{{ mekan.ad }} — Her gün için farklı saat ve durum belirleyebilirsiniz.</p>
 
     {% if messages %}
     {% for msg in messages %}
-    <div class="mesaj-basari">✅ {{ msg }}</div>
+    <div class="mesaj-basari"><span class="ic" style="color:#16a34a"><i data-lucide="check-circle"></i></span> {{ msg }}</div>
     {% endfor %}
     {% endif %}
 
     <!-- Haftalık Özet -->
     <div class="haftalik-ozet">
-        <h3>📊 Haftalık Özet</h3>
+        <h3><span class="ic"><i data-lucide="bar-chart-2"></i></span> Haftalık Özet</h3>
         <div class="ozet-grid">
             {% for gun in gun_listesi %}
             <div class="ozet-gun {% if gun.obj and gun.obj.acik %}acik-gun{% elif not gun.obj %}acik-gun{% else %}kapali-gun{% endif %}" id="ozet-{{ gun.no }}">
@@ -180,7 +180,7 @@
 
     <!-- Toplu İşlemler -->
     <div class="toplu-kart">
-        <h3>⚡ Toplu İşlem — Hızlı Doldur</h3>
+        <h3><span class="ic"><i data-lucide="zap"></i></span> Toplu İşlem — Hızlı Doldur</h3>
         <div class="toplu-satirlar">
             <div class="toplu-saat-grup">
                 <span class="toplu-saat-label">Açılış:</span>
@@ -189,14 +189,14 @@
                 <input type="time" id="toplu-kapanis" class="toplu-saat-input" value="22:00">
             </div>
             <div class="toplu-btn-grup">
-                <button type="button" class="toplu-btn" onclick="topluUygula('hafta_ici')">📅 Hafta içi (Pzt–Cum)</button>
-                <button type="button" class="toplu-btn" onclick="topluUygula('hafta_sonu')">🎉 Hafta sonu (Cmt–Paz)</button>
-                <button type="button" class="toplu-btn" onclick="topluUygula('tum_gunler')">🌐 Tüm günler</button>
+                <button type="button" class="toplu-btn" onclick="topluUygula('hafta_ici')"><span class="ic"><i data-lucide="calendar"></i></span> Hafta içi (Pzt–Cum)</button>
+                <button type="button" class="toplu-btn" onclick="topluUygula('hafta_sonu')"><span class="ic"><i data-lucide="sparkles"></i></span> Hafta sonu (Cmt–Paz)</button>
+                <button type="button" class="toplu-btn" onclick="topluUygula('tum_gunler')"><span class="ic"><i data-lucide="globe"></i></span> Tüm günler</button>
             </div>
         </div>
     </div>
 
-    <form method="POST" id="cs-form">
+    <form method="POST" action="{% url 'calisma_saatleri_duzenle' mekan.id %}" id="cs-form">
         {% csrf_token %}
         {% for gun in gun_listesi %}
         <div class="gun-kart {% if not gun.obj or gun.obj.acik %}acik{% endif %}" id="kart-{{ gun.no }}">
@@ -228,12 +228,12 @@
                 <!-- Kopyala dropdown -->
                 <div class="kopyala-wrap">
                     <button type="button" class="kopyala-btn" onclick="toggleKopyalaMenu({{ gun.no }}, event)">
-                        📋 Kopyala <span style="font-size:9px;">▼</span>
+                        <span class="ic"><i data-lucide="clipboard"></i></span> Kopyala <span class="ic" style="font-size:.6em"><i data-lucide="chevron-down"></i></span>
                     </button>
                     <div class="kopyala-dropdown" id="kopyala-menu-{{ gun.no }}">
-                        <button type="button" class="kopyala-dropdown-item" onclick="kopyalaGun({{ gun.no }}, 'hafta_ici')">📅 Hafta içine kopyala</button>
-                        <button type="button" class="kopyala-dropdown-item" onclick="kopyalaGun({{ gun.no }}, 'hafta_sonu')">🎉 Hafta sonuna kopyala</button>
-                        <button type="button" class="kopyala-dropdown-item" onclick="kopyalaGun({{ gun.no }}, 'tum_gunler')">🌐 Tüm günlere kopyala</button>
+                        <button type="button" class="kopyala-dropdown-item" onclick="kopyalaGun({{ gun.no }}, 'hafta_ici')"><span class="ic"><i data-lucide="calendar"></i></span> Hafta içine kopyala</button>
+                        <button type="button" class="kopyala-dropdown-item" onclick="kopyalaGun({{ gun.no }}, 'hafta_sonu')"><span class="ic"><i data-lucide="sparkles"></i></span> Hafta sonuna kopyala</button>
+                        <button type="button" class="kopyala-dropdown-item" onclick="kopyalaGun({{ gun.no }}, 'tum_gunler')"><span class="ic"><i data-lucide="globe"></i></span> Tüm günlere kopyala</button>
                     </div>
                 </div>
             </div>
@@ -266,7 +266,7 @@
         {% endfor %}
 
         <div class="kaydet-wrap">
-            <button type="submit" class="btn-kaydet">💾 Çalışma Saatlerini Kaydet</button>
+            <button type="submit" class="btn-kaydet"><span class="ic"><i data-lucide="save"></i></span> Çalışma Saatlerini Kaydet</button>
         </div>
     </form>
 </div>
@@ -324,14 +324,19 @@ function hizliSec(no, ac, kap) {
 
 // Toplu uygula
 function topluUygula(hedef) {
-    const ac = document.getElementById('toplu-acilis').value;
-    const kap = document.getElementById('toplu-kapanis').value;
+    const acilisEl = document.getElementById('toplu-acilis');
+    const kapanisEl = document.getElementById('toplu-kapanis');
+    if (!acilisEl || !kapanisEl) { alert('Saat alanı bulunamadı!'); return; }
+    const ac = acilisEl.value;
+    const kap = kapanisEl.value;
     const gunler = hedefGunler(hedef);
     gunler.forEach(no => {
-        document.getElementById('acilis-' + no).value = ac;
-        document.getElementById('kapanis-' + no).value = kap;
+        const a = document.getElementById('acilis-' + no);
+        const k = document.getElementById('kapanis-' + no);
+        if (a) a.value = ac;
+        if (k) k.value = kap;
         const cb = document.getElementById('acik-' + no);
-        if (!cb.checked) { cb.checked = true; toggleGun(no); }
+        if (cb && !cb.checked) { cb.checked = true; toggleGun(no); }
         ozetGuncelle(no);
     });
 }

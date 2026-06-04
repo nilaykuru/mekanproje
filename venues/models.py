@@ -63,6 +63,7 @@ class Mekan(models.Model):
         ('izmir', 'İzmir'),
         ('samsun', 'Samsun'),
         ('sakarya', 'Sakarya'),
+        ('balikesir', 'Balıkesir'),
     ]
 
     ad = models.CharField(max_length=100)
@@ -73,7 +74,7 @@ class Mekan(models.Model):
     telefon = models.CharField(max_length=20, blank=True, null=True, verbose_name="Telefon")
     website = models.URLField(blank=True, null=True, verbose_name="Web Sitesi")
     su_an_acik = models.BooleanField(default=True)
-    doluluk_orani = models.IntegerField(default=0, help_text="Yüzde olarak doluluk (Örn: 80)")
+    doluluk_orani = models.IntegerField(null=True, blank=True, help_text="Yüzde olarak doluluk (Örn: 80)")
     acilis_saati = models.TimeField(null=True, blank=True, verbose_name="Açılış Saati")
     kapanis_saati = models.TimeField(null=True, blank=True, verbose_name="Kapanış Saati")
     sahibi = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='mekanlari')

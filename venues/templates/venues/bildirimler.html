@@ -13,26 +13,26 @@
 .bildirim-meta { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .bildirim-link { font-size: 12px; color: var(--primary); font-weight: 600; }
 .bildirim-bos { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
-.bildirim-bos span { font-size: 48px; display: block; margin-bottom: 14px; }
+.bildirim-bos .ic { font-size: 48px; display: block; margin-bottom: 14px; }
 {% endblock %}
 
 {% block content %}
 <div class="bildirim-wrap">
-    <h1 class="bildirim-baslik">🔔 Bildirimler</h1>
+    <h1 class="bildirim-baslik"><span class="ic"><i data-lucide="bell"></i></span> Bildirimler</h1>
 
     {% if bildirimler %}
     {% for b in bildirimler %}
     <div class="bildirim-kart {% if not b.okundu %}okunmadi{% endif %}">
         <div class="bildirim-ikon">
-            {% if b.tip == 'YORUM' %}💬
-            {% elif b.tip == 'BEGENI' %}❤️
-            {% elif b.tip == 'TAKIP' %}👥
-            {% elif b.tip == 'ONAY' %}✅
-            {% elif b.tip == 'YANIT' %}↩️
-            {% elif b.tip == 'KAMPANYA' %}🎁
-            {% elif b.tip == 'REZERVASYON' %}📅
-            {% elif b.tip == 'DUYURU' %}📢
-            {% else %}🔔{% endif %}
+            {% if b.tip == 'YORUM' %}<span class="ic"><i data-lucide="message-circle"></i></span>
+            {% elif b.tip == 'BEGENI' %}<span class="ic" style="color:#ef4444"><i data-lucide="heart"></i></span>
+            {% elif b.tip == 'TAKIP' %}<span class="ic"><i data-lucide="users"></i></span>
+            {% elif b.tip == 'ONAY' %}<span class="ic" style="color:#16a34a"><i data-lucide="check-circle"></i></span>
+            {% elif b.tip == 'YANIT' %}<span class="ic"><i data-lucide="corner-down-left"></i></span>
+            {% elif b.tip == 'KAMPANYA' %}<span class="ic"><i data-lucide="tag"></i></span>
+            {% elif b.tip == 'REZERVASYON' %}<span class="ic"><i data-lucide="calendar"></i></span>
+            {% elif b.tip == 'DUYURU' %}<span class="ic"><i data-lucide="megaphone"></i></span>
+            {% else %}<span class="ic"><i data-lucide="bell"></i></span>{% endif %}
         </div>
         <div class="bildirim-icerik">
             {% if b.link %}
@@ -52,7 +52,7 @@
     {% endfor %}
     {% else %}
     <div class="bildirim-bos">
-        <span>🔕</span>
+        <span class="ic" style="font-size:48px;display:block;margin-bottom:14px;"><i data-lucide="bell-off"></i></span>
         Henüz bildirim yok. Mekanları keşfettikçe bildirimler burada görünecek.
     </div>
     {% endif %}

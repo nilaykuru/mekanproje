@@ -125,10 +125,10 @@
 
     <!-- Sekmeler -->
     <div class="sekme-bar">
-        <button class="sekme aktif" onclick="sekmeAc(this,'tab-yorumlar')">💬 Yorumlarım ({{ yorum_sayisi }})</button>
-        <button class="sekme" onclick="sekmeAc(this,'tab-favoriler')">❤️ Favorilerim ({{ favori_sayisi }})</button>
-        <button class="sekme" onclick="window.location.href='{% url 'listelerim' %}'">📋 Listelerim</button>
-        <button class="sekme" onclick="sekmeAc(this,'tab-hesap')">⚙️ Hesap Ayarları</button>
+        <button class="sekme aktif" onclick="sekmeAc(this,'tab-yorumlar')"><span class="ic"><i data-lucide="message-circle"></i></span> Yorumlarım ({{ yorum_sayisi }})</button>
+        <button class="sekme" onclick="sekmeAc(this,'tab-favoriler')"><span class="ic" style="color:#ef4444"><i data-lucide="heart"></i></span> Favorilerim ({{ favori_sayisi }})</button>
+        <button class="sekme" onclick="window.location.href='{% url 'listelerim' %}'"><span class="ic"><i data-lucide="clipboard"></i></span> Listelerim</button>
+        <button class="sekme" onclick="sekmeAc(this,'tab-hesap')"><span class="ic"><i data-lucide="settings"></i></span> Hesap Ayarları</button>
     </div>
 
     <!-- Yorumlarım -->
@@ -168,7 +168,7 @@
                     <img src="{{ mekan.img.url }}" alt="{{ mekan.ad }}">
                 {% else %}
                     <div class="favori-kart-ph">
-                        {% if mekan.kategori == 'KAFE' %}☕{% elif mekan.kategori == 'RESTORAN' %}🍽️{% elif mekan.kategori == 'ECZANE' %}💊{% elif mekan.kategori == 'KUTUPHANE' %}📚{% elif mekan.kategori == 'PUB' %}🍺{% else %}🏠{% endif %}
+                        {% if mekan.kategori == 'KAFE' %}<span class="ic"><i data-lucide="coffee"></i></span>{% elif mekan.kategori == 'RESTORAN' %}<span class="ic"><i data-lucide="utensils"></i></span>{% elif mekan.kategori == 'ECZANE' %}<span class="ic"><i data-lucide="pill"></i></span>{% elif mekan.kategori == 'KUTUPHANE' %}<span class="ic"><i data-lucide="book-open"></i></span>{% elif mekan.kategori == 'PUB' %}<span class="ic"><i data-lucide="beer"></i></span>{% else %}<span class="ic"><i data-lucide="home"></i></span>{% endif %}
                     </div>
                 {% endif %}
                 <div class="favori-kart-body">
@@ -181,7 +181,7 @@
         {% else %}
         <div class="bos-durum">
             <h3>Henüz favori eklemedin</h3>
-            <p>Mekan kartlarındaki ❤️ butonuna tıklayarak favori ekleyebilirsin.</p>
+            <p>Mekan kartlarındaki <span class="ic" style="color:#ef4444"><i data-lucide="heart"></i></span> butonuna tıklayarak favori ekleyebilirsin.</p>
         </div>
         {% endif %}
     </div>
@@ -208,7 +208,7 @@
                         <input type="file" name="foto" accept="image/*" id="foto-input" style="display:none;"
                                onchange="this.form.submit()">
                         <label for="foto-input" class="btn-kaydet" style="cursor:pointer;display:inline-block;">
-                            📷 Fotoğraf Yükle
+                            <span class="ic"><i data-lucide="camera"></i></span> Fotoğraf Yükle
                         </label>
                     </form>
                     {% if profil_kullanici.profile.foto %}

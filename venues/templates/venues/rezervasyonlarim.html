@@ -23,12 +23,12 @@
 .badge-IPTAL { background: #f1f5f9; color: #64748b; }
 .rez-not { font-size: 12px; color: var(--muted); font-style: italic; margin-top: 4px; }
 .bos { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
-.bos span { font-size: 40px; display: block; margin-bottom: 12px; }
+.bos .ic { font-size: 40px; display: block; margin-bottom: 12px; }
 {% endblock %}
 
 {% block content %}
 <div class="rez-wrap">
-    <h1 class="rez-baslik">📅 Rezervasyonlarım</h1>
+    <h1 class="rez-baslik"><span class="ic"><i data-lucide="calendar"></i></span> Rezervasyonlarım</h1>
 
     {% if messages %}
     {% for msg in messages %}
@@ -40,19 +40,19 @@
     {% for rez in rezervasyonlar %}
     <div class="rez-kart">
         <div class="rez-durum rez-durum-{{ rez.durum }}">
-            {% if rez.durum == 'BEKLIYOR' %}⏳
-            {% elif rez.durum == 'ONAYLANDI' %}✅
-            {% elif rez.durum == 'REDDEDILDI' %}❌
-            {% else %}🚫{% endif %}
+            {% if rez.durum == 'BEKLIYOR' %}<span class="ic"><i data-lucide="clock"></i></span>
+            {% elif rez.durum == 'ONAYLANDI' %}<span class="ic" style="color:#16a34a"><i data-lucide="check-circle"></i></span>
+            {% elif rez.durum == 'REDDEDILDI' %}<span class="ic" style="color:#dc2626"><i data-lucide="x-circle"></i></span>
+            {% else %}<span class="ic" style="color:#dc2626"><i data-lucide="ban"></i></span>{% endif %}
         </div>
         <div class="rez-bilgi">
             <div class="rez-mekan">
                 <a href="{% url 'mekan_detay' rez.mekan.id %}">{{ rez.mekan.ad }}</a>
             </div>
             <div class="rez-meta">
-                <span>📅 {{ rez.tarih|date:"d M Y" }}</span>
-                <span>🕐 {{ rez.saat|time:"H:i" }}</span>
-                <span>👥 {{ rez.kisi_sayisi }} kişi</span>
+                <span><span class="ic"><i data-lucide="calendar"></i></span> {{ rez.tarih|date:"d M Y" }}</span>
+                <span><span class="ic"><i data-lucide="clock"></i></span> {{ rez.saat|time:"H:i" }}</span>
+                <span><span class="ic"><i data-lucide="users"></i></span> {{ rez.kisi_sayisi }} kişi</span>
             </div>
             <span class="rez-badge badge-{{ rez.durum }}">{{ rez.get_durum_display }}</span>
             {% if rez.not_mesaj %}
@@ -64,7 +64,7 @@
     {% endfor %}
     {% else %}
     <div class="bos">
-        <span>📅</span>
+        <span class="ic" style="font-size:40px;display:block;margin-bottom:12px;"><i data-lucide="calendar"></i></span>
         Henüz rezervasyon talebiniz yok.<br>
         <a href="{% url 'dashboard' %}" style="color:var(--primary);font-weight:700;font-size:13px;margin-top:10px;display:inline-block;">Mekanları Keşfet →</a>
     </div>

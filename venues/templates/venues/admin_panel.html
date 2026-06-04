@@ -1,55 +1,95 @@
-{% extends 'venues/base.html' %}
-{% block title %}Değerlendirme Paneli — Anlık Mekan{% endblock %}
-
-{% block content %}
-<div style="max-width:1100px;margin:36px auto;">
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Değerlendirme Paneli</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #f8fafc; min-height: 100vh; font-family: system-ui, sans-serif; color: #0f172a; }
+.topbar { background: #0f172a; padding: 14px 32px; display: flex; align-items: center; justify-content: space-between; }
+.topbar-logo { color: white; font-weight: 800; font-size: 16px; }
+.topbar-logout { color: #94a3b8; font-size: 13px; text-decoration: none; }
+.topbar-logout:hover { color: white; }
+.wrap { max-width: 1100px; margin: 36px auto; padding: 0 24px; }
+h1 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+.alt { color: #64748b; font-size: 14px; margin-bottom: 24px; }
+.tablo { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+.tablo th { text-align: left; padding: 12px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: #64748b; border-bottom: 2px solid #f1f5f9; }
+.tablo td { padding: 13px 14px; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
+.tablo tr:last-child td { border-bottom: none; }
+.tablo tr:hover td { background: #f8fafc; }
+.btn-onayla { background: #16a34a; color: white; padding: 7px 14px; border-radius: 7px; border: none; font-weight: 700; font-size: 12px; cursor: pointer; }
+.btn-onayla:hover { background: #15803d; }
+.btn-reddet { background: #ef4444; color: white; padding: 7px 14px; border-radius: 7px; border: none; font-weight: 700; font-size: 12px; cursor: pointer; margin-left: 6px; }
+.btn-reddet:hover { background: #dc2626; }
+.ruhsat-link { color: #2563eb; font-weight: 600; text-decoration: none; font-size: 12px; }
+.ruhsat-link:hover { text-decoration: underline; }
+.bos { padding: 32px; background: white; border-radius: 12px; text-align: center; color: #64748b; font-size: 14px; }
+.islemler { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+</style>
+</head>
+<body>
+<div class="topbar">
+    <span class="topbar-logo">Anlık Mekan — Değerlendirme Paneli</span>
+    <a href="{% url 'logout' %}" class="topbar-logout">Çıkış Yap</a>
+</div>
+<div class="wrap">
     <h1>Değerlendirme Paneli</h1>
-    <p style="color:#475569;margin-bottom:18px;">Aşağıda onay bekleyen mekanlar listeleniyor.</p>
+    <p class="alt">Onay bekleyen mekanlar aşağıda listeleniyor.</p>
+
+    {% if messages %}
+        {% for msg in messages %}
+        <div style="background:#dcfce7;color:#166534;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;font-weight:600;">{{ msg }}</div>
+        {% endfor %}
+    {% endif %}
 
     {% if mekanlar %}
-    <table class="table" style="width:100%;border-collapse:collapse;">
-        <thead style="text-align:left;border-bottom:2px solid #e2e8f0;">
+    <table class="tablo">
+        <thead>
             <tr>
-                <th style="padding:8px;">Mekan</th>
-                <th style="padding:8px;">Sahibi</th>
-                <th style="padding:8px;">Ruhsat</th>
-                <th style="padding:8px;text-align:right;">İşlemler</th>
+                <th>Mekan</th>
+                <th>Kategori</th>
+                <th>Sahibi</th>
+                <th>Ruhsat</th>
+                <th style="text-align:right;">İşlemler</th>
             </tr>
         </thead>
         <tbody>
             {% for mekan in mekanlar %}
-            <tr style="border-bottom:1px solid #f1f5f9;">
-                <td style="padding:10px 8px;">{{ mekan.ad }}</td>
-                <td style="padding:10px 8px;">
-                    {% if mekan.sahibi %}
-                        {{ mekan.sahibi.username }}
-                    {% else %}
-                        —
-                    {% endif %}
-                </td>
-                <td style="padding:10px 8px;">
+            <tr>
+                <td><strong>{{ mekan.ad }}</strong><br><span style="color:#64748b;font-size:11px;">{{ mekan.adres|truncatechars:40 }}</span></td>
+                <td>{{ mekan.get_kategori_display }}</td>
+                <td>{{ mekan.sahibi.username|default:"—" }}</td>
+                <td>
                     {% if mekan.ruhsat_belgesi %}
-                        <a href="{{ mekan.ruhsat_belgesi.url }}" target="_blank" style="color:#2563eb;">Ruhsatı Görüntüle</a>
+                        <a href="{{ mekan.ruhsat_belgesi.url }}" target="_blank" class="ruhsat-link">Ruhsatı Görüntüle ↗</a>
                     {% else %}
-                        <span style="color:#64748b;">Yüklenmemiş</span>
+                        <span style="color:#94a3b8;font-size:12px;">Yüklenmemiş</span>
                     {% endif %}
                 </td>
-                <td style="padding:10px 8px;text-align:right;">
-                    <form method="POST" action="{% url 'admin_approve' mekan.id %}" style="display:inline-block;margin-right:8px;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn" style="background:#16a34a;color:white;padding:8px 12px;border-radius:8px;border:none;font-weight:700;">Onayla</button>
-                    </form>
-                    <form method="POST" action="{% url 'admin_reject' mekan.id %}" style="display:inline-block;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn" style="background:#ef4444;color:white;padding:8px 12px;border-radius:8px;border:none;font-weight:700;">Reddet</button>
-                    </form>
+                <td>
+                    <div class="islemler">
+                        <form method="POST" action="{% url 'admin_approve' mekan.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-onayla">✓ Onayla</button>
+                        </form>
+                        <form method="POST" action="{% url 'admin_reject' mekan.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-reddet">✕ Reddet</button>
+                        </form>
+                    </div>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
     {% else %}
-        <div style="padding:20px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">Onay bekleyen mekan yok.</div>
+    <div class="bos">Onay bekleyen mekan yok. <span class="ic"><i data-lucide="sparkles"></i></span></div>
     {% endif %}
 </div>
-{% endblock %}
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => lucide.createIcons());</script>
+<style>.ic { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; } .ic svg { width:1em; height:1em; stroke:currentColor; stroke-width:2; fill:none; stroke-linecap:round; stroke-linejoin:round; vertical-align:middle; }</style>
+</body>
+</html>

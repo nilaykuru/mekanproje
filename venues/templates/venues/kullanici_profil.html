@@ -72,7 +72,7 @@
     <h2 class="section-baslik" style="margin-top:28px;">Yorumları ({{ yorumlar.count }})</h2>
     {% for yorum in yorumlar %}
     <div class="yorum-kart">
-        <a href="{% url 'mekan_detay' yorum.mekan.id %}" class="yorum-mekan">📍 {{ yorum.mekan.ad }}</a>
+        <a href="{% url 'mekan_detay' yorum.mekan.id %}" class="yorum-mekan"><span class="ic"><i data-lucide="map-pin"></i></span> {{ yorum.mekan.ad }}</a>
         {% if yorum.puan %}
         <div class="yorum-puan">
             {% for i in "12345" %}{% if forloop.counter <= yorum.puan %}★{% else %}<span style="color:#e5e7eb;">★</span>{% endif %}{% endfor %}

@@ -10,10 +10,11 @@ from venues.management.commands.saatleri_guncelle import parse_opening_hours
 
 
 SEHIR_AYARLARI = {
-    'istanbul': {'ad': 'İstanbul', 'lat': 41.0082, 'lon': 28.9784, 'yaricap': 6000},
-    'izmir':    {'ad': 'İzmir',    'lat': 38.4192, 'lon': 27.1287, 'yaricap': 4000},
-    'samsun':   {'ad': 'Samsun',   'lat': 41.2928, 'lon': 36.3313, 'yaricap': 4000},
-    'sakarya':  {'ad': 'Sakarya',  'lat': 40.7731, 'lon': 30.3944, 'yaricap': 4000},
+    'istanbul':  {'ad': 'İstanbul',  'lat': 41.0082, 'lon': 28.9784, 'yaricap': 6000},
+    'izmir':     {'ad': 'İzmir',     'lat': 38.4192, 'lon': 27.1287, 'yaricap': 4000},
+    'samsun':    {'ad': 'Samsun',    'lat': 41.2928, 'lon': 36.3313, 'yaricap': 4000},
+    'sakarya':   {'ad': 'Sakarya',   'lat': 40.7731, 'lon': 30.3944, 'yaricap': 4000},
+    'balikesir': {'ad': 'Balıkesir', 'lat': 39.6484, 'lon': 27.8826, 'yaricap': 4000},
 }
 
 KATEGORI_ESLESME = {
@@ -115,6 +116,7 @@ class Command(BaseCommand):
                             'latitude': el.get('lat'),
                             'longitude': el.get('lon'),
                             'dogrulanmis_mi': True,
+                            'is_approved': True,
                             'su_an_acik': True,
                             'acilis_saati': acilis,
                             'kapanis_saati': kapanis,

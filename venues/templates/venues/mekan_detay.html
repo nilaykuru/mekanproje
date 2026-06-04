@@ -182,7 +182,7 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
         </div>
         {% endif %}
         {% else %}
-            <div class="venue-hero-ph"><span>{% if mekan.kategori == 'KAFE' %}☕{% elif mekan.kategori == 'RESTORAN' %}🍽️{% elif mekan.kategori == 'KUTUPHANE' %}📚{% elif mekan.kategori == 'ECZANE' %}💊{% elif mekan.kategori == 'PUB' %}🍺{% else %}📍{% endif %}</span></div>
+            <div class="venue-hero-ph"><span>{% if mekan.kategori == 'KAFE' %}<span class="ic"><i data-lucide="coffee"></i></span>{% elif mekan.kategori == 'RESTORAN' %}<span class="ic"><i data-lucide="utensils"></i></span>{% elif mekan.kategori == 'KUTUPHANE' %}<span class="ic"><i data-lucide="book-open"></i></span>{% elif mekan.kategori == 'ECZANE' %}<span class="ic"><i data-lucide="pill"></i></span>{% elif mekan.kategori == 'PUB' %}<span class="ic"><i data-lucide="beer"></i></span>{% else %}<span class="ic"><i data-lucide="map-pin"></i></span>{% endif %}</span></div>
         {% endif %}
         <div class="venue-hero-body">
             <div class="venue-hero-top">
@@ -213,12 +213,12 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
             {% endwith %}
 
             <div class="venue-meta-row">
-                <span>📍 {{ mekan.adres }}</span>
+                <span><span class="ic"><i data-lucide="map-pin"></i></span> {{ mekan.adres }}</span>
                 {% if mekan.acilis_saati and mekan.kapanis_saati %}
-                <span>🕐 {{ mekan.acilis_saati|time:"H:i" }} &ndash; {{ mekan.kapanis_saati|time:"H:i" }}</span>
+                <span><span class="ic"><i data-lucide="clock"></i></span> {{ mekan.acilis_saati|time:"H:i" }} &ndash; {{ mekan.kapanis_saati|time:"H:i" }}</span>
                 {% endif %}
-                {% if mekan.telefon %}<span>📞 {{ mekan.telefon }}</span>{% endif %}
-                {% if mekan.website %}<a href="{{ mekan.website }}" target="_blank">🌐 Web Sitesi</a>{% endif %}
+                {% if mekan.telefon %}<span><span class="ic"><i data-lucide="phone"></i></span> {{ mekan.telefon }}</span>{% endif %}
+                {% if mekan.website %}<a href="{{ mekan.website }}" target="_blank"><span class="ic"><i data-lucide="globe"></i></span> Web Sitesi</a>{% endif %}
             </div>
 
             {% if mekan.doluluk_orani > 0 %}
@@ -246,13 +246,13 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
     </div>
 
     {% if mekan.anlik_duyuru %}
-    <div class="duyuru-bar">📢 {{ mekan.anlik_duyuru }}</div>
+    <div class="duyuru-bar"><span class="ic"><i data-lucide="megaphone"></i></span> {{ mekan.anlik_duyuru }}</div>
     {% endif %}
 
     {% with aktif_kampanyalar=mekan.kampanyalar.all %}
     {% if aktif_kampanyalar %}
     <div style="margin-bottom:28px;">
-        <h2 class="section-title">🎁 Aktif Kampanyalar</h2>
+        <h2 class="section-title"><span class="ic"><i data-lucide="tag"></i></span> Aktif Kampanyalar</h2>
         {% for k in aktif_kampanyalar %}
         {% if k.aktif_mi %}
         <div class="kampanya-card">
@@ -269,7 +269,7 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
     {% with gunler=mekan.calisma_gunleri.all %}
     {% if gunler %}
     <div class="calisma-kart">
-        <h2 class="section-title" style="margin-bottom:16px;">🕐 Çalışma Saatleri</h2>
+        <h2 class="section-title" style="margin-bottom:16px;"><span class="ic"><i data-lucide="clock"></i></span> Çalışma Saatleri</h2>
         <table class="calisma-tbl">
             <tbody>
             {% for g in gunler %}
@@ -312,19 +312,19 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
 
     {% if mekan.menu_foto or mekan.menu_pdf %}
     <div class="menu-section" style="margin-bottom:28px;">
-        <h2 class="section-title" style="margin-bottom:10px;">📋 Menü</h2>
+        <h2 class="section-title" style="margin-bottom:10px;"><span class="ic"><i data-lucide="clipboard"></i></span> Menü</h2>
         {% if mekan.menu_foto %}
         <img src="{{ mekan.menu_foto.url }}" alt="Menü" style="max-width:100%;border-radius:8px;border:1px solid var(--border);">
         {% endif %}
         {% if mekan.menu_pdf %}
-        <a href="{{ mekan.menu_pdf.url }}" target="_blank" style="display:inline-block;margin-top:10px;background:var(--primary);color:white;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:700;">📄 Menüyü PDF olarak görüntüle</a>
+        <a href="{{ mekan.menu_pdf.url }}" target="_blank" style="display:inline-block;margin-top:10px;background:var(--primary);color:white;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:700;"><span class="ic"><i data-lucide="file-text"></i></span> Menüyü PDF olarak görüntüle</a>
         {% endif %}
     </div>
     {% endif %}
 
     {% if mekan.rezervasyon_aktif and user.is_authenticated %}
     <div class="rezervasyon-card">
-        <h3>📅 Rezervasyon Yap</h3>
+        <h3><span class="ic"><i data-lucide="calendar"></i></span> Rezervasyon Yap</h3>
         <form method="POST" action="{% url 'rezervasyon_olustur' mekan.id %}">
             {% csrf_token %}
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
@@ -444,10 +444,10 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
             <div style="display:flex;align-items:center;gap:8px;">
                 <span class="comment-date">{{ yorum.tarih|date:"d F Y" }}</span>
                 {% if user == yorum.yazar %}
-                <a href="{% url 'yorum_duzenle' yorum.id %}" class="comment-action-btn edit-btn" title="Düzenle">✏️</a>
+                <a href="{% url 'yorum_duzenle' yorum.id %}" class="comment-action-btn edit-btn" title="Düzenle"><span class="ic"><i data-lucide="pencil"></i></span></a>
                 <form method="POST" action="{% url 'yorum_sil' yorum.id %}" style="display:inline;" onsubmit="return confirm('Yorumu silmek istediğinden emin misin?');">
                     {% csrf_token %}
-                    <button type="submit" class="comment-action-btn del-btn" title="Sil">🗑️</button>
+                    <button type="submit" class="comment-action-btn del-btn" title="Sil"><span class="ic"><i data-lucide="trash-2"></i></span></button>
                 </form>
                 {% endif %}
             </div>
@@ -467,7 +467,7 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
 
         {% if yorum.yanit %}
         <div class="yanit-box">
-            <strong>↩️ Mekan sahibinden yanıt — {{ yorum.yanit.tarih|date:"d M Y" }}</strong>
+            <strong><span class="ic"><i data-lucide="corner-down-left"></i></span> Mekan sahibinden yanıt — {{ yorum.yanit.tarih|date:"d M Y" }}</strong>
             {{ yorum.yanit.icerik }}
         </div>
         {% endif %}
@@ -477,12 +477,12 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
             <button class="begen-btn {% if yorum.id in kullanici_begenileri %}begendim{% endif %}"
                     id="begen-btn-{{ yorum.id }}"
                     onclick="yorumBegen({{ yorum.id }}, this)">
-                ❤️ <span id="begen-sayi-{{ yorum.id }}">{{ yorum.begeniler.count }}</span>
+                <span class="ic" style="color:#ef4444"><i data-lucide="heart"></i></span> <span id="begen-sayi-{{ yorum.id }}">{{ yorum.begeniler.count }}</span>
             </button>
             {% if mekan.sahibi == user %}
             <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'"
                     style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:4px 10px;font-size:13px;cursor:pointer;font-family:inherit;color:var(--muted);">
-                ↩️ Yanıtla
+                <span class="ic"><i data-lucide="corner-down-left"></i></span> Yanıtla
             </button>
             <div style="display:none;margin-top:8px;width:100%;">
                 <form method="POST" action="{% url 'yorum_yanit' yorum.id %}">
@@ -493,7 +493,7 @@ textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 
             </div>
             {% endif %}
             {% else %}
-            <span style="font-size:13px;color:var(--muted);">❤️ {{ yorum.begeniler.count }}</span>
+            <span style="font-size:13px;color:var(--muted);"><span class="ic" style="color:#ef4444"><i data-lucide="heart"></i></span> {{ yorum.begeniler.count }}</span>
             {% endif %}
         </div>
     </div>

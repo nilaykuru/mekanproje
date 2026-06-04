@@ -53,7 +53,7 @@
 
 {% block content %}
 <div class="form-wrap">
-    <a href="{% url 'owner_dashboard' %}" class="back-link">← Panele Dön</a>
+    <a href="{% url 'owner_dashboard' %}" class="back-link"><span class="ic"><i data-lucide="arrow-left"></i></span> Panele Dön</a>
     <h1>{{ baslik }}</h1>
 
     {% if messages %}
@@ -158,15 +158,15 @@
         <div class="card-section">
             <div class="card-section-title">Olanaklar</div>
             <div class="checkbox-grid">
-                <label class="checkbox-item">{{ form.wifi_var }} 🌐 Wi-Fi</label>
-                <label class="checkbox-item">{{ form.priz_var }} 🔌 Priz</label>
-                <label class="checkbox-item">{{ form.otopark_var }} 🚗 Otopark</label>
-                <label class="checkbox-item">{{ form.bahce_var }} 🌿 Bahçe</label>
-                <label class="checkbox-item">{{ form.canli_muzik_var }} 🎸 Canlı Müzik</label>
-                <label class="checkbox-item">{{ form.sigara_icin_uygun }} 🚬 Sigara</label>
-                <label class="checkbox-item">{{ form.engelli_erisimi_var }} ♿ Engelli Erişim</label>
-                <label class="checkbox-item">{{ form.evcil_hayvan_izinli }} 🐾 Pet Dostu</label>
-                <label class="checkbox-item">{{ form.cocuk_oyun_alani_var }} 👶 Çocuk Alanı</label>
+                <label class="checkbox-item">{{ form.wifi_var }} <span class="ic"><i data-lucide="wifi"></i></span> Wi-Fi</label>
+                <label class="checkbox-item">{{ form.priz_var }} <span class="ic"><i data-lucide="plug"></i></span> Priz</label>
+                <label class="checkbox-item">{{ form.otopark_var }} <span class="ic"><i data-lucide="car"></i></span> Otopark</label>
+                <label class="checkbox-item">{{ form.bahce_var }} <span class="ic"><i data-lucide="leaf"></i></span> Bahçe</label>
+                <label class="checkbox-item">{{ form.canli_muzik_var }} <span class="ic"><i data-lucide="music"></i></span> Canlı Müzik</label>
+                <label class="checkbox-item">{{ form.sigara_icin_uygun }} <span class="ic"><i data-lucide="cigarette"></i></span> Sigara</label>
+                <label class="checkbox-item">{{ form.engelli_erisimi_var }} <span class="ic"><i data-lucide="accessibility"></i></span> Engelli Erişim</label>
+                <label class="checkbox-item">{{ form.evcil_hayvan_izinli }} <span class="ic"><i data-lucide="paw-print"></i></span> Pet Dostu</label>
+                <label class="checkbox-item">{{ form.cocuk_oyun_alani_var }} <span class="ic"><i data-lucide="baby"></i></span> Çocuk Alanı</label>
             </div>
         </div>
 

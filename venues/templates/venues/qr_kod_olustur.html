@@ -265,7 +265,7 @@
     <div class="container">
         <!-- Başlık -->
         <div class="header">
-            <h1>🔐 İki Aşamalı Doğrulama</h1>
+            <h1><span class="ic"><i data-lucide="lock"></i></span> İki Aşamalı Doğrulama</h1>
             <p>Google Authenticator veya benzeri uygulamayı kullanarak hesabınızı güvenli hale getirin.</p>
         </div>
 
@@ -293,14 +293,14 @@
         <!-- QR Kod Bölümü -->
         <div class="qr-section">
             <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="TOTP QR Code" class="qr-image">
-            <p class="qr-note">📱 QR kodu Google Authenticator ile tarayın</p>
+            <p class="qr-note"><span class="ic"><i data-lucide="smartphone"></i></span> QR kodu Google Authenticator ile tarayın</p>
         </div>
 
         <!-- Gizli Anahtar (Yedek) -->
         <div class="code-section">
             <label class="code-label">Gizli Anahtar (Yedek Olarak Kaydedin)</label>
             <div class="secret-code">{{ secret_key }}</div>
-            <p class="secret-help">⚠️ QR kodu tarayamıyorsanız, uygulamaya manual olarak bu kodu girin. Lütfen güvenli bir yerde saklayın!</p>
+            <p class="secret-help"><span class="ic"><i data-lucide="triangle-alert"></i></span> QR kodu tarayamıyorsanız, uygulamaya manual olarak bu kodu girin. Lütfen güvenli bir yerde saklayın!</p>
         </div>
 
         <!-- Doğrulama Formu -->
@@ -323,10 +323,13 @@
                 <p class="form-help">Uygulamada görünen 6 haneli kodu girin</p>
             </div>
 
-            <button type="submit" class="submit-btn">✓ Doğrula ve Devam Et</button>
+            <button type="submit" class="submit-btn"><span class="ic" style="color:#16a34a"><i data-lucide="check-circle"></i></span> Doğrula ve Devam Et</button>
         </form>
 
         <a href="{% url 'dashboard' %}" class="cancel-btn">İptal Et</a>
     </div>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => lucide.createIcons());</script>
+<style>.ic { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; } .ic svg { width:1em; height:1em; stroke:currentColor; stroke-width:2; fill:none; stroke-linecap:round; stroke-linejoin:round; vertical-align:middle; }</style>
 </body>
 </html>

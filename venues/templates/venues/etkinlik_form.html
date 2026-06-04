@@ -41,7 +41,7 @@
     <h1>{{ baslik }}</h1>
 
     <div class="venue-badge">
-        🏠 {{ mekan.ad }}
+        <span class="ic"><i data-lucide="home"></i></span> {{ mekan.ad }}
         {% if mod == 'duzenle' %}
             {% if etkinlik.aktif_mi %}
                 <span class="status-badge-active">● Aktif</span>

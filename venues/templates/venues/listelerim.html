@@ -28,7 +28,7 @@
 .btn-xs-del:hover { background: #fee2e2; }
 
 .bos { text-align: center; padding: 50px 20px; color: var(--muted); font-size: 14px; }
-.bos span { font-size: 40px; display: block; margin-bottom: 12px; }
+.bos .ic { font-size: 40px; display: block; margin-bottom: 12px; }
 {% endblock %}
 
 {% block content %}
@@ -64,13 +64,13 @@
     {% if listeler %}
     {% for liste in listeler %}
     <div class="liste-kart">
-        <div class="liste-ikon">📂</div>
+        <div class="liste-ikon"><span class="ic"><i data-lucide="folder"></i></span></div>
         <div class="liste-bilgi">
             <div class="liste-ad">{{ liste.ad }}</div>
             <div class="liste-meta">
                 {{ liste.mekanlar.count }} mekan
                 {% if liste.aciklama %} · {{ liste.aciklama|truncatechars:50 }}{% endif %}
-                {% if not liste.herkese_acik %} · 🔒 Gizli{% else %} · 🌐 Herkese açık{% endif %}
+                {% if not liste.herkese_acik %} · <span class="ic"><i data-lucide="lock"></i></span> Gizli{% else %} · <span class="ic"><i data-lucide="globe"></i></span> Herkese açık{% endif %}
             </div>
         </div>
         <div class="liste-aksiyonlar">
@@ -84,7 +84,7 @@
     {% endfor %}
     {% else %}
     <div class="bos">
-        <span>📋</span>
+        <span class="ic" style="font-size:40px;display:block;margin-bottom:12px;"><i data-lucide="clipboard"></i></span>
         Henüz listeniz yok. Yukarıdan ilk listenizi oluşturun!
     </div>
     {% endif %}

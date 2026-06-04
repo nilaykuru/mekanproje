@@ -72,7 +72,7 @@
                     <img src="{{ mekan.img.url }}" alt="{{ mekan.ad }}" loading="lazy">
                 {% else %}
                     <div class="venue-img-placeholder">
-                        {% if mekan.kategori == 'KAFE' %}☕{% elif mekan.kategori == 'RESTORAN' %}🍽️{% elif mekan.kategori == 'ECZANE' %}💊{% elif mekan.kategori == 'KUTUPHANE' %}📚{% elif mekan.kategori == 'PUB' %}🍺{% else %}🏠{% endif %}
+                        {% if mekan.kategori == 'KAFE' %}<span class="ic"><i data-lucide="coffee"></i></span>{% elif mekan.kategori == 'RESTORAN' %}<span class="ic"><i data-lucide="utensils"></i></span>{% elif mekan.kategori == 'ECZANE' %}<span class="ic"><i data-lucide="pill"></i></span>{% elif mekan.kategori == 'KUTUPHANE' %}<span class="ic"><i data-lucide="book-open"></i></span>{% elif mekan.kategori == 'PUB' %}<span class="ic"><i data-lucide="beer"></i></span>{% else %}<span class="ic"><i data-lucide="home"></i></span>{% endif %}
                     </div>
                 {% endif %}
                 {% if mekan.acik_mi %}
@@ -82,7 +82,7 @@
                 {% endif %}
                 {% if user.is_authenticated %}
                 <a href="{% url 'favori_islem' mekan.id %}" class="fav-btn" title="Favori">
-                    {% if request.user in mekan.favorileyenler.all %}❤️{% else %}🤍{% endif %}
+                    {% if request.user in mekan.favorileyenler.all %}<span class="ic" style="color:#ef4444"><i data-lucide="heart"></i></span>{% else %}<span class="ic"><i data-lucide="heart"></i></span>{% endif %}
                 </a>
                 {% endif %}
             </div>
@@ -132,8 +132,8 @@
                 </div>
                 <div class="venue-footer">
                     <a href="https://www.google.com/maps/search/?api=1&query={{ mekan.ad|urlencode }}+{{ mekan.adres|urlencode }}"
-                       target="_blank" class="btn-map">📍 Yol Tarifi</a>
-                    <a href="{% url 'mekan_detay' mekan.id %}" class="btn-detail">Detay →</a>
+                       target="_blank" class="btn-map"><span class="ic"><i data-lucide="map-pin"></i></span> Yol Tarifi</a>
+                    <a href="{% url 'mekan_detay' mekan.id %}" class="btn-detail">Detay <span class="ic"><i data-lucide="arrow-right"></i></span></a>
                 </div>
             </div>
         </article>

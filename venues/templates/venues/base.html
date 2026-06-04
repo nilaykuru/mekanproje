@@ -283,6 +283,10 @@
         .footer-copy { font-size: 12px; }
 
         {% block extra_css %}{% endblock %}
+
+        /* ── Lucide icon helpers ─────────────────── */
+        .ic { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .ic svg { width:1em; height:1em; stroke:currentColor; stroke-width:2; fill:none; stroke-linecap:round; stroke-linejoin:round; vertical-align:middle; }
     </style>
 </head>
 <body>
@@ -302,10 +306,10 @@
     {% endif %}
 
     <div class="navbar-right">
-        <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()" title="Karanlık Mod">🌙</button>
+        <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()" title="Karanlık Mod"><span class="ic" id="dark-toggle-icon"><i data-lucide="moon"></i></span></button>
         {% if user.is_authenticated %}
             <a href="{% url 'bildirimler' %}" class="notif-bell" title="Bildirimler" id="notif-bell-link">
-                🔔
+                <span class="ic"><i data-lucide="bell"></i></span>
                 <span class="notif-badge" id="notif-badge" style="display:none;">0</span>
             </a>
             <a href="{% url 'profil' %}" class="nav-avatar" title="Profilim">
@@ -337,7 +341,7 @@
         <a href="{% url 'bildirimler' %}" class="subnav-link {% block nav_bildirimler_owner %}{% endblock %}">Bildirimler</a>
     {% else %}
         <a href="{% url 'dashboard' %}" class="subnav-link {% block nav_home %}{% endblock %}">Tüm Mekanlar</a>
-        <a href="{% url 'mekan_harita' %}" class="subnav-link {% block nav_harita %}{% endblock %}">🗺️ Harita</a>
+        <a href="{% url 'mekan_harita' %}" class="subnav-link {% block nav_harita %}{% endblock %}"><span class="ic"><i data-lucide="map"></i></span> Harita</a>
         <a href="{% url 'calisma_alanlari' %}" class="subnav-link {% block nav_calisma %}{% endblock %}">Çalışma Alanları</a>
         <a href="{% url 'favorilerim' %}" class="subnav-link {% block nav_fav %}{% endblock %}">Favorilerim</a>
         <a href="{% url 'listelerim' %}" class="subnav-link {% block nav_listeler %}{% endblock %}">Listelerim</a>
@@ -353,21 +357,26 @@
 </main>
 
 <script>
+function setDarkIcon(isDark) {
+    const iconWrap = document.getElementById('dark-toggle-icon');
+    if (!iconWrap) return;
+    iconWrap.innerHTML = isDark
+        ? '<i data-lucide="sun"></i>'
+        : '<i data-lucide="moon"></i>';
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
 function toggleDark() {
     const root = document.documentElement;
     const isDark = root.getAttribute('data-theme') === 'dark';
     root.setAttribute('data-theme', isDark ? 'light' : 'dark');
     localStorage.setItem('am-theme', isDark ? 'light' : 'dark');
-    const btn = document.getElementById('dark-toggle');
-    if (btn) btn.textContent = isDark ? '🌙' : '☀️';
+    setDarkIcon(!isDark);
 }
 
 // Sayfa yüklendiğinde ikon senkronize et
 document.addEventListener('DOMContentLoaded', function() {
-    const btn = document.getElementById('dark-toggle');
-    if (!btn) return;
     const isDark = document.getElementById('html-root').getAttribute('data-theme') === 'dark';
-    btn.textContent = isDark ? '☀️' : '🌙';
+    setDarkIcon(isDark);
 });
 </script>
 
@@ -393,15 +402,7 @@ setInterval(guncelleBildirimBadge, 60000);
 </script>
 {% endif %}
 
-<footer class="footer">
-    <div class="footer-logo">Anlık Mekan</div>
-    <div class="footer-links">
-        <a href="#">Hakkımızda</a>
-        <a href="#">İletişim</a>
-        <a href="#">Gizlilik</a>
-    </div>
-    <div class="footer-copy">© 2026 Anlık Mekan</div>
-</footer>
-
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => lucide.createIcons());</script>
 </body>
 </html>

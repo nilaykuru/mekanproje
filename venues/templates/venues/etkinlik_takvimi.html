@@ -33,24 +33,24 @@
 
 {% block content %}
 <div class="takvim-wrap">
-    <h1 class="takvim-baslik">📅 Etkinlik Takvimi</h1>
+    <h1 class="takvim-baslik"><span class="ic"><i data-lucide="calendar"></i></span> Etkinlik Takvimi</h1>
     <p class="takvim-alt">Yaklaşan etkinlikler — takip ettiklerinden veya favorilerinden filtrele.</p>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
         <a href="?filtre=tumu"
            style="padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;border:1.5px solid var(--border);text-decoration:none;
                   {% if aktif_filtre == 'tumu' %}background:var(--primary);color:white;border-color:var(--primary);{% else %}background:var(--surface);color:var(--text);{% endif %}">
-            🌐 Tüm Etkinlikler
+            <span class="ic"><i data-lucide="globe"></i></span> Tüm Etkinlikler
         </a>
         <a href="?filtre=takip"
            style="padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;border:1.5px solid var(--border);text-decoration:none;
                   {% if aktif_filtre == 'takip' %}background:#7c3aed;color:white;border-color:#7c3aed;{% else %}background:var(--surface);color:var(--text);{% endif %}">
-            👥 Takip Ettiklerim
+            <span class="ic"><i data-lucide="users"></i></span> Takip Ettiklerim
         </a>
         <a href="?filtre=favori"
            style="padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;border:1.5px solid var(--border);text-decoration:none;
                   {% if aktif_filtre == 'favori' %}background:#dc2626;color:white;border-color:#dc2626;{% else %}background:var(--surface);color:var(--text);{% endif %}">
-            ❤️ Favorilerim
+            <span class="ic" style="color:#ef4444"><i data-lucide="heart"></i></span> Favorilerim
         </a>
     </div>
 
@@ -68,7 +68,7 @@
             </div>
             <div class="etkinlik-bilgi">
                 <div class="etkinlik-baslik">{{ e.baslik }}</div>
-                <div class="etkinlik-mekan">📍 {{ e.mekan.ad }}</div>
+                <div class="etkinlik-mekan"><span class="ic"><i data-lucide="map-pin"></i></span> {{ e.mekan.ad }}</div>
                 <div class="etkinlik-saat">{{ e.baslangic|date:"H:i" }} – {{ e.bitis|date:"H:i" }}</div>
             </div>
         </div>

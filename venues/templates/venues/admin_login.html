@@ -1,26 +1,42 @@
-{% extends 'venues/base.html' %}
-{% block title %}Yetkili Giriş — Anlık Mekan{% endblock %}
-
-{% block content %}
-<div style="max-width:480px;margin:60px auto;padding:28px;background:white;border-radius:12px;">
-    <h2 style="margin-bottom:16px;font-size:20px;">Yetkili Giriş</h2>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yetkili Giriş</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0f172a; min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: system-ui, sans-serif; }
+.card { background: white; border-radius: 14px; padding: 36px 32px; width: 100%; max-width: 420px; }
+h2 { font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+.alt { font-size: 13px; color: #64748b; margin-bottom: 24px; }
+label { font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: .4px; display: block; margin-bottom: 6px; }
+input { width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; margin-bottom: 16px; }
+input:focus { border-color: #2563eb; }
+button { width: 100%; background: #0f172a; color: white; padding: 11px; border-radius: 8px; border: none; font-weight: 700; font-size: 14px; cursor: pointer; }
+button:hover { background: #1e293b; }
+.hata { background: #fee2e2; color: #991b1b; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
+.alt-not { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 16px; }
+</style>
+</head>
+<body>
+<div class="card">
+    <h2>Yetkili Giriş</h2>
+    <p class="alt">Bu sayfa gizlidir.</p>
     {% if messages %}
         {% for msg in messages %}
-            <div style="background:#fee2e2;padding:10px;border-radius:8px;margin-bottom:10px;color:#991b1b;">{{ msg }}</div>
+        <div class="hata">{{ msg }}</div>
         {% endfor %}
     {% endif %}
     <form method="POST">
         {% csrf_token %}
-        <div style="margin-bottom:12px;">
-            <label>Kullanıcı Adı</label>
-            {{ form.username }}
-        </div>
-        <div style="margin-bottom:12px;">
-            <label>Şifre</label>
-            {{ form.password }}
-        </div>
-        <button type="submit" style="background:#0f172a;color:white;padding:10px 16px;border-radius:8px;border:none;font-weight:700;">Giriş Yap</button>
+        <label for="id_username">Kullanıcı Adı</label>
+        <input type="text" name="username" id="id_username" autocomplete="username" autofocus>
+        <label for="id_password">Şifre</label>
+        <input type="password" name="password" id="id_password" autocomplete="current-password">
+        <button type="submit">Giriş Yap</button>
     </form>
-    <p style="margin-top:12px;color:#64748b;font-size:13px;">Bu sayfa gizlidir. Sitede herhangi bir link bulunmaz.</p>
+    <p class="alt-not">Sitede herhangi bir link bulunmaz.</p>
 </div>
-{% endblock %}
+</body>
+</html>

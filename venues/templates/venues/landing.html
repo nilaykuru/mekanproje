@@ -104,7 +104,7 @@
 }
 .kat-kart:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,.1); border-color: var(--primary); }
 .kat-kart:hover::before { opacity: 1; }
-.kat-emoji { font-size: 36px; margin-bottom: 12px; display: block; }
+.kat-emoji { font-size: 36px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; }
 .kat-name { font-size: 14px; font-weight: 700; }
 .kat-count { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
@@ -127,7 +127,7 @@
 .feature-card:nth-child(4)::before { background: linear-gradient(90deg, #f59e0b, #ef4444); }
 .feature-card:nth-child(5)::before { background: linear-gradient(90deg, #ec4899, #f59e0b); }
 .feature-card:nth-child(6)::before { background: linear-gradient(90deg, #8b5cf6, #ec4899); }
-.feature-icon { font-size: 32px; margin-bottom: 16px; display: block; }
+.feature-icon { font-size: 32px; margin-bottom: 16px; display: flex; align-items: center; }
 .feature-card h3 { font-size: 16px; font-weight: 800; margin-bottom: 8px; }
 .feature-card p { font-size: 13px; color: var(--muted); line-height: 1.7; }
 
@@ -198,10 +198,7 @@
         <div class="stat-num">Anlık</div>
         <div class="stat-lbl">Durum güncellemesi</div>
     </div>
-    <div class="stat-item">
-        <div class="stat-num">4 Şehir</div>
-        <div class="stat-lbl">İstanbul, İzmir, Samsun, Sakarya</div>
-    </div>
+    
     <div class="stat-item">
         <div class="stat-num">Ücretsiz</div>
         <div class="stat-lbl">Her zaman</div>
@@ -216,27 +213,27 @@
     </div>
     <div class="kat-grid">
         <a href="{% url 'login' %}" class="kat-kart">
-            <span class="kat-emoji">☕</span>
+            <span class="kat-emoji ic"><i data-lucide="coffee"></i></span>
             <div class="kat-name">Kafeler</div>
             <div class="kat-count">Çalışmak için ideal</div>
         </a>
         <a href="{% url 'login' %}" class="kat-kart">
-            <span class="kat-emoji">🍽️</span>
+            <span class="kat-emoji ic"><i data-lucide="utensils"></i></span>
             <div class="kat-name">Restoranlar</div>
             <div class="kat-count">Yemek arayanlar için</div>
         </a>
         <a href="{% url 'login' %}" class="kat-kart">
-            <span class="kat-emoji">📚</span>
+            <span class="kat-emoji ic"><i data-lucide="book-open"></i></span>
             <div class="kat-name">Kütüphaneler</div>
             <div class="kat-count">Sessiz çalışma alanı</div>
         </a>
         <a href="{% url 'login' %}" class="kat-kart">
-            <span class="kat-emoji">🍺</span>
+            <span class="kat-emoji ic"><i data-lucide="beer"></i></span>
             <div class="kat-name">Pub & Bar</div>
             <div class="kat-count">Eğlence için</div>
         </a>
         <a href="{% url 'login' %}" class="kat-kart">
-            <span class="kat-emoji">💊</span>
+            <span class="kat-emoji ic"><i data-lucide="pill"></i></span>
             <div class="kat-name">Eczaneler</div>
             <div class="kat-count">Nöbetçi bilgisi</div>
         </a>
@@ -276,32 +273,32 @@
     </div>
     <div class="features-grid">
         <div class="feature-card">
-            <span class="feature-icon">⚡</span>
+            <span class="feature-icon ic"><i data-lucide="zap"></i></span>
             <h3>Gerçek Zamanlı Durum</h3>
             <p>Mekan sahipleri açık/kapalı durumunu ve doluluk bilgisini canlı günceller. Boşa yola çıkmazsın.</p>
         </div>
         <div class="feature-card">
-            <span class="feature-icon">🗺️</span>
+            <span class="feature-icon ic"><i data-lucide="map"></i></span>
             <h3>İnteraktif Harita</h3>
             <p>Kategoriye, şehre ve özelliklere göre filtrele. Mekana gitmeden önce haritada gör.</p>
         </div>
         <div class="feature-card">
-            <span class="feature-icon">🎉</span>
+            <span class="feature-icon ic"><i data-lucide="sparkles"></i></span>
             <h3>Etkinlik Takibi</h3>
             <p>Canlı müzik, özel geceler, kampanyalar... Mekan sahipleri etkinliklerini buradan duyurur.</p>
         </div>
         <div class="feature-card">
-            <span class="feature-icon">❤️</span>
+            <span class="feature-icon ic" style="color:#ef4444"><i data-lucide="heart"></i></span>
             <h3>Favori ve Listeler</h3>
             <p>Beğendiğin mekanları kaydet, listeler oluştur, arkadaşlarınla paylaş.</p>
         </div>
         <div class="feature-card">
-            <span class="feature-icon">⭐</span>
+            <span class="feature-icon ic" style="color:#f59e0b"><i data-lucide="star"></i></span>
             <h3>Gerçek Yorumlar</h3>
             <p>Deneyimini paylaş, diğerlerinin deneyimlerini oku. Fotoğraf ekle, puan ver.</p>
         </div>
         <div class="feature-card">
-            <span class="feature-icon">🔔</span>
+            <span class="feature-icon ic"><i data-lucide="bell"></i></span>
             <h3>Anlık Bildirimler</h3>
             <p>Takip ettiğin mekanların kampanyalarını, etkinliklerini kaçırma. Anında haberdar ol.</p>
         </div>

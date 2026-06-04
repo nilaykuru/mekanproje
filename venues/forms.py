@@ -73,7 +73,7 @@ class MekanForm(forms.ModelForm):
             'website': forms.URLInput(attrs={'style': INPUT_STYLE, 'placeholder': 'https://...'}),
             'acilis_saati': forms.TimeInput(attrs={'style': INPUT_STYLE, 'type': 'time'}),
             'kapanis_saati': forms.TimeInput(attrs={'style': INPUT_STYLE, 'type': 'time'}),
-            'doluluk_orani': forms.NumberInput(attrs={'style': INPUT_STYLE, 'min': 0, 'max': 100}),
+            'doluluk_orani': forms.NumberInput(attrs={'style': INPUT_STYLE, 'min': 0, 'max': 100, 'placeholder': 'Boş bırakabilirsiniz'}),
             'anlik_duyuru': forms.TextInput(attrs={'style': INPUT_STYLE, 'placeholder': 'Bugün mekanda neler var?'}),
             'latitude': forms.HiddenInput(),
             'longitude': forms.HiddenInput(),
