@@ -288,6 +288,9 @@
         .ic { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
         .ic svg { width:1em; height:1em; stroke:currentColor; stroke-width:2; fill:none; stroke-linecap:round; stroke-linejoin:round; vertical-align:middle; }
 
+        /* ── Mesafe badge ───────────────────────── */
+        .mesafe-badge { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700; color:#2563eb; background:#eff6ff; border-radius:5px; padding:2px 7px; margin-bottom:6px; }
+
         /* ── Canlı arama dropdown ────────────────── */
         .navbar-search { position: relative; }
         #search-dropdown {
@@ -381,6 +384,7 @@
         <a href="{% url 'rezervasyonlarim' %}" class="subnav-link {% block nav_rezervasyonlar %}{% endblock %}">Rezervasyonlarım</a>
         <a href="{% url 'populer_mekanlar' %}" class="subnav-link {% block nav_populer %}{% endblock %}">Popüler</a>
         <a href="{% url 'etkinlik_takvimi' %}" class="subnav-link {% block nav_takvim %}{% endblock %}">Takvim</a>
+        <button id="konum-toggle-btn" onclick="konumToggle()" style="display:none;margin-left:auto;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);white-space:nowrap;transition:.15s;flex-shrink:0;">📍 Yakınımdakiler</button>
     {% endif %}
 </nav>
 {% endif %}
@@ -443,6 +447,106 @@ function kartaTikla(e, url) {
     if (e.target.closest('a, button, form')) return;
     window.location.href = url;
 }
+
+// ── Konum & Mesafe ────────────────────────────────────────────────────────────
+(function () {
+    const KONUM_KEY = 'user_konum';
+    const SIRALAMA_KEY = 'konum_siralama';
+
+    function haversine(lat1, lng1, lat2, lng2) {
+        const R = 6371, r = x => x * Math.PI / 180;
+        const dLat = r(lat2 - lat1), dLng = r(lng2 - lng1);
+        const a = Math.sin(dLat/2)**2 + Math.cos(r(lat1)) * Math.cos(r(lat2)) * Math.sin(dLng/2)**2;
+        return R * 2 * Math.asin(Math.sqrt(a));
+    }
+
+    function mesafeYazi(km) {
+        return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
+    }
+
+    function orijinalSiraKaydet() {
+        const grid = document.querySelector('.venue-grid');
+        if (!grid) return;
+        Array.from(grid.children).forEach((c, i) => { if (!c.dataset.originalOrder) c.dataset.originalOrder = i; });
+    }
+
+    function sirala(konum) {
+        const grid = document.querySelector('.venue-grid');
+        if (!grid) return;
+        orijinalSiraKaydet();
+        const cards = Array.from(grid.children);
+        cards.forEach(card => {
+            const lat = parseFloat(card.dataset.lat);
+            const lng = parseFloat(card.dataset.lng);
+            if (lat && lng) {
+                const d = haversine(konum.lat, konum.lng, lat, lng);
+                card.dataset.distance = d;
+                let badge = card.querySelector('.mesafe-badge');
+                if (!badge) {
+                    badge = document.createElement('div');
+                    badge.className = 'mesafe-badge';
+                    const body = card.querySelector('.venue-body') || card;
+                    body.insertBefore(badge, body.firstChild);
+                }
+                badge.innerHTML = `📍 ${mesafeYazi(d)}`;
+            } else {
+                card.dataset.distance = 99999;
+            }
+        });
+        cards.sort((a, b) => parseFloat(a.dataset.distance||99999) - parseFloat(b.dataset.distance||99999));
+        cards.forEach(c => grid.appendChild(c));
+    }
+
+    function siralamayiKaldir() {
+        const grid = document.querySelector('.venue-grid');
+        if (!grid) return;
+        document.querySelectorAll('.mesafe-badge').forEach(b => b.remove());
+        const cards = Array.from(grid.children);
+        cards.sort((a, b) => parseInt(a.dataset.originalOrder||0) - parseInt(b.dataset.originalOrder||0));
+        cards.forEach(c => grid.appendChild(c));
+    }
+
+    function btnGuncelle(aktif) {
+        const btn = document.getElementById('konum-toggle-btn');
+        if (!btn) return;
+        btn.textContent = aktif ? '📍 Yakınımdakiler (Aktif)' : '📍 Yakınımdakiler';
+        btn.style.background = aktif ? 'var(--primary)' : 'var(--surface)';
+        btn.style.color = aktif ? 'white' : 'var(--muted)';
+        btn.style.borderColor = aktif ? 'var(--primary)' : 'var(--border)';
+    }
+
+    window.konumToggle = function () {
+        const aktif = localStorage.getItem(SIRALAMA_KEY) === '1';
+        if (aktif) {
+            localStorage.removeItem(SIRALAMA_KEY);
+            siralamayiKaldir();
+            btnGuncelle(false);
+        } else {
+            const konum = JSON.parse(sessionStorage.getItem(KONUM_KEY) || 'null');
+            if (!konum) return;
+            localStorage.setItem(SIRALAMA_KEY, '1');
+            sirala(konum);
+            btnGuncelle(true);
+        }
+    };
+
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            const konum = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            sessionStorage.setItem(KONUM_KEY, JSON.stringify(konum));
+            const btn = document.getElementById('konum-toggle-btn');
+            if (btn) btn.style.display = '';
+            if (localStorage.getItem(SIRALAMA_KEY) === '1') {
+                sirala(konum);
+                btnGuncelle(true);
+            }
+        },
+        () => { localStorage.removeItem(SIRALAMA_KEY); },
+        { timeout: 10000, maximumAge: 300000 }
+    );
+})();
 
 (function () {
     const input = document.getElementById('search-input');

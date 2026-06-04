@@ -250,7 +250,7 @@
 <!-- ── Kart Grid ─────────────────────────────────────────────────────── -->
 <div class="venue-grid">
     {% for mekan in mekanlar %}
-    <article class="venue-card" onclick="kartaTikla(event, '{% url 'mekan_detay' mekan.id %}')" role="button">
+    <article class="venue-card" onclick="kartaTikla(event, '{% url 'mekan_detay' mekan.id %}')" role="button" data-lat="{{ mekan.latitude|default:'' }}" data-lng="{{ mekan.longitude|default:'' }}">
         <div class="venue-img-wrap">
             {% if mekan.img %}
                 <img src="{{ mekan.img.url }}" alt="{{ mekan.ad }}" loading="lazy">

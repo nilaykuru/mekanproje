@@ -135,6 +135,20 @@ main {
     top: 0; left: 0; right: 0; bottom: 0;
 }
 
+/* ── Kullanıcı konum noktası ───────────────────────────────────── */
+.user-dot {
+    width:22px; height:22px;
+    background:#2563eb; border:3px solid white;
+    border-radius:50%;
+    box-shadow: 0 0 0 0 rgba(37,99,235,.45);
+    animation: konum-pulse 1.8s ease-out infinite;
+}
+@keyframes konum-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(37,99,235,.45); }
+    70%  { box-shadow: 0 0 0 14px rgba(37,99,235,0); }
+    100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
+}
+
 /* ── Leaflet override'ları ─────────────────────────────────────── */
 /* Zoom butonları — base CSS'in a { color: inherit } override'ını düzelt */
 .leaflet-control-zoom a {
@@ -475,6 +489,22 @@ if (bounds.length > 0) {
 
 // Yeniden boyutlandır (flex layout bazen gerektiriyor)
 setTimeout(() => map.invalidateSize(), 150);
+
+// ── Kullanıcı konumu ──────────────────────────────────────────────────────────
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+        const lat = pos.coords.latitude, lng = pos.coords.longitude;
+        const userIcon = L.divIcon({
+            className: '',
+            html: '<div class="user-dot"></div>',
+            iconSize: [22, 22],
+            iconAnchor: [11, 11],
+        });
+        L.marker([lat, lng], { icon: userIcon, zIndexOffset: 1000 })
+            .addTo(map)
+            .bindPopup('<strong>Konumunuz</strong>');
+    }, () => {}, { timeout: 8000, maximumAge: 300000 });
+}
 
 // ── Liste ↔ Harita senkronu ───────────────────────────────────────────────────
 function rowVurgula(id) {
