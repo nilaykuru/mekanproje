@@ -22,7 +22,10 @@
 
     {% if bildirimler %}
     {% for b in bildirimler %}
-    <div class="bildirim-kart {% if not b.okundu %}okunmadi{% endif %}">
+    {% if b.link %}
+    <a href="{{ b.link }}" style="text-decoration:none;display:block;">
+    {% endif %}
+    <div class="bildirim-kart {% if not b.okundu %}okunmadi{% endif %}" style="{% if b.link %}cursor:pointer;{% endif %}">
         <div class="bildirim-ikon">
             {% if b.tip == 'YORUM' %}<span class="ic"><i data-lucide="message-circle"></i></span>
             {% elif b.tip == 'BEGENI' %}<span class="ic" style="color:#ef4444"><i data-lucide="heart"></i></span>
@@ -35,11 +38,7 @@
             {% else %}<span class="ic"><i data-lucide="bell"></i></span>{% endif %}
         </div>
         <div class="bildirim-icerik">
-            {% if b.link %}
-            <a href="{{ b.link }}" class="bildirim-mesaj" style="text-decoration:none;display:block;">{{ b.mesaj }}</a>
-            {% else %}
             <div class="bildirim-mesaj">{{ b.mesaj }}</div>
-            {% endif %}
             <div class="bildirim-meta">
                 <span>{{ b.olusturuldu|date:"d M Y H:i" }}</span>
                 {% if b.gonderen %}<span>Gönderen: <strong>{{ b.gonderen.username }}</strong></span>{% endif %}
@@ -49,6 +48,7 @@
             </div>
         </div>
     </div>
+    {% if b.link %}</a>{% endif %}
     {% endfor %}
     {% else %}
     <div class="bildirim-bos">
