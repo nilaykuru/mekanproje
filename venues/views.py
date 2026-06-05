@@ -527,9 +527,11 @@ def mekan_sahibi_paneli(request):
         puan_dagilim[m.id] = [
             ys.filter(puan=i).count() for i in range(1, 6)
         ]
+    from django.utils import timezone as tz
     return render(request, 'venues/owner_dashboard.html', {
         'mekanlar': mekanlarim,
         'puan_dagilim_json': json.dumps(puan_dagilim),
+        'now': tz.now(),
     })
 
 
