@@ -99,6 +99,7 @@
             <h1>{{ profil_kullanici.username }}</h1>
             <p>{{ profil_kullanici.email|default:"E-posta eklenmemiş" }} &nbsp;·&nbsp; Üye: {{ profil_kullanici.date_joined|date:"F Y" }}</p>
             <div class="profil-stat-row">
+                {% if profil_kullanici.profile.rol != 'OWNER' %}
                 <div class="stat-item">
                     <span class="stat-sayi">{{ yorum_sayisi }}</span>
                     <span class="stat-label">Yorum</span>
@@ -107,7 +108,7 @@
                     <span class="stat-sayi">{{ favori_sayisi }}</span>
                     <span class="stat-label">Favori</span>
                 </div>
-                {% if profil_kullanici.profile.rol == 'OWNER' %}
+                {% else %}
                 <div class="stat-item">
                     <span class="stat-sayi">{{ profil_kullanici.mekanlari.count }}</span>
                     <span class="stat-label">Mekan</span>
@@ -125,13 +126,18 @@
 
     <!-- Sekmeler -->
     <div class="sekme-bar">
+        {% if profil_kullanici.profile.rol != 'OWNER' %}
         <button class="sekme aktif" onclick="sekmeAc(this,'tab-yorumlar')"><span class="ic"><i data-lucide="message-circle"></i></span> Yorumlarım ({{ yorum_sayisi }})</button>
         <button class="sekme" onclick="sekmeAc(this,'tab-favoriler')"><span class="ic" style="color:#ef4444"><i data-lucide="heart"></i></span> Favorilerim ({{ favori_sayisi }})</button>
         <button class="sekme" onclick="window.location.href='{% url 'listelerim' %}'"><span class="ic"><i data-lucide="clipboard"></i></span> Listelerim</button>
         <button class="sekme" onclick="sekmeAc(this,'tab-hesap')"><span class="ic"><i data-lucide="settings"></i></span> Hesap Ayarları</button>
+        {% else %}
+        <button class="sekme aktif" onclick="sekmeAc(this,'tab-hesap')"><span class="ic"><i data-lucide="settings"></i></span> Hesap Ayarları</button>
+        {% endif %}
     </div>
 
     <!-- Yorumlarım -->
+    {% if profil_kullanici.profile.rol != 'OWNER' %}
     <div id="tab-yorumlar" class="sekme-icerik goster">
         {% for yorum in yorumlar %}
         <div class="yorum-kart">
@@ -185,9 +191,10 @@
         </div>
         {% endif %}
     </div>
+    {% endif %}
 
     <!-- Hesap Ayarları -->
-    <div id="tab-hesap" class="sekme-icerik">
+    <div id="tab-hesap" class="sekme-icerik {% if profil_kullanici.profile.rol == 'OWNER' %}goster{% endif %}">
 
         <!-- Profil Fotoğrafı -->
         <div class="form-kart" style="margin-bottom:16px;">
