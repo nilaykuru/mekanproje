@@ -101,13 +101,17 @@ else:
         'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
     }
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = 'AnlıkMekan <noreply@anlikmekan.com>'
+DEFAULT_FROM_EMAIL = f'AnlıkMekan <{EMAIL_HOST_USER}>' if EMAIL_HOST_USER else 'AnlıkMekan <noreply@anlikmekan.com>'
+EMAIL_BACKEND = (
+    'django.core.mail.backends.smtp.EmailBackend'
+    if EMAIL_HOST_USER else
+    'django.core.mail.backends.console.EmailBackend'
+)
 
 # Production güvenlik ayarları (sadece DEBUG=False iken aktif)
 if not DEBUG:
