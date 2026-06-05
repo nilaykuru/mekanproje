@@ -17,6 +17,9 @@ import string
 import qrcode
 import io
 import base64
+import logging
+
+logger = logging.getLogger(__name__)
 from .models import (Mekan, Yorum, Profile, Etkinlik, MekanFoto, YorumFoto,
                      SifreSifirlamaKodu, YorumBegeni, Bildirim, Takip,
                      MekanListesi, YorumYanit, Rezervasyon, Kampanya, CalismaGunu)
@@ -936,7 +939,8 @@ def sifre_sifirla_talep(request):
                     recipient_list=[email],
                     fail_silently=False,
                 )
-            except Exception:
+            except Exception as e:
+                logger.exception('Şifre sıfırlama maili gönderilemedi: %s', e)
                 messages.error(request, 'Mail gönderilemedi. Lütfen daha sonra tekrar deneyin.')
                 return render(request, 'venues/sifre_sifirla_talep.html')
             # Kullanıcı adını session'a sakla (kod doğrulama sayfasında kullanmak için)
