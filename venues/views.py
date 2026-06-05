@@ -920,19 +920,23 @@ def sifre_sifirla_talep(request):
             kod = ''.join(random.choices(string.digits, k=6))
             SifreSifirlamaKodu.objects.create(user=user, kod=kod)
             # Sadece kodu içeren mail gönder (URL yok!)
-            send_mail(
-                subject='Anlık Mekan — Şifre Sıfırlama Kodu',
-                message=(
-                    f'Merhaba {user.username},\n\n'
-                    f'Şifrenizi sıfırlamak için doğrulama kodunuz:\n\n'
-                    f'  {kod}\n\n'
-                    f'Bu kod 15 dakika geçerlidir.\n'
-                    f'Eğer bu isteği siz yapmadıysanız bu mesajı yok sayın.'
-                ),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[email],
-                fail_silently=False,
-            )
+            try:
+                send_mail(
+                    subject='Anlık Mekan — Şifre Sıfırlama Kodu',
+                    message=(
+                        f'Merhaba {user.username},\n\n'
+                        f'Şifrenizi sıfırlamak için doğrulama kodunuz:\n\n'
+                        f'  {kod}\n\n'
+                        f'Bu kod 15 dakika geçerlidir.\n'
+                        f'Eğer bu isteği siz yapmadıysanız bu mesajı yok sayın.'
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[email],
+                    fail_silently=False,
+                )
+            except Exception:
+                messages.error(request, 'Mail gönderilemedi. Lütfen daha sonra tekrar deneyin.')
+                return render(request, 'venues/sifre_sifirla_talep.html')
             # Kullanıcı adını session'a sakla (kod doğrulama sayfasında kullanmak için)
             request.session['sifre_sifirla_user_id'] = user.id
             messages.success(request, f'Doğrulama kodu {email} adresine gönderildi. Kodu girerek şifrenizi sıfırlayın.')
