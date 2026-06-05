@@ -7,6 +7,5 @@ db_eski.sqlite3
 media/
 __pycache__/
 .env
-config/local_settings.py
 server.log
 server_err.log
