@@ -1442,7 +1442,14 @@ def menu_yukle(request, mekan_id):
     if request.method == 'POST':
         form = MenuForm(request.POST, request.FILES, instance=mekan)
         if form.is_valid():
-            form.save()
+            obj = form.save(commit=False)
+            if request.POST.get('menu_foto_sil') and not request.FILES.get('menu_foto'):
+                obj.menu_foto.delete(save=False)
+                obj.menu_foto = None
+            if request.POST.get('menu_pdf_sil') and not request.FILES.get('menu_pdf'):
+                obj.menu_pdf.delete(save=False)
+                obj.menu_pdf = None
+            obj.save()
             messages.success(request, 'Menü güncellendi.')
         return redirect('owner_dashboard')
     return redirect('owner_dashboard')
